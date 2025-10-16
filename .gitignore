@@ -1,0 +1,36 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next / build
+**/dist/
+**/build/
+**/.next/
+.out/
+
+# PHP / Composer
+/vendor/
+/composer.phar
+
+# Env / secrets
+.env
+.env.*.local
+*.pem
+*.key
+
+# IDE / editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Misc
+.cache/
+.cache-loader/
+*.log
