@@ -1,25 +1,87 @@
-// filepath: d:\Project\Arkanin_v1\ops\docker-compose.yml
-version: '3.8'
+version: "3.8"
 services:
-  api:
-    build: ../apps/api
-    ports:
-      - "8000:8000"
-    env_file:
-      - ../apps/api/.env
-  web:
-    build: ../apps/web
-    ports:
-      - "3000:3000"
   postgres:
-    image: postgres:16
+    image: postgres:15
+    restart: unless-stopped
     environment:
       POSTGRES_DB: edutech
-      POSTGRES_USER: edutech
-      POSTGRES_PASSWORD: edutech
+      POSTGRES_USER: edutech_user
+      POSTGRES_PASSWORD: secretpassword
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+
   redis:
     image: redis:7
+    restart: unless-stopped
     ports:
       - "6379:6379"
+
+  minio:
+    image: minio/minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    command: server /data
+    ports:
+      - "9000:9000"
+    volumes:
+      - minio-data:/data
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+
+  api:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
+    container_name: edutech_api
+    working_dir: /var/www/html
+    volumes:
+      - ../apps/api:/var/www/html:cached
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: edutech
+      DB_USERNAME: edutech_user
+      DB_PASSWORD: secretpassword
+      REDIS_HOST: redis
+    command: sh -c "composer install --no-interaction --prefer-dist || true; php artisan serve --host=0.0.0.0 --port=8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+
+  web:
+    image: node:20
+    container_name: edutech_web
+    working_dir: /var/www/html
+    volumes:
+      - ../apps/web:/var/www/html:cached
+    command: sh -c "npm install --no-audit --no-fund || true; npm run dev -- --hostname 0.0.0.0"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  nginx:
+    image: nginx:stable
+    container_name: edutech_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/api.conf:/etc/nginx/conf.d/api.conf:ro
+      - ./nginx/web.conf:/etc/nginx/conf.d/web.conf:ro
+    depends_on:
+      - api
+      - web
+
+volumes:
+  postgres-data:
+  minio-data:
