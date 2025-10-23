@@ -37,7 +37,9 @@ services:
       - "8080:8080"
 
   api:
-    image: php:8.3
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile
     container_name: edutech_api
     working_dir: /var/www/html
     volumes:
