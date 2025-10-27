@@ -43,7 +43,10 @@ services:
     container_name: edutech_api
     working_dir: /var/www/html
     volumes:
-      - ../apps/api:/var/www/html:cached
+      - ../apps/api:/var/www/html:delegated
+      - /var/www/html/vendor
+      - /var/www/html/storage
+      - /var/www/html/bootstrap/cache
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -51,7 +54,10 @@ services:
       DB_USERNAME: edutech_user
       DB_PASSWORD: secretpassword
       REDIS_HOST: redis
-    command: sh -c "composer install --no-interaction --prefer-dist || true; php artisan serve --host=0.0.0.0 --port=8000"
+      APP_ENV: production
+      APP_DEBUG: false
+      DEBUGBAR_ENABLED: false
+    command: sh -c "composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev || true; php artisan config:cache; php artisan route:cache; php artisan serve --host=0.0.0.0 --port=8000"
     ports:
       - "8000:8000"
     depends_on:
