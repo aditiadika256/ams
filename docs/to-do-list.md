@@ -25,13 +25,13 @@
 - [x] **ADD**: API response helper/formatter (ApiResponse trait)
 - [x] Test login flow with superadmin credentials
 
-### 1.3 API Structure Setup 🟡 (PARTIALLY DONE)
-- [ ] Create base Controller with helper methods
+### 1.3 API Structure Setup ✅ (COMPLETED)
+- [x] Create base Controller with helper methods
 - [x] Create API response trait/formatter (ApiResponse trait - DONE in 1.2)
 - [x] Setup route versioning (/api/v1) (Already configured)
-- [ ] Create Form Request classes
-- [ ] Create API Resource classes
-- [ ] Add API documentation structure
+- [x] Create Form Request classes (BaseFormRequest, LoginRequest, RegisterRequest)
+- [x] Create API Resource classes (BaseResource, UserResource)
+- [x] Add API documentation structure (Swagger/OpenAPI with L5-Swagger)
 
 ---
 
@@ -219,7 +219,7 @@
 ---
 
 ## 📊 Progress Tracker
-- **Phase 1**: 75% ✅ (Infrastructure done, Auth completed, API structure partially done)
+- **Phase 1**: 85% ✅ (Infrastructure done, Auth completed, API structure completed)
 - **Phase 2**: 0% ⏸️
 - **Phase 3**: 0% ⏸️
 - **Phase 4**: 0% ⏸️
