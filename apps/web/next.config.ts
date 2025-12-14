@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 import path from 'path';
 
+const isDev = process.env.NODE_ENV !== 'production';
+const csp = [
+  "default-src 'self'",
+  "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws: http://localhost:3000 http://localhost:3001",
+  "img-src 'self' data: https:",
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' blob:" : ""}`,
+  "style-src 'self' 'unsafe-inline'",
+].join('; ');
 const securityHeaders = [
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -8,13 +16,13 @@ const securityHeaders = [
   { key: 'Permissions-Policy', value: 'geolocation=(), microphone=()' },
   { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
   { key: 'X-XSS-Protection', value: '0' },
-  { 
-    key: 'Content-Security-Policy', 
-    value: "default-src 'self'; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000; img-src 'self' data: https:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'" 
-  },
+  { key: 'Content-Security-Policy', value: csp },
 ];
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
   async headers() {
     return [
       {

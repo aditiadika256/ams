@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -6,6 +7,17 @@ import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 
 const registerSchema = z
   .object({
@@ -25,7 +37,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const { register: registerUser, isAuthenticated, isLoading, error, clearError } = useAuthStore();
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
       router.push('/dashboard');
@@ -35,143 +46,98 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   });
 
   const onSubmit = async (data: RegisterFormData) => {
     clearError();
-    try {
-      await registerUser(data);
-      router.push('/dashboard');
-    } catch (err) {
-      // Error is handled by store
-      console.error('Registration error:', err);
-    }
+    await registerUser(data);
   };
 
   if (isAuthenticated) {
-    return null; // Will redirect
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-16 w-16 animate-spin" />
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Buat akun baru
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Arkanin - Edutech Platform
-          </p>
-        </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-4">
-              <div className="flex">
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                </div>
+    <div className="container flex min-h-screen items-center justify-center">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl font-bold tracking-tight">Buat Akun Baru</CardTitle>
+          <CardDescription>Arkanin - Edutech Platform</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {error && (
+              <div className="rounded-lg border bg-destructive/15 p-4 text-center text-sm text-destructive">
+                {error}
               </div>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Nama Lengkap
-              </label>
-              <input
-                {...register('name')}
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="name">Nama Lengkap</Label>
+              <Input
                 id="name"
-                name="name"
                 type="text"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Masukkan nama lengkap"
+                placeholder="John Doe"
+                {...register('name')}
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+                <p className="text-sm text-destructive">{errors.name.message}</p>
               )}
             </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email
-              </label>
-              <input
-                {...register('email')}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
                 id="email"
-                name="email"
                 type="email"
-                autoComplete="email"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="email@example.com"
+                placeholder="john.doe@example.com"
+                {...register('email')}
               />
               {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
             </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                {...register('password')}
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
                 id="password"
-                name="password"
                 type="password"
-                autoComplete="new-password"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Minimal 6 karakter"
+                placeholder="••••••••"
+                {...register('password')}
               />
               {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
-
-            <div>
-              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
-                Konfirmasi Password
-              </label>
-              <input
-                {...register('password_confirmation')}
+            <div className="space-y-2">
+              <Label htmlFor="password_confirmation">Konfirmasi Password</Label>
+              <Input
                 id="password_confirmation"
-                name="password_confirmation"
                 type="password"
-                autoComplete="new-password"
-                className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="Ulangi password"
+                placeholder="••••••••"
+                {...register('password_confirmation')}
               />
               {errors.password_confirmation && (
-                <p className="mt-1 text-sm text-red-600">{errors.password_confirmation.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.password_confirmation.message}
+                </p>
               )}
             </div>
-          </div>
-
-          <div>
-            <button
-              type="submit"
-              disabled={isSubmitting || isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSubmitting || isLoading ? 'Memproses...' : 'Daftar'}
-            </button>
-          </div>
-
-          <div className="text-center">
-            <a
-              href="/auth/login"
-              className="text-sm text-indigo-600 hover:text-indigo-500"
-            >
-              Sudah punya akun? Masuk di sini
-            </a>
-          </div>
-        </form>
-      </div>
+            <Button type="submit" className="w-full h-12" disabled={isLoading}>
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                'Daftar'
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
-

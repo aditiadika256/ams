@@ -1,75 +1,75 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
-function DashboardContent() {
+function DashboardPage() {
   const router = useRouter();
   const { user, logout, isLoading } = useAuthStore();
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      router.push('/auth/login');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+    await logout();
+    router.push('/auth/login');
   };
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <nav className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <h1 className="text-xl font-semibold">Arkanin - Edutech Platform</h1>
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-700">{user?.name}</span>
-                <button
-                  onClick={handleLogout}
-                  disabled={isLoading}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-                >
-                  {isLoading ? 'Logging out...' : 'Logout'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </nav>
+      <div className="py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <Button onClick={handleLogout} variant="destructive" disabled={isLoading}>
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Logout'}
+          </Button>
+        </div>
 
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            <div className="border-4 border-dashed border-gray-200 rounded-lg p-8">
-              <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-              
-              <div className="bg-white shadow rounded-lg p-6 mb-4">
-                <h3 className="text-lg font-semibold mb-2">User Information</h3>
-                <div className="space-y-2">
-                  <p><strong>ID:</strong> {user?.id}</p>
-                  <p><strong>Name:</strong> {user?.name}</p>
-                  <p><strong>Email:</strong> {user?.email}</p>
-                  <p><strong>Roles:</strong> {user?.roles?.join(', ') || 'None'}</p>
-                  <p><strong>Permissions:</strong> {user?.permissions?.join(', ') || 'None'}</p>
-                </div>
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Informasi Pengguna</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">ID</span>
+                <span className="font-medium">{user?.id}</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Name</span>
+                <span className="font-medium">{user?.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Email</span>
+                <span className="font-medium">{user?.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Roles</span>
+                <span className="font-medium">{user?.roles?.join(', ') || '-'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Permissions</span>
+                <span className="font-medium">{user?.permissions?.join(', ') || '-'}</span>
+              </div>
+            </CardContent>
+          </Card>
 
-              <div className="bg-white shadow rounded-lg p-6">
-                <h3 className="text-lg font-semibold mb-2">Welcome to Arkanin - Edutech Platform!</h3>
-                <p className="text-gray-600">
-                  You have successfully logged in. This is the dashboard page.
-                  More features will be added here.
-                </p>
-              </div>
-            </div>
-          </div>
-        </main>
+          <Card>
+            <CardHeader>
+              <CardTitle>Selamat Datang!</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Anda telah berhasil masuk ke Arkanin - Edutech Platform. Fitur-fitur lainnya akan segera ditambahkan di sini.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </ProtectedRoute>
   );
 }
 
-export default DashboardContent;
-
+export default DashboardPage;
