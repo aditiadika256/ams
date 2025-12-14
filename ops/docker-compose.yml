@@ -70,6 +70,9 @@ services:
     working_dir: /var/www/html
     volumes:
       - ../apps/web:/var/www/html:cached
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     command: sh -c "npm install --no-audit --no-fund || true; npm run dev -- --hostname 0.0.0.0"
     ports:
       - "3000:3000"
