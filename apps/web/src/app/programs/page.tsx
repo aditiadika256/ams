@@ -1,38 +1,107 @@
-
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSalesStore } from '@/store/useSalesStore';
 import ProgramCard from '@/components/programs/ProgramCard';
-import { Loader2 } from 'lucide-react';
+import { ProgramCardSkeleton } from '@/components/programs/ProgramCardSkeleton';
+import { Loader2, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function ProgramsPage() {
   const { programs, fetchPrograms, isLoading } = useSalesStore();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPrograms({ active: true });
   }, [fetchPrograms]);
 
+  // Filter programs locally for now
+  const filteredPrograms = programs.filter(program => {
+    const matchesSearch = program.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = selectedType ? program.type === selectedType : true;
+    return matchesSearch && matchesType;
+  });
+
+  const types = ['bootcamp', 'course'];
+
   return (
-    <div className="container py-8">
-      <div className="flex flex-col gap-2 mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Daftar Program</h1>
-        <p className="text-zinc-500">Pilih program belajar yang sesuai dengan kebutuhanmu.</p>
+    <div className="container py-8 md:py-12">
+      <div className="flex flex-col gap-6 mb-12">
+        <div className="text-center max-w-2xl mx-auto space-y-4">
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">
+             Jelajahi Program Belajar
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Temukan kelas yang sesuai dengan minat dan kebutuhan karirmu.
+          </p>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm max-w-4xl mx-auto w-full sticky top-20 z-10 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 supports-[backdrop-filter]:bg-white/60">
+           <div className="relative w-full md:max-w-md">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+             <Input 
+               placeholder="Cari program (contoh: React, UI/UX)..." 
+               className="pl-9 bg-muted/30 border-muted-foreground/20"
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+             />
+           </div>
+           
+           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+              <Button 
+                variant={selectedType === null ? "default" : "outline"} 
+                size="sm"
+                onClick={() => setSelectedType(null)}
+                className="rounded-full"
+              >
+                Semua
+              </Button>
+              {types.map(type => (
+                <Button
+                  key={type}
+                  variant={selectedType === type ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedType(type)}
+                  className="rounded-full capitalize"
+                >
+                  {type}
+                </Button>
+              ))}
+           </div>
+        </div>
       </div>
 
       {isLoading && programs.length === 0 ? (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+           {[1,2,3,4,5,6,7,8].map((n) => (
+             <ProgramCardSkeleton key={n} />
+           ))}
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {programs.length > 0 ? (
-            programs.map((program, index) => (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 min-h-[400px]">
+          {filteredPrograms.length > 0 ? (
+            filteredPrograms.map((program, index) => (
               <ProgramCard key={program.id} program={program} index={index} />
             ))
           ) : (
-            <div className="col-span-full text-center py-10 text-muted-foreground">
-              Belum ada program yang tersedia saat ini.
+            <div className="col-span-full flex flex-col items-center justify-center text-center py-20 bg-muted/20 rounded-2xl border border-dashed">
+              <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                 <Search className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">Tidak ditemukan program</h3>
+              <p className="text-muted-foreground max-w-sm">
+                Coba gunakan kata kunci lain atau ubah filter pencarian.
+              </p>
+              <Button 
+                variant="link" 
+                onClick={() => { setSearchQuery(''); setSelectedType(null); }}
+                className="mt-2 text-primary"
+              >
+                Reset Filter
+              </Button>
             </div>
           )}
         </div>

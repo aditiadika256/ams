@@ -11,15 +11,20 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const pathname = usePathname();
-  const isAuthPage = pathname.startsWith('/auth');
+  const isAuthPage = pathname?.startsWith('/auth');
+  const isHomePage = pathname === '/';
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-muted/30">
+    <div className="relative flex min-h-screen flex-col bg-background font-sans antialiased selection:bg-primary/20">
       {!isAuthPage && <TopBar />}
-      <main className="flex-1">
-        <div className="mx-auto flex w-full max-w-5xl flex-col px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
+      <main className="flex-1 w-full">
+        {isHomePage ? (
+          children
+        ) : (
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+            {children}
+          </div>
+        )}
       </main>
       {!isAuthPage && <BottomNavigation />}
     </div>

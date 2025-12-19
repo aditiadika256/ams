@@ -8,8 +8,9 @@ import { useSalesStore } from '@/store/useSalesStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
+import { Loader2, ShieldCheck, ArrowRight, AlertCircle, CreditCard, Wallet, Lock } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Label } from '@/components/ui/label';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -20,6 +21,7 @@ function CheckoutContent() {
   const { currentProgram, fetchProgram, createOrder, isLoading: salesLoading } = useSalesStore();
   
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('qris');
 
   useEffect(() => {
     // Check auth status
@@ -84,85 +86,120 @@ function CheckoutContent() {
   }
 
   return (
-    <div className="container py-8 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold tracking-tight mb-6">Checkout</h1>
-      
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2">
+    <div className="container py-8 md:py-12 max-w-4xl mx-auto">
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex-1 space-y-6">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Checkout</h1>
+            <p className="text-muted-foreground">Selesaikan pembayaran untuk mulai belajar.</p>
+          </div>
+          
           <Card>
             <CardHeader>
-              <CardTitle>Ringkasan Pesanan</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Metode Pembayaran
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex justify-between items-start py-4">
-                <div>
-                  <h3 className="font-semibold text-lg">{currentProgram.name}</h3>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {currentProgram.type} • {currentProgram.level.toUpperCase()}
+              <div className="grid gap-4">
+                <div 
+                  className={`flex items-center justify-between space-x-2 border rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === 'qris' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-muted/50'}`}
+                  onClick={() => setPaymentMethod('qris')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`h-4 w-4 rounded-full border border-primary flex items-center justify-center ${paymentMethod === 'qris' ? 'bg-primary' : 'bg-transparent'}`}>
+                       {paymentMethod === 'qris' && <div className="h-2 w-2 rounded-full bg-white" />}
+                    </div>
+                    <Label className="cursor-pointer font-medium">QRIS (GoPay, OVO, Dana, dll)</Label>
+                  </div>
+                  <Wallet className="h-5 w-5 text-muted-foreground" />
+                </div>
+                
+                <div 
+                  className={`flex items-center justify-between space-x-2 border rounded-lg p-4 cursor-pointer transition-all ${paymentMethod === 'transfer' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'hover:bg-muted/50'}`}
+                  onClick={() => setPaymentMethod('transfer')}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`h-4 w-4 rounded-full border border-primary flex items-center justify-center ${paymentMethod === 'transfer' ? 'bg-primary' : 'bg-transparent'}`}>
+                       {paymentMethod === 'transfer' && <div className="h-2 w-2 rounded-full bg-white" />}
+                    </div>
+                    <Label className="cursor-pointer font-medium">Transfer Bank</Label>
+                  </div>
+                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="flex items-center gap-2 text-sm text-muted-foreground bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200 dark:border-green-900">
+            <Lock className="h-4 w-4 text-green-600" />
+            <span>Pembayaran Anda dienkripsi dan aman.</span>
+          </div>
+        </div>
+
+        <div className="md:w-[380px]">
+          <Card className="sticky top-24 shadow-lg border-primary/20">
+            <CardHeader className="bg-muted/30 pb-4">
+              <CardTitle>Ringkasan Pesanan</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="flex justify-between items-start mb-4">
+                <div className="space-y-1">
+                  <h3 className="font-semibold text-base">{currentProgram.name}</h3>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {currentProgram.type} • {currentProgram.level}
                   </p>
                 </div>
-                <p className="font-bold">
+                <p className="font-semibold">
                   {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(currentProgram.price)}
                 </p>
               </div>
               
               <Separator className="my-4" />
               
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
-                <span>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(currentProgram.price)}</span>
+              <div className="space-y-2">
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Subtotal</span>
+                   <span>{new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(currentProgram.price)}</span>
+                 </div>
+                 <div className="flex justify-between text-sm">
+                   <span className="text-muted-foreground">Biaya Admin</span>
+                   <span className="text-green-600 font-medium">Gratis</span>
+                 </div>
               </div>
-              <div className="flex justify-between items-center text-sm mt-2">
-                <span className="text-muted-foreground">Biaya Layanan</span>
-                <span>Rp 0</span>
-              </div>
-              
+
               <Separator className="my-4" />
-              
-              <div className="flex justify-between items-center font-bold text-lg">
-                <span>Total Pembayaran</span>
-                <span className="text-primary">
-                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(currentProgram.price)}
-                </span>
+
+              <div className="flex justify-between items-center">
+                 <span className="font-bold text-lg">Total</span>
+                 <span className="font-bold text-xl text-primary">
+                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(currentProgram.price)}
+                 </span>
               </div>
             </CardContent>
-          </Card>
-          
-          <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground bg-zinc-50 p-4 rounded-lg border">
-            <ShieldCheck className="h-5 w-5 text-green-600" />
-            <p>Pembayaran Anda aman dan terenkripsi. Kami tidak menyimpan informasi kartu kredit Anda.</p>
-          </div>
-        </div>
-        
-        <div>
-          <Card className="sticky top-20">
-            <CardHeader>
-              <CardTitle className="text-lg">Detail Pembayaran</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Silakan lanjutkan untuk menyelesaikan pembayaran dan mendapatkan akses ke program.
-              </p>
-            </CardContent>
-            <CardFooter>
+            <CardFooter className="flex-col gap-3 pt-2">
               <Button 
-                className="w-full" 
-                size="lg" 
-                onClick={handleCheckout}
+                className="w-full text-lg h-12 rounded-full shadow-lg shadow-primary/20" 
+                onClick={handleCheckout} 
                 disabled={isProcessing}
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Memproses...
                   </>
                 ) : (
                   <>
-                    Lanjut Pembayaran
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    Bayar Sekarang
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </>
                 )}
               </Button>
+              <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="h-3 w-3" />
+                <span>Jaminan Uang Kembali 30 Hari</span>
+              </div>
             </CardFooter>
           </Card>
         </div>
