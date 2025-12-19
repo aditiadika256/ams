@@ -11,10 +11,22 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
-    // auth
     Route::post('auth/login', [\App\Domain\Auth\AuthController::class, 'login']);
     Route::post('auth/logout', [\App\Domain\Auth\AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::get('auth/me', [\App\Domain\Auth\AuthController::class, 'me'])->middleware('auth:sanctum');
 
-    // placeholder for other domain routes (will be included later)
+    // Programs
+    Route::get('programs', [\App\Domain\Sales\ProgramController::class, 'index']);
+    Route::get('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'show']);
+    Route::post('programs', [\App\Domain\Sales\ProgramController::class, 'store'])->middleware('auth:sanctum');
+    Route::put('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'update'])->middleware('auth:sanctum');
+    Route::delete('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'destroy'])->middleware('auth:sanctum');
+
+    // Orders
+    Route::get('orders', [\App\Domain\Sales\OrderController::class, 'index'])->middleware('auth:sanctum');
+    Route::get('orders/{order}', [\App\Domain\Sales\OrderController::class, 'show'])->middleware('auth:sanctum');
+    Route::post('orders', [\App\Domain\Sales\OrderController::class, 'store'])->middleware('auth:sanctum');
+
+    // Payments
+    Route::post('payments/webhook', [\App\Domain\Sales\PaymentWebhookController::class, 'handle']);
 });

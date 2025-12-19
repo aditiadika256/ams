@@ -1,51 +1,42 @@
 
-import React from 'react';
-import ProgramCard from '@/components/programs/ProgramCard';
+'use client';
 
-const mockPrograms = [
-  {
-    id: 1,
-    name: 'Tryout SKD CPNS 2024',
-    level: 'CPNS',
-    type: 'Tryout',
-    price: 75000,
-    imageUrl: 'https://via.placeholder.com/400x225/2563eb/ffffff?text=CPNS',
-  },
-  {
-    id: 2,
-    name: 'Bimbel Intensif UTBK 2025',
-    level: 'SMA',
-    type: 'Bimbel',
-    price: 1250000,
-    imageUrl: 'https://via.placeholder.com/400x225/10b981/ffffff?text=UTBK',
-  },
-  {
-    id: 3,
-    name: 'Paket Soal Ujian Sekolah',
-    level: 'SMP',
-    type: 'Tryout',
-    price: 50000,
-    imageUrl: 'https://via.placeholder.com/400x225/f97316/ffffff?text=Ujian',
-  },
-  {
-    id: 4,
-    name: 'Olimpiade Sains Nasional Prep',
-    level: 'SD',
-    type: 'Bimbel',
-    price: 850000,
-    imageUrl: 'https://via.placeholder.com/400x225/ef4444/ffffff?text=OSN',
-  },
-];
+import React, { useEffect } from 'react';
+import { useSalesStore } from '@/store/useSalesStore';
+import ProgramCard from '@/components/programs/ProgramCard';
+import { Loader2 } from 'lucide-react';
 
 export default function ProgramsPage() {
+  const { programs, fetchPrograms, isLoading } = useSalesStore();
+
+  useEffect(() => {
+    fetchPrograms({ active: true });
+  }, [fetchPrograms]);
+
   return (
-    <div className="container py-6">
-      <h1 className="text-2xl font-bold tracking-tight mb-6">Daftar Program</h1>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {mockPrograms.map((program) => (
-          <ProgramCard key={program.id} program={program} />
-        ))}
+    <div className="container py-8">
+      <div className="flex flex-col gap-2 mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Daftar Program</h1>
+        <p className="text-zinc-500">Pilih program belajar yang sesuai dengan kebutuhanmu.</p>
       </div>
+
+      {isLoading && programs.length === 0 ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {programs.length > 0 ? (
+            programs.map((program, index) => (
+              <ProgramCard key={program.id} program={program} index={index} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-10 text-muted-foreground">
+              Belum ada program yang tersedia saat ini.
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

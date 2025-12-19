@@ -1,0 +1,201 @@
+<?php
+
+namespace App\Domain\Sales;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Sales\OrderIndexRequest;
+use App\Http\Requests\Sales\OrderStoreRequest;
+use App\Http\Resources\OrderResource;
+use App\Models\Order;
+use App\Models\Program;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use OpenApi\Attributes as OA;
+
+#[OA\Tag(
+    name: 'Orders',
+    description: 'Sales orders endpoints'
+)]
+class OrderController extends Controller
+{
+    #[OA\Get(
+        path: '/api/v1/orders',
+        summary: 'List authenticated user orders',
+        tags: ['Orders'],
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'status', description: 'Filter status (pending|paid|expired|failed)', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'page', required: false, schema: new OA\Schema(type: 'integer', format: 'int32')),
+            new OA\QueryParameter(name: 'per_page', required: false, schema: new OA\Schema(type: 'integer', format: 'int32')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Orders list'),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ]
+    )]
+    public function index(OrderIndexRequest $request): JsonResponse
+    {
+        $filters = $request->validated();
+        $user = $request->user();
+
+        $query = Order::query()
+            ->forUser($user->id)
+            ->with(['items.program']);
+
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        $perPage = $filters['per_page'] ?? 15;
+
+        $orders = $query
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+
+        return $this->successResponse(
+            OrderResource::collection($orders),
+            'Orders retrieved successfully'
+        );
+    }
+
+    #[OA\Get(
+        path: '/api/v1/orders/{id}',
+        summary: 'Get order detail for authenticated user',
+        tags: ['Orders'],
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\PathParameter(name: 'id', schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Order detail'),
+            new OA\Response(response: 403, description: 'Forbidden'),
+            new OA\Response(response: 404, description: 'Order not found'),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ]
+    )]
+    public function show(Request $request, Order $order): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($order->user_id !== $user->id) {
+            return $this->forbiddenResponse('You are not allowed to view this order');
+        }
+
+        $order->load(['items.program']);
+
+        return $this->successResponse(
+            new OrderResource($order),
+            'Order retrieved successfully'
+        );
+    }
+
+    #[OA\Post(
+        path: '/api/v1/orders',
+        summary: 'Create new order for authenticated user',
+        tags: ['Orders'],
+        security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['programs'],
+                properties: [
+                    new OA\Property(
+                        property: 'programs',
+                        type: 'array',
+                        items: new OA\Items(
+                            type: 'object',
+                            properties: [
+                                new OA\Property(property: 'id', type: 'integer', example: 1),
+                                new OA\Property(property: 'quantity', type: 'integer', example: 1),
+                            ]
+                        )
+                    ),
+                    new OA\Property(property: 'payment_provider', type: 'string', example: 'midtrans'),
+                    new OA\Property(property: 'payment_reference', type: 'string', example: 'INV-2025-0001'),
+                    new OA\Property(property: 'meta', type: 'object'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Order created'),
+            new OA\Response(response: 422, description: 'Validation or program error'),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ]
+    )]
+    public function store(OrderStoreRequest $request): JsonResponse
+    {
+        $data = $request->validated();
+        $user = $request->user();
+
+        $programsInput = collect($data['programs']);
+        $programIds = $programsInput->pluck('id')->all();
+
+        $programs = Program::query()
+            ->whereIn('id', $programIds)
+            ->where('active', true)
+            ->get()
+            ->keyBy('id');
+
+        if ($programs->count() !== count($programIds)) {
+            return $this->validationErrorResponse([
+                'programs' => ['One or more programs are invalid or inactive'],
+            ]);
+        }
+
+        $itemsPayload = $this->buildOrderItemsPayload($programs, $programsInput);
+
+        $order = null;
+
+        DB::transaction(function () use (&$order, $user, $data, $itemsPayload) {
+            $order = Order::create([
+                'user_id' => $user->id,
+                'status' => 'pending',
+                'total' => $itemsPayload['total'],
+                'payment_provider' => $data['payment_provider'] ?? null,
+                'payment_reference' => $data['payment_reference'] ?? null,
+                'snap_token' => null,
+                'meta' => $data['meta'] ?? null,
+            ]);
+
+            foreach ($itemsPayload['items'] as $item) {
+                $order->items()->create($item);
+            }
+        });
+
+        $order->load(['items.program']);
+
+        return $this->createdResponse(
+            new OrderResource($order),
+            'Order created successfully'
+        );
+    }
+
+    protected function buildOrderItemsPayload(Collection $programs, Collection $programsInput): array
+    {
+        $total = 0;
+        $items = [];
+
+        foreach ($programsInput as $input) {
+            $programId = $input['id'];
+            $quantity = $input['quantity'] ?? 1;
+
+            $program = $programs->get($programId);
+
+            $lineTotal = $program->price * $quantity;
+            $total += $lineTotal;
+
+            $items[] = [
+                'program_id' => $programId,
+                'price' => $program->price,
+                'quantity' => $quantity,
+            ];
+        }
+
+        return [
+            'total' => $total,
+            'items' => $items,
+        ];
+    }
+}
