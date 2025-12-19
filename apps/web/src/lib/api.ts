@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { ApiResponse } from '../types/auth';
+import { Program, Order, CreateOrderPayload } from '../types/sales';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -105,6 +106,34 @@ export const apiClient = {
     
     me: async () => {
       const response = await api.get<ApiResponse<any>>('/auth/me');
+      return response.data;
+    },
+  },
+
+  // Sales endpoints
+  sales: {
+    getPrograms: async (params?: any) => {
+      const response = await api.get<ApiResponse<Program[]>>('/programs', { params });
+      return response.data;
+    },
+
+    getProgram: async (id: number | string) => {
+      const response = await api.get<ApiResponse<Program>>(`/programs/${id}`);
+      return response.data;
+    },
+
+    getOrders: async (params?: any) => {
+      const response = await api.get<ApiResponse<Order[]>>('/orders', { params });
+      return response.data;
+    },
+
+    getOrder: async (id: number | string) => {
+      const response = await api.get<ApiResponse<Order>>(`/orders/${id}`);
+      return response.data;
+    },
+
+    createOrder: async (payload: CreateOrderPayload) => {
+      const response = await api.post<ApiResponse<Order>>('/orders', payload);
       return response.data;
     },
   },
