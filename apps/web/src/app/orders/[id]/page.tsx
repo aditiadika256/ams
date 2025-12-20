@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, ArrowLeft, CreditCard, CheckCircle2, XCircle, Clock, PlayCircle, BookOpen, Download } from 'lucide-react';
+import { ArrowLeft, CreditCard, CheckCircle2, XCircle, Clock, PlayCircle, BookOpen, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Spinner, PageLoader } from '@/components/ui/loaders';
+import { Loader2 } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -195,8 +197,17 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
                   onClick={handlePayment}
                   disabled={!snapLoaded}
                 >
-                  <CreditCard className="mr-2 h-5 w-5" />
-                  Bayar Sekarang
+                  {!snapLoaded ? (
+                    <>
+                      <Spinner size="sm" variant="white" className="mr-2" />
+                      Memuat Pembayaran...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Bayar Sekarang
+                    </>
+                  )}
                 </Button>
                 <p className="text-sm text-center text-muted-foreground">
                   Klik tombol di atas untuk menyelesaikan pembayaran aman melalui Midtrans.

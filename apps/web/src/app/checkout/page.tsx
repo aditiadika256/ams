@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Loader2, ShieldCheck, ArrowRight, AlertCircle, CreditCard, Wallet, Lock } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
+import { ProcessingLoader, Spinner, PageLoader } from '@/components/ui/loaders';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -186,7 +187,7 @@ function CheckoutContent() {
               >
                 {isProcessing ? (
                   <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <Spinner size="sm" variant="white" className="mr-2" />
                     Memproses...
                   </>
                 ) : (
@@ -196,6 +197,11 @@ function CheckoutContent() {
                   </>
                 )}
               </Button>
+              <ProcessingLoader 
+                isOpen={isProcessing} 
+                title="Memproses Pesanan" 
+                description="Mohon jangan tutup halaman ini..." 
+              />
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
                 <ShieldCheck className="h-3 w-3" />
                 <span>Jaminan Uang Kembali 30 Hari</span>

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useSalesStore } from '@/store/useSalesStore';
 import ProgramCard from '@/components/programs/ProgramCard';
 import { ProgramCardSkeleton } from '@/components/programs/ProgramCardSkeleton';
-import { Loader2, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 

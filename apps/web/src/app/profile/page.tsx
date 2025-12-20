@@ -34,7 +34,7 @@ export default function ProfilePage() {
             <CardTitle className="text-xl">{user?.name || 'Guest User'}</CardTitle>
             <p className="text-muted-foreground">{user?.email || 'guest@example.com'}</p>
             <p className="text-sm text-muted-foreground mt-1 capitalize">
-              Role: {user?.roles?.map(r => r.name).join(', ') || 'User'}
+              Role: {user?.roles?.join(', ') || 'User'}
             </p>
           </div>
         </CardHeader>

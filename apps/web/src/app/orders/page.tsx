@@ -6,8 +6,9 @@ import { useSalesStore } from '@/store/useSalesStore';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ShoppingBag } from 'lucide-react';
+import { ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { PageLoader } from '@/components/ui/loaders';
 
 export default function OrderHistoryPage() {
   const { orders, fetchOrders, isLoading } = useSalesStore();
@@ -38,9 +39,7 @@ export default function OrderHistoryPage() {
       </div>
 
       {isLoading && orders.length === 0 ? (
-        <div className="flex justify-center items-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <PageLoader />
       ) : (
         <div className="space-y-4">
           {orders.length > 0 ? (

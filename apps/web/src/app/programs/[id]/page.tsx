@@ -6,8 +6,9 @@ import { useRouter, useParams } from 'next/navigation';
 import { useSalesStore } from '@/store/useSalesStore';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Loader2, CheckCircle2, Clock, Signal, Award, BookOpen } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, Signal, Award, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { PageLoader } from '@/components/ui/loaders';
 
 export default function ProgramDetailPage() {
   const router = useRouter();
@@ -26,11 +27,7 @@ export default function ProgramDetailPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="container flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+    return <PageLoader />;
   }
 
   if (!currentProgram) {

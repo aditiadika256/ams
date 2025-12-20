@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Spinner, PageLoader } from '@/components/ui/loaders';
 
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid').min(1, 'Email wajib diisi'),
@@ -112,7 +113,10 @@ export default function LoginPage() {
             </div>
             <Button type="submit" className="w-full h-12" disabled={isLoading}>
               {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <>
+                  <Spinner size="sm" variant="white" className="mr-2" />
+                  Memproses...
+                </>
               ) : (
                 'Masuk'
               )}
