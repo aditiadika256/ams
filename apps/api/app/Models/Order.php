@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\UserStamps;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory, UserStamps;
 
     protected $fillable = [
         'user_id',
@@ -20,6 +21,8 @@ class Order extends Model
         'payment_reference',
         'snap_token',
         'meta',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
