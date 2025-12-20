@@ -1,23 +1,38 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutGrid, FileText, ShoppingBag, User } from 'lucide-react';
+import { Home, LayoutGrid, FileText, ShoppingBag, User, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
-
-const navItems = [
-  { href: '/', icon: Home, label: 'Home' },
-  { href: '/programs', icon: LayoutGrid, label: 'Program' },
-  { href: '/orders', icon: ShoppingBag, label: 'Order' },
-  { href: '/profile', icon: User, label: 'Akun' },
-];
+import { useAuthStore } from '@/store/useAuthStore';
 
 const BottomNavigation = () => {
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
   const { scrollY } = useScroll();
+  const { isAuthenticated } = useAuthStore();
+
+  const navItems = useMemo(() => {
+    const items = [
+      { href: '/', icon: Home, label: 'Home' },
+      { href: '/programs', icon: LayoutGrid, label: 'Program' },
+    ];
+
+    if (isAuthenticated) {
+      items.push(
+        { href: '/orders', icon: ShoppingBag, label: 'Order' },
+        { href: '/profile', icon: User, label: 'Akun' }
+      );
+    } else {
+      items.push(
+        { href: '/auth/login', icon: LogIn, label: 'Masuk' }
+      );
+    }
+
+    return items;
+  }, [isAuthenticated]);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() || 0;

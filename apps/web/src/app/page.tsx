@@ -25,7 +25,7 @@ export default function HomePage() {
   const featuredPrograms = programs.slice(0, 4);
 
   return (
-    <div className="flex flex-col gap-16 md:gap-24 py-8 md:py-16">
+    <div className="flex flex-col gap-16 md:gap-24 pt-24 pb-8 md:pt-32 md:pb-16">
       {/* Hero Section */}
       <section className="flex flex-col items-center text-center gap-6 relative">
         <div className="absolute top-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]"></div>

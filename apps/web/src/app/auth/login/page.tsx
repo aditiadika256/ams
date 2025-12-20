@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -14,10 +15,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowLeft } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid').min(1, 'Email wajib diisi'),
@@ -62,9 +64,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center py-10 sm:py-16">
-      <Card className="w-full max-w-md shadow-sm">
-        <CardHeader className="text-center">
+    <div className="flex min-h-screen items-center justify-center py-10 sm:py-16 relative bg-muted/20">
+      <Button asChild variant="ghost" className="absolute top-4 left-4 md:top-8 md:left-8">
+        <Link href="/">
+           <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+        </Link>
+      </Button>
+      <Card className="w-full max-w-md shadow-lg border-muted/60">
+        <CardHeader className="text-center space-y-1">
           <CardTitle className="text-2xl font-bold tracking-tight">
             Masuk ke Akun Anda
           </CardTitle>
@@ -112,6 +119,14 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
+        <CardFooter className="flex justify-center border-t p-6">
+          <p className="text-sm text-muted-foreground">
+            Belum punya akun?{' '}
+            <Link href="/auth/register" className="text-primary hover:underline font-medium">
+              Daftar sekarang
+            </Link>
+          </p>
+        </CardFooter>
       </Card>
     </div>
   );
