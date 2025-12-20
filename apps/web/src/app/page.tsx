@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, Trophy, Users, CheckCircle2, Star, PlayCircle } from 'lucide-react';
+import { ArrowRight, BookOpen, Trophy, Users, CheckCircle2, Star, PlayCircle, ShieldCheck, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSalesStore } from '@/store/useSalesStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import ProgramCard from '@/components/programs/ProgramCard';
+import { ProgramCardSkeleton } from '@/components/programs/ProgramCardSkeleton';
 
 export default function HomePage() {
   const { programs, fetchPrograms, isLoading } = useSalesStore();
@@ -60,20 +61,20 @@ export default function HomePage() {
           </div>
           
           <div className="flex items-center justify-center gap-8 mt-12 text-muted-foreground grayscale opacity-70">
-             <div className="flex items-center gap-2 font-semibold">
-               <div className="flex -space-x-2">
-                 {[1,2,3,4].map((i) => (
-                   <div key={i} className={`h-8 w-8 rounded-full border-2 border-background bg-black bg-zinc-${i*100 + 200}`} />
-                 ))}
-               </div>
-               <span className="ml-2">1,000+ Siswa Bergabung</span>
-             </div>
+            <div className="flex items-center gap-2 font-semibold">
+              <div className="flex -space-x-2">
+                {[1,2,3,4].map((i) => (
+                  <div key={i} className={`h-8 w-8 rounded-full border-2 border-background bg-black bg-zinc-${i*100 + 200}`} />
+                ))}
+              </div>
+              <span className="ml-2">1,000+ Siswa Bergabung</span>
+            </div>
           </div>
         </motion.div>
       </section>
 
       {/* Features Grid */}
-      <section className="container px-4 md:px-6">
+      <section className="container px-4 md:px-6 w-full mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             { 
@@ -104,7 +105,7 @@ export default function HomePage() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               viewport={{ once: true, margin: "-100px" }}
-              className="flex flex-col p-6 bg-card rounded-2xl border shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
+              className="flex flex-col items-center text-center p-6 bg-card rounded-2xl border shadow-sm hover:shadow-md transition-all hover:-translate-y-1"
             >
               <div className={`h-12 w-12 ${item.bg} rounded-xl flex items-center justify-center mb-4 ${item.color}`}>
                 <item.icon className="h-6 w-6" />
@@ -117,9 +118,9 @@ export default function HomePage() {
       </section>
 
       {/* Featured Programs */}
-      <section className="container px-4 md:px-6">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
-          <div>
+      <section className="container px-4 md:px-12 mx-auto max-w-full">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+          <div className="text-center md:text-left">
              <h2 className="text-3xl font-bold tracking-tight mb-2">Program Unggulan</h2>
              <p className="text-muted-foreground">Pilihan terbaik untuk memulai karir profesionalmu.</p>
           </div>
@@ -134,7 +135,7 @@ export default function HomePage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {isLoading ? (
              [1,2,3,4].map((n) => (
-               <div key={n} className="h-[350px] bg-muted rounded-xl animate-pulse" />
+               <ProgramCardSkeleton key={n} />
              ))
           ) : featuredPrograms.length > 0 ? (
             featuredPrograms.map((program, index) => (
@@ -149,8 +150,8 @@ export default function HomePage() {
       </section>
       
        {/* Benefits Section */}
-      <section className="bg-zinc-900 text-white py-20 my-8 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8">
-        <div className="container mx-auto max-w-5xl">
+      <section className="bg-zinc-900 text-white py-20 my-8 w-full">
+        <div className="container mx-auto max-w-5xl px-4 md:px-6">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Kenapa Memilih Arkanin?</h2>
@@ -176,22 +177,66 @@ export default function HomePage() {
             </div>
             <div className="relative">
               <div className="absolute -inset-4 bg-gradient-to-r from-primary to-blue-600 rounded-2xl blur-xl opacity-30 animate-pulse"></div>
-              <div className="relative bg-zinc-800 rounded-2xl p-8 border border-zinc-700 shadow-2xl">
-                 <div className="flex items-center gap-4 mb-6">
-                    <div className="h-12 w-12 rounded-full bg-zinc-700"></div>
-                    <div>
-                      <div className="h-4 w-32 bg-zinc-700 rounded mb-2"></div>
-                      <div className="h-3 w-24 bg-zinc-700 rounded"></div>
+              <div className="relative bg-zinc-900/90 backdrop-blur-sm rounded-2xl p-6 border border-zinc-700/50 shadow-2xl">
+                 {/* Header Profile */}
+                <div className="flex items-center gap-4 mb-6 pb-6 border-b border-zinc-800">
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary to-blue-500 flex items-center justify-center text-white font-bold text-lg">
+                      A
                     </div>
+                    <div>
+                      <div className="font-semibold text-white">Alexander Dev</div>
+                      <div className="text-xs text-zinc-400 flex items-center gap-1">
+                        <ShieldCheck className="h-3 w-3 text-emerald-500" /> Pro Member
+                      </div>
+                    </div>
+                    <div className="ml-auto bg-zinc-800 px-3 py-1 rounded-full text-xs font-medium text-zinc-300 border border-zinc-700">
+                      Level 5
+                    </div>
+                </div>
+
+                 {/* Activity */}
+                 <div className="space-y-4">
+                   <div className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                      <div className="h-8 w-8 rounded-lg bg-emerald-500/20 text-emerald-500 flex items-center justify-center shrink-0">
+                        <CheckCircle2 className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-zinc-200">Menyelesaikan Modul</div>
+                        <div className="text-xs text-zinc-500">React Hooks & Context</div>
+                      </div>
+                      <div className="ml-auto text-xs text-zinc-500">2j lalu</div>
+                   </div>
+
+                   <div className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
+                      <div className="h-8 w-8 rounded-lg bg-blue-500/20 text-blue-500 flex items-center justify-center shrink-0">
+                        <PlayCircle className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-zinc-200">Sedang Dipelajari</div>
+                        <div className="text-xs text-zinc-500">Advanced State Management</div>
+                      </div>
+                      <div className="ml-auto">
+                        <div className="h-1.5 w-12 bg-zinc-700 rounded-full overflow-hidden">
+                          <div className="h-full w-[60%] bg-blue-500 rounded-full"></div>
+                        </div>
+                      </div>
+                   </div>
                  </div>
-                 <div className="space-y-3">
-                   <div className="h-3 w-full bg-zinc-700 rounded"></div>
-                   <div className="h-3 w-full bg-zinc-700 rounded"></div>
-                   <div className="h-3 w-3/4 bg-zinc-700 rounded"></div>
-                 </div>
-                 <div className="mt-8 grid grid-cols-2 gap-4">
-                   <div className="h-20 bg-zinc-700 rounded-lg"></div>
-                   <div className="h-20 bg-zinc-700 rounded-lg"></div>
+
+                 {/* Stats */}
+                 <div className="mt-6 grid grid-cols-2 gap-4">
+                   <div className="p-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50 text-center">
+                     <div className="text-zinc-500 text-xs mb-1">Total Sertifikat</div>
+                     <div className="text-2xl font-bold text-white flex items-center justify-center gap-2">
+                       4 <Trophy className="h-4 w-4 text-amber-500" />
+                     </div>
+                   </div>
+                   <div className="p-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50 text-center">
+                     <div className="text-zinc-500 text-xs mb-1">Learning Streak</div>
+                     <div className="text-2xl font-bold text-white flex items-center justify-center gap-2">
+                       12 <Zap className="h-4 w-4 text-orange-500" />
+                     </div>
+                   </div>
                  </div>
               </div>
             </div>
@@ -200,7 +245,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="container px-4 md:px-6 mb-12">
+      <section className="container px-4 md:px-12 mx-auto max-w-full">
         <div className="bg-primary/5 rounded-3xl p-8 md:p-16 text-center border border-primary/10 relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-10 -mr-10 h-64 w-64 bg-primary/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 -mb-10 -ml-10 h-64 w-64 bg-blue-500/10 rounded-full blur-3xl"></div>
