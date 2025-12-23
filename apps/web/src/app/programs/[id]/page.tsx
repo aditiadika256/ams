@@ -45,7 +45,7 @@ export default function ProgramDetailPage() {
     <div className="min-h-screen pb-20">
       {/* Header / Hero */}
       <div className="bg-zinc-50 dark:bg-zinc-900 border-b">
-        <div className="container py-8 md:py-12 max-w-5xl">
+        <div className="container py-8 md:py-12 max-w-5xl mx-auto">
           <div className="mb-6">
             <Button asChild variant="ghost" size="sm" className="pl-0 hover:bg-transparent hover:text-primary">
               <Link href="/programs">

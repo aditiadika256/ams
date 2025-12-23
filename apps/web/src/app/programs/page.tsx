@@ -27,7 +27,7 @@ export default function ProgramsPage() {
   const types = ['bootcamp', 'course'];
 
   return (
-    <div className="container py-8 md:py-12">
+    <div className="container py-8 md:py-12 mx-auto">
       <div className="flex flex-col gap-6 mb-12">
         <div className="text-center max-w-2xl mx-auto space-y-4">
           <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">

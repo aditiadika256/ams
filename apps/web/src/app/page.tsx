@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, BookOpen, Trophy, Users, CheckCircle2, Star, PlayCircle, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, BookOpen, Trophy, Users, CheckCircle2, Star, PlayCircle, ShieldCheck, Zap, PenTool } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSalesStore } from '@/store/useSalesStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -55,6 +55,13 @@ export default function HomePage() {
               <Button size="lg" variant="outline" asChild className="rounded-full px-8 h-12 text-base hover:bg-muted/50">
                 <Link href="/auth/register">
                   Daftar Akun
+                </Link>
+              </Button>
+            )}
+            {mounted && isAuthenticated && (
+              <Button size="lg" variant="outline" asChild className="rounded-full px-8 h-12 text-base hover:bg-muted/50">
+                <Link href="/exams">
+                  Ikuti Ujian <PenTool className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             )}
@@ -146,6 +153,32 @@ export default function HomePage() {
                 <p className="text-muted-foreground">Belum ada program yang tersedia saat ini.</p>
              </div>
           )}
+        </div>
+      </section>
+
+      {/* Exam CTA Section */}
+      <section className="container px-4 md:px-12 mx-auto max-w-full">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden shadow-xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+          <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="max-w-2xl">
+              <h2 className="text-3xl font-bold mb-4">Uji Kemampuanmu Sekarang</h2>
+              <p className="text-blue-100 text-lg mb-6">
+                Ikuti ujian sertifikasi untuk memvalidasi skill yang telah kamu pelajari. 
+                Dapatkan sertifikat resmi yang diakui industri.
+              </p>
+              <div className="flex flex-wrap gap-4">
+                <Button size="lg" variant="secondary" asChild className="text-blue-700 hover:text-blue-800 font-bold">
+                  <Link href="/exams">
+                    Lihat Daftar Ujian <PenTool className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            <div className="hidden md:block">
+              <Trophy className="h-32 w-32 text-yellow-300 drop-shadow-lg" />
+            </div>
+          </div>
         </div>
       </section>
       

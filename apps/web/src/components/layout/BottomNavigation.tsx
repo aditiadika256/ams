@@ -22,6 +22,7 @@ const BottomNavigation = () => {
 
     if (isAuthenticated) {
       items.push(
+        { href: '/exams', icon: FileText, label: 'Ujian' },
         { href: '/orders', icon: ShoppingBag, label: 'Order' },
         { href: '/profile', icon: User, label: 'Akun' }
       );

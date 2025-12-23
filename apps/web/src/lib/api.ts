@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { ApiResponse } from '../types/auth';
 import { Program, Order, CreateOrderPayload } from '../types/sales';
+import { ExamSession, Question, ExamResult } from '../types/cbt';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -134,6 +135,55 @@ export const apiClient = {
 
     createOrder: async (payload: CreateOrderPayload) => {
       const response = await api.post<ApiResponse<Order>>('/orders', payload);
+      return response.data;
+    },
+  },
+
+  // CBT endpoints
+  cbt: {
+    getPackages: async () => {
+      const response = await api.get<ApiResponse<any[]>>('/exams/packages');
+      return response.data;
+    },
+    getPackage: async (id: number | string) => {
+      const response = await api.get<ApiResponse<any>>(`/exams/packages/${id}`);
+      return response.data;
+    },
+    startExam: async (packageId: number) => {
+      const response = await api.post<ApiResponse<ExamSession>>('/exams/start', { package_id: packageId });
+      return response.data;
+    },
+    
+    getQuestions: async (attemptId: number) => {
+      const response = await api.get<ApiResponse<Question[]>>(`/exams/${attemptId}/questions`);
+      return response.data;
+    },
+    
+    saveAnswer: async (attemptId: number, questionId: number, answer: string) => {
+      const response = await api.post<ApiResponse<null>>(`/exams/${attemptId}/answers`, {
+        question_id: questionId,
+        answer,
+      });
+      return response.data;
+    },
+    
+    submitExam: async (attemptId: number) => {
+      const response = await api.post<ApiResponse<{ score: number; submitted_at: string }>>(`/exams/${attemptId}/submit`);
+      return response.data;
+    },
+    
+    getResult: async (attemptId: number) => {
+      const response = await api.get<ApiResponse<ExamResult>>(`/exams/${attemptId}/result`);
+      return response.data;
+    },
+
+    logEvent: async (attemptId: number, type: string, meta?: any) => {
+      const response = await api.post<ApiResponse<any>>(`/exams/${attemptId}/log`, { type, meta });
+      return response.data;
+    },
+
+    heartbeat: async (attemptId: number) => {
+      const response = await api.post<ApiResponse<any>>(`/exams/${attemptId}/heartbeat`);
       return response.data;
     },
   },

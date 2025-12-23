@@ -58,6 +58,7 @@ const TopBar = () => {
   const navLinks = [
     { name: 'Beranda', href: '/' },
     { name: 'Program', href: '/programs' },
+    { name: 'Ujian', href: '/exams' },
     { name: 'Blog', href: '/blog' },
     { name: 'Tentang', href: '/about' },
   ];
