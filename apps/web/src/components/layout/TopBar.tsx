@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { ModeToggle } from '../mode-toggle';
 
 const TopBar = () => {
   const router = useRouter();
@@ -103,6 +104,7 @@ const TopBar = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          <ModeToggle />
           {isAuthenticated ? (
             <>
               <Button variant="ghost" size="icon" className="rounded-full hidden sm:flex text-muted-foreground hover:text-primary">

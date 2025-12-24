@@ -89,22 +89,22 @@ export default function HomePage() {
               icon: BookOpen, 
               title: "Kurikulum Terupdate", 
               desc: "Materi disusun sesuai standar industri terkini dan selalu diperbarui.",
-              color: "text-blue-600",
-              bg: "bg-blue-50"
+              color: "text-blue-600 dark:text-blue-400",
+              bg: "bg-blue-50 dark:bg-blue-900/20"
             },
             { 
               icon: Users, 
               title: "Mentor Expert", 
               desc: "Belajar langsung dari praktisi yang berpengalaman di bidangnya.",
-              color: "text-emerald-600",
-              bg: "bg-emerald-50"
+              color: "text-emerald-600 dark:text-emerald-400",
+              bg: "bg-emerald-50 dark:bg-emerald-900/20"
             },
             { 
               icon: Trophy, 
               title: "Sertifikat Resmi", 
               desc: "Dapatkan sertifikat kompetensi yang diakui setelah lulus ujian.",
-              color: "text-amber-600",
-              bg: "bg-amber-50"
+              color: "text-amber-600 dark:text-amber-400",
+              bg: "bg-amber-50 dark:bg-amber-900/20"
             }
           ].map((item, i) => (
             <motion.div
