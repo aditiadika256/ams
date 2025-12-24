@@ -67,14 +67,14 @@ schedules(id, trainer_id, title, start_at, end_at, mode[online|offline], link|lo
 curricula(id, name, level, description)
 curriculum_items(id, curriculum_id, title, type[video|pdf|quiz|assignment], order_no, resource_url)
 CBT
-question_banks(id, name, level, subject, difficulty_range)
-questions(id, bank_id, type[mcq|multi|essay], stem, options(jsonb), answer_key(jsonb), difficulty)
-exam_packages(id, name, level, duration_minutes, randomize, show_result_mode[immediate|after])
-exam_sections(id, package_id, subject, num_questions, bank_id, difficulty_mix(jsonb))
-exam_sessions(id, package_id, user_id, status[scheduled|ongoing|finished|expired], start_at, end_at)
-exam_attempts(id, session_id, started_at, submitted_at, score_total, meta)
-exam_answers(id, attempt_id, question_id, answer(jsonb), is_correct, score)
-proctor_events(id, attempt_id, type[focus_blur|screenshot|suspicious], meta, created_at)
+question_banks(id, name, level, subject, classes, created_at, updated_at, created_by, updated_by)
+questions(id, bank_id, type[mcq|multi|essay], stem, options(jsonb), answer_key(jsonb), difficulty, created_at, updated_at, created_by, updated_by)
+exam_packages(id, name, level, duration_minutes, randomize, show_result_mode[immediate|after], created_at, updated_at, created_by, updated_by)
+exam_sections(id, package_id, subject, num_questions, bank_id, difficulty_mix(jsonb), created_at, updated_at, created_by, updated_by)
+exam_sessions(id, package_id, user_id, status[scheduled|ongoing|finished|expired], start_at, end_at, created_at, updated_at, created_by, updated_by)
+exam_attempts(id, session_id, started_at, submitted_at, score_total, meta, created_at, updated_at, created_by, updated_by)
+exam_answers(id, attempt_id, question_id, answer(jsonb), is_correct, score, created_at, updated_at, created_by, updated_by)
+proctor_events(id, attempt_id, type[focus_blur|screenshot|suspicious], meta, created_at, updated_at, created_by, updated_by)
 Indexing & Perf
 
 Index FK, created_at, dan kolom pencarian (email, slug, code, etc).

@@ -2,7 +2,7 @@ export interface Program {
   id: number;
   name: string;
   level: 'sd' | 'smp' | 'sma' | 'cpns' | 'umum';
-  type: 'tryout' | 'bimbel';
+  type: 'tryout' | 'bimbel' | 'bootcamp';
   price: number;
   active: boolean;
   created_at: string;

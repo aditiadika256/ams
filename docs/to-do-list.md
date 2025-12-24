@@ -69,35 +69,35 @@
 **Goal**: Computer-based testing implementation
 
 ### 3.1 CBT Backend 🟡
-- [ ] Create question_banks & questions tables
-- [ ] Create exam_packages & exam_sessions tables
-- [ ] Create exam_attempts & exam_answers tables
-- [ ] Create QuestionBank & Question models
-- [ ] Create ExamPackage & ExamSession models
-- [ ] Create ExamAttempt & ExamAnswer models
-- [ ] Build start exam endpoint
-- [ ] Build fetch questions endpoint
-- [ ] Build autosave answer endpoint
-- [ ] Build submit exam endpoint
-- [ ] Implement scoring logic
-- [ ] Build exam results endpoint
+- [x] Create question_banks & questions tables
+- [x] Create exam_packages & exam_sessions tables
+- [x] Create exam_attempts & exam_answers tables
+- [x] Create QuestionBank & Question models
+- [x] Create ExamPackage & ExamSession models
+- [x] Create ExamAttempt & ExamAnswer models
+- [x] Build start exam endpoint
+- [x] Build fetch questions endpoint
+- [x] Build autosave answer endpoint
+- [x] Build submit exam endpoint
+- [x] Implement scoring logic
+- [x] Build exam results endpoint
 
 ### 3.2 CBT Frontend 🟡
-- [ ] Build exam start page
-- [ ] Build exam interface (questions, timer, navigation)
-- [ ] Implement autosave functionality
-- [ ] Build question navigation
-- [ ] Build submit confirmation modal
-- [ ] Build results page
-- [ ] Add timer countdown
-- [ ] Add exam instructions page
+- [x] Build exam start page
+- [x] Build exam interface (questions, timer, navigation)
+- [x] Implement autosave functionality
+- [x] Build question navigation
+- [x] Build submit confirmation modal
+- [x] Build results page
+- [x] Add timer countdown
+- [x] Add exam instructions page
 
-### 3.3 CBT Anti-Cheat (Basic) 🟡
-- [ ] Add focus/blur event logging
-- [ ] Create proctor_events table
-- [ ] Add heartbeat endpoint
-- [ ] Add multi-tab detection
-- [ ] Create suspicious activity log
+### 3.3 CBT Anti-Cheat (Basic) �
+- [x] Add focus/blur event logging
+- [x] Create proctor_events table
+- [x] Add heartbeat endpoint
+- [x] Add multi-tab detection
+- [x] Create suspicious activity log
 
 ---
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Bell, User, LogOut, Settings, UserCircle, Menu, X, Rocket } from 'lucide-react';
+import { Bell, User, LogOut, Settings, UserCircle, Menu, X, Rocket, ShoppingBag } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   DropdownMenu,
@@ -58,6 +58,7 @@ const TopBar = () => {
   const navLinks = [
     { name: 'Beranda', href: '/' },
     { name: 'Program', href: '/programs' },
+    { name: 'Ujian', href: '/exams' },
     { name: 'Blog', href: '/blog' },
     { name: 'Tentang', href: '/about' },
   ];
@@ -112,7 +113,7 @@ const TopBar = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all">
                     <Avatar className="h-9 w-9">
-                      <AvatarImage src={user?.avatar_url} alt={user?.name} />
+                      <AvatarImage src={user?.avatar_url || user?.profile_image_url || ''} alt={user?.name} />
                       <AvatarFallback className="bg-primary/10 text-primary font-medium">
                         {user?.name ? getInitials(user.name) : <User className="h-4 w-4" />}
                       </AvatarFallback>
@@ -139,6 +140,12 @@ const TopBar = () => {
                     <Link href="/settings" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
                       <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/orders" className="cursor-pointer">
+                      <span className="mr-2 h-4 w-4">🛍️</span>
+                      <span>Riwayat Order</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

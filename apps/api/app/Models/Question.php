@@ -7,32 +7,28 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\UserStamps;
 
-class OrderItem extends Model
+class Question extends Model
 {
     use HasFactory, UserStamps;
 
     protected $fillable = [
-        'order_id',
-        'program_id',
-        'price',
-        'quantity',
+        'bank_id',
+        'type',
+        'stem',
+        'options',
+        'answer_key',
+        'difficulty',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
-        'price' => 'integer',
-        'quantity' => 'integer',
+        'options' => 'array',
+        'answer_key' => 'array',
     ];
 
-    public function order(): BelongsTo
+    public function bank(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
-    }
-
-    public function program(): BelongsTo
-    {
-        return $this->belongsTo(Program::class);
+        return $this->belongsTo(QuestionBank::class, 'bank_id');
     }
 }
-

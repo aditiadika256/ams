@@ -8,11 +8,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Traits\UserStamps;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, HasApiTokens, HasRoles, Notifiable;
+    use HasFactory, HasApiTokens, HasRoles, Notifiable, UserStamps;
 
     /**
      * The attributes that are mass assignable.
@@ -23,6 +24,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'created_by',
+        'updated_by',
     ];
 
     /**

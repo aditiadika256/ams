@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Spinner } from '@/components/ui/loaders';
 
 function DashboardPage() {
   const router = useRouter();
@@ -23,7 +23,7 @@ function DashboardPage() {
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           <Button onClick={handleLogout} variant="destructive" disabled={isLoading}>
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Logout'}
+            {isLoading ? <Spinner size="sm" variant="white" className="mr-2" /> : 'Logout'}
           </Button>
         </div>
 

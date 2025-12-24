@@ -7,32 +7,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Traits\UserStamps;
 
-class OrderItem extends Model
+class ProctorEvent extends Model
 {
     use HasFactory, UserStamps;
 
     protected $fillable = [
-        'order_id',
-        'program_id',
-        'price',
-        'quantity',
+        'attempt_id',
+        'type',
+        'meta',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
-        'price' => 'integer',
-        'quantity' => 'integer',
+        'meta' => 'array',
     ];
 
-    public function order(): BelongsTo
+    public function attempt(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
-    }
-
-    public function program(): BelongsTo
-    {
-        return $this->belongsTo(Program::class);
+        return $this->belongsTo(ExamAttempt::class, 'attempt_id');
     }
 }
-
