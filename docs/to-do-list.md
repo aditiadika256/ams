@@ -24,6 +24,9 @@
 - [x] **ADD**: Role-based middleware setup (CheckRole, CheckPermission)
 - [x] **ADD**: API response helper/formatter (ApiResponse trait)
 - [x] Test login flow with superadmin credentials
+- [x] **UPDATE**: Add Branch/Instansi support (Migration & Model) (2025-12-23)
+- [x] **UPDATE**: Enhance Roles & Permissions for specific roles (Direktur, Manajer Cabang, etc.) (2025-12-23)
+- [x] **UPDATE**: Add branch_id to Users table (2025-12-23)
 
 ### 1.3 API Structure Setup ✅ (COMPLETED)
 - [x] Create base Controller with helper methods

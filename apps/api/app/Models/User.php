@@ -24,6 +24,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'branch_id',
         'created_by',
         'updated_by',
     ];
@@ -37,6 +38,11 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     /**
      * Get the attributes that should be cast.
