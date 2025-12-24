@@ -12,6 +12,9 @@ class RolesSeeder extends Seeder
 {
     public function run()
     {
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         // 1. Create Default Branch (Pusat)
         $pusat = Branch::firstOrCreate(
             ['code' => 'PUSAT'],
@@ -61,7 +64,8 @@ class RolesSeeder extends Seeder
         ];
 
         foreach ($permissions as $perm) {
-            Permission::firstOrCreate(['name' => $perm]);
+            Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
+            Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'sanctum']);
         }
 
         // 3. Define Roles & Assign Permissions
@@ -130,8 +134,13 @@ class RolesSeeder extends Seeder
         ];
 
         foreach ($rolesStructure as $roleName => $rolePermissions) {
-            $role = Role::firstOrCreate(['name' => $roleName]);
-            $role->syncPermissions($rolePermissions);
+            // Web Guard
+            $roleWeb = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+            $roleWeb->syncPermissions($rolePermissions);
+
+            // Sanctum Guard
+            $roleSanctum = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'sanctum']);
+            $roleSanctum->syncPermissions($rolePermissions);
         }
 
         // 4. Create Demo Users
@@ -146,6 +155,7 @@ class RolesSeeder extends Seeder
             ]
         );
         $superadmin->assignRole('superadmin');
+        $superadmin->assignRole(Role::findByName('superadmin', 'sanctum'));
 
         // Direktur
         $direktur = User::firstOrCreate(
@@ -175,6 +185,7 @@ class RolesSeeder extends Seeder
             ]
         );
         $manajer->assignRole('manajer_cabang');
+        $manajer->assignRole(Role::findByName('manajer_cabang', 'sanctum'));
 
         // Admin Keuangan
         $finance = User::firstOrCreate(
@@ -187,5 +198,6 @@ class RolesSeeder extends Seeder
             ]
         );
         $finance->assignRole('admin_keuangan');
+        $finance->assignRole(Role::findByName('admin_keuangan', 'sanctum'));
     }
 }

@@ -16,6 +16,10 @@ interface AuthState {
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
   clearError: () => void;
+  
+  // Helpers
+  hasPermission: (permission: string | string[]) => boolean;
+  hasRole: (role: string | string[]) => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -26,6 +30,26 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+
+      hasPermission: (permission: string | string[]) => {
+        const { user } = get();
+        if (!user || !user.permissions) return false;
+        
+        if (Array.isArray(permission)) {
+          return permission.some(p => user.permissions.includes(p));
+        }
+        return user.permissions.includes(permission);
+      },
+
+      hasRole: (role: string | string[]) => {
+        const { user } = get();
+        if (!user || !user.roles) return false;
+        
+        if (Array.isArray(role)) {
+          return role.some(r => user.roles.includes(r));
+        }
+        return user.roles.includes(role);
+      },
 
       login: async (credentials: LoginCredentials) => {
         set({ isLoading: true, error: null });

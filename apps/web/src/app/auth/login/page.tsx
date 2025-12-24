@@ -31,13 +31,20 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoading, error, clearError } = useAuthStore();
+  const { login, isAuthenticated, isLoading, error, clearError, user } = useAuthStore();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/dashboard');
+    if (isAuthenticated && user) {
+      // Check for admin roles (including specific admin roles)
+      const adminRoles = ['superadmin', 'admin', 'direktur', 'manajer_cabang', 'admin_keuangan', 'admin_cabang', 'admin_kemitraan', 'admin_operasional', 'admin_teknologi', 'admin_pemasaran'];
+      
+      if (user.roles?.some(role => adminRoles.includes(role))) {
+        router.push('/admin');
+      } else {
+        router.push('/dashboard');
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
   const {
     register,
