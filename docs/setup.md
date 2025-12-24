@@ -151,6 +151,8 @@ docker compose exec web bash
 npm install
 exit
 ```
+> **Note**: Project ini menggunakan beberapa library tambahan seperti Shadcn UI, Zustand, React Hook Form, dll.
+> Lihat daftar lengkapnya di [Web Dependencies](/docs/web/dependencies.md).
 
 2. Development server akan auto-start di port 3000
 
