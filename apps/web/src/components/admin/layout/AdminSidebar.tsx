@@ -27,42 +27,87 @@ const menuItems = [
   {
     category: 'Main',
     items: [
-      { title: 'Dashboard', view: 'dashboard', icon: LayoutDashboard },
-      { title: 'Analytics', view: 'finance', icon: PieChart },
+      { 
+        title: 'Dashboard', 
+        view: 'dashboard', 
+        icon: LayoutDashboard,
+        permissions: ['view_dashboard_global', 'view_dashboard_branch', 'view_dashboard_finance', 'view_dashboard_learning']
+      },
+      { 
+        title: 'Analytics', 
+        view: 'finance', 
+        icon: PieChart,
+        permissions: ['view_finance_analytics']
+      },
     ]
   },
   {
     category: 'Management',
     items: [
-      { title: 'Users', view: 'users', icon: Users },
-      { title: 'Roles & Permissions', view: 'roles', icon: ShieldCheck },
+      { 
+        title: 'Users', 
+        view: 'users', 
+        icon: Users,
+        permissions: ['manage_users_global', 'manage_users_branch']
+      },
+      { 
+        title: 'Roles & Permissions', 
+        view: 'roles', 
+        icon: ShieldCheck,
+        permissions: ['manage_roles']
+      },
     ]
   },
   {
     category: 'Education',
     items: [
-      { title: 'Programs', view: 'programs', icon: BookOpen },
-      { title: 'Mentors', view: 'mentors', icon: GraduationCap },
+      { 
+        title: 'Programs', 
+        view: 'programs', 
+        icon: BookOpen,
+        permissions: ['manage_learning_content', 'view_dashboard_learning']
+      },
+      { 
+        title: 'Mentors', 
+        view: 'mentors', 
+        icon: GraduationCap,
+        permissions: ['manage_students', 'view_dashboard_learning']
+      },
     ]
   },
   {
     category: 'Content',
     items: [
-      { title: 'Blog Posts', view: 'cms-posts', icon: FileText },
-      { title: 'Pages', view: 'cms-pages', icon: FileText },
+      { 
+        title: 'Blog Posts', 
+        view: 'cms-posts', 
+        icon: FileText,
+        permissions: ['manage_global_settings']
+      },
+      { 
+        title: 'Pages', 
+        view: 'cms-pages', 
+        icon: FileText,
+        permissions: ['manage_global_settings']
+      },
     ]
   },
   {
     category: 'System',
     items: [
-      { title: 'Settings', view: 'settings', icon: Settings },
+      { 
+        title: 'Settings', 
+        view: 'settings', 
+        icon: Settings,
+        permissions: ['manage_global_settings']
+      },
     ]
   }
 ];
 
 export function AdminSidebar() {
   const { addTab, sidebarOpen, setSidebarOpen, toggleSidebar } = useAdminStore();
-  const { logout } = useAuthStore();
+  const { logout, hasPermission } = useAuthStore();
 
   React.useEffect(() => {
     // Ensure sidebar is open on desktop by default

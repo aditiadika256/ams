@@ -22,10 +22,17 @@ class CheckPermission
             ], 401);
         }
 
-        if (!$request->user()->hasAnyPermission($permissions)) {
+        $allPermissions = [];
+        foreach ($permissions as $permission) {
+            foreach (explode('|', $permission) as $p) {
+                $allPermissions[] = trim($p);
+            }
+        }
+
+        if (!$request->user()->hasAnyPermission($allPermissions)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Required permission: ' . implode(', ', $permissions),
+                'message' => 'Unauthorized. Required permission: ' . implode(', ', $allPermissions),
             ], 403);
         }
 

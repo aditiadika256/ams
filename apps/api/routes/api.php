@@ -44,7 +44,7 @@ Route::prefix('v1')->group(function () {
     Route::post('exams/{attempt}/heartbeat', [\App\Domain\CBT\ProctorController::class, 'heartbeat'])->middleware('auth:sanctum');
 
     // CMS
-    Route::prefix('cms')->middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('cms')->middleware(['auth:sanctum', 'permission:manage_global_settings'])->group(function () {
         Route::apiResource('posts', \App\Domain\CMS\PostController::class);
         Route::apiResource('pages', \App\Domain\CMS\PageController::class);
     });
@@ -52,16 +52,16 @@ Route::prefix('v1')->group(function () {
     // Admin
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
         // Users & Roles
-        Route::apiResource('users', \App\Domain\Admin\UserController::class);
-        Route::apiResource('roles', \App\Domain\Admin\RoleController::class);
-        Route::get('permissions', [\App\Domain\Admin\RoleController::class, 'permissions']);
+        Route::apiResource('users', \App\Domain\Admin\UserController::class)->middleware('permission:manage_users_global|manage_users_branch');
+        Route::apiResource('roles', \App\Domain\Admin\RoleController::class)->middleware('permission:manage_roles');
+        Route::get('permissions', [\App\Domain\Admin\RoleController::class, 'permissions'])->middleware('permission:view_permissions');
         
         // Dashboard
         Route::get('dashboard/stats', [\App\Domain\Admin\DashboardController::class, 'stats']);
     });
 
     // Learning
-    Route::prefix('learning')->middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('learning')->middleware(['auth:sanctum', 'permission:view_dashboard_learning|manage_learning_content'])->group(function () {
         // Mentors
         Route::apiResource('mentors', \App\Domain\Learning\MentorController::class);
         
@@ -73,31 +73,31 @@ Route::prefix('v1')->group(function () {
         Route::get('programs/{program}/curriculum', [\App\Domain\Learning\CurriculumController::class, 'index']);
         
         // Modules
-        Route::post('programs/{program}/modules', [\App\Domain\Learning\CurriculumController::class, 'storeModule']);
-        Route::put('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'updateModule']);
-        Route::delete('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'destroyModule']);
+        Route::post('programs/{program}/modules', [\App\Domain\Learning\CurriculumController::class, 'storeModule'])->middleware('permission:manage_learning_content');
+        Route::put('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'updateModule'])->middleware('permission:manage_learning_content');
+        Route::delete('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'destroyModule'])->middleware('permission:manage_learning_content');
 
         // Lessons
-        Route::post('modules/{module}/lessons', [\App\Domain\Learning\CurriculumController::class, 'storeLesson']);
-        Route::put('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'updateLesson']);
-        Route::delete('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'destroyLesson']);
+        Route::post('modules/{module}/lessons', [\App\Domain\Learning\CurriculumController::class, 'storeLesson'])->middleware('permission:manage_learning_content');
+        Route::put('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'updateLesson'])->middleware('permission:manage_learning_content');
+        Route::delete('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'destroyLesson'])->middleware('permission:manage_learning_content');
     });
 
     // Finance
-    Route::prefix('finance')->middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('finance')->middleware(['auth:sanctum', 'permission:view_dashboard_finance|view_finance_reports|view_finance_analytics'])->group(function () {
         Route::apiResource('transactions', \App\Domain\Finance\TransactionController::class);
         Route::get('transactions/stats/summary', [\App\Domain\Finance\TransactionController::class, 'stats']);
         
         Route::apiResource('invoices', \App\Domain\Finance\InvoiceController::class);
 
         // Reports
-        Route::get('reports/custom', [\App\Domain\Finance\ReportController::class, 'custom']);
-        Route::get('revenue/daily', [\App\Domain\Finance\ReportController::class, 'dailyRevenue']);
-        Route::get('revenue/summary', [\App\Domain\Finance\ReportController::class, 'summary']);
+        Route::get('reports/custom', [\App\Domain\Finance\ReportController::class, 'custom'])->middleware('permission:view_finance_reports');
+        Route::get('revenue/daily', [\App\Domain\Finance\ReportController::class, 'dailyRevenue'])->middleware('permission:view_finance_reports');
+        Route::get('revenue/summary', [\App\Domain\Finance\ReportController::class, 'summary'])->middleware('permission:view_finance_reports');
     });
 
     // Analytics
-    Route::prefix('analytics')->middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('analytics')->middleware(['auth:sanctum', 'permission:view_student_progress|view_finance_analytics|view_dashboard_learning'])->group(function () {
         Route::get('exams/{id}', [\App\Domain\Analytics\AnalyticsController::class, 'examAnalytics']);
         Route::get('user/progress', [\App\Domain\Analytics\AnalyticsController::class, 'userProgress']);
         Route::get('user/performance', [\App\Domain\Analytics\AnalyticsController::class, 'performanceMetrics']);

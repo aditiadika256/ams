@@ -1,5 +1,10 @@
 import AdminLayout from '@/components/admin/layout/AdminLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function AdminPage() {
-  return <AdminLayout />;
+  return (
+    <ProtectedRoute>
+      <AdminLayout />
+    </ProtectedRoute>
+  );
 }
