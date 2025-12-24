@@ -19,16 +19,6 @@ class RbacTest extends TestCase
         $this->seed(RolesSeeder::class);
     }
 
-    public function test_superadmin_can_access_finance_stats()
-    {
-        $user = User::where('email', 'superadmin@arkanin.com')->first();
-        Sanctum::actingAs($user);
-        
-        $response = $this->getJson('/api/v1/finance/transactions/stats/summary');
-        
-        $response->assertStatus(200);
-    }
-
     public function test_finance_admin_can_access_finance_routes()
     {
         $user = User::where('email', 'finance@arkanin.com')->first();

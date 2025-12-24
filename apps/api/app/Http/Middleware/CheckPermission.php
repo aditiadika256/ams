@@ -22,6 +22,11 @@ class CheckPermission
             ], 401);
         }
 
+        // Super Admin Bypass
+        if ($request->user()->hasRole('superadmin') || $request->user()->hasRole('superadmin', 'web')) {
+            return $next($request);
+        }
+
         $allPermissions = [];
         foreach ($permissions as $permission) {
             foreach (explode('|', $permission) as $p) {
