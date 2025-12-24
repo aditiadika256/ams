@@ -85,7 +85,22 @@ Route::prefix('v1')->group(function () {
 
     // Finance
     Route::prefix('finance')->middleware(['auth:sanctum'])->group(function () {
+        Route::apiResource('transactions', \App\Domain\Finance\TransactionController::class);
+        Route::get('transactions/stats/summary', [\App\Domain\Finance\TransactionController::class, 'stats']);
+        
+        Route::apiResource('invoices', \App\Domain\Finance\InvoiceController::class);
+
+        // Reports
+        Route::get('reports/custom', [\App\Domain\Finance\ReportController::class, 'custom']);
         Route::get('revenue/daily', [\App\Domain\Finance\ReportController::class, 'dailyRevenue']);
         Route::get('revenue/summary', [\App\Domain\Finance\ReportController::class, 'summary']);
+    });
+
+    // Analytics
+    Route::prefix('analytics')->middleware(['auth:sanctum'])->group(function () {
+        Route::get('exams/{id}', [\App\Domain\Analytics\AnalyticsController::class, 'examAnalytics']);
+        Route::get('user/progress', [\App\Domain\Analytics\AnalyticsController::class, 'userProgress']);
+        Route::get('user/performance', [\App\Domain\Analytics\AnalyticsController::class, 'performanceMetrics']);
+        Route::get('recommendations', [\App\Domain\Analytics\AnalyticsController::class, 'recommendations']);
     });
 });

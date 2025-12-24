@@ -35,8 +35,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      // Check for admin roles
-      if (user.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang'].includes(role))) {
+      // Check for admin roles (including specific admin roles)
+      const adminRoles = ['superadmin', 'admin', 'direktur', 'manajer_cabang', 'admin_keuangan', 'admin_cabang', 'admin_kemitraan', 'admin_operasional', 'admin_teknologi', 'admin_pemasaran'];
+      
+      if (user.roles?.some(role => adminRoles.includes(role))) {
         router.push('/admin');
       } else {
         router.push('/dashboard');

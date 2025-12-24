@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 
 interface CurriculumBuilderViewProps {
@@ -175,7 +175,7 @@ export default function CurriculumBuilderView({ data }: CurriculumBuilderViewPro
                       </div>
                     ))}
                     
-                    <Dialog open={isAddLessonOpen && selectedModuleId === module.id} onOpenChange={(open) => {
+                    <Dialog open={isAddLessonOpen && selectedModuleId === module.id} onOpenChange={(open: boolean) => {
                       setIsAddLessonOpen(open);
                       if (!open) setSelectedModuleId(null);
                     }}>
