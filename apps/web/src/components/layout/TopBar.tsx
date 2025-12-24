@@ -130,11 +130,18 @@ const TopBar = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang'].includes(role)) && (
+                  {user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang'].includes(role)) ? (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="cursor-pointer font-medium text-primary">
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         <span>Admin Panel</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="cursor-pointer font-medium text-primary">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                   )}

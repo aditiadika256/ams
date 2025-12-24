@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutGrid, FileText, ShoppingBag, User, LogIn } from 'lucide-react';
+import { Home, LayoutGrid, FileText, ShoppingBag, User, LogIn, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -12,13 +12,19 @@ const BottomNavigation = () => {
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
   const { scrollY } = useScroll();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   const navItems = useMemo(() => {
-    const items = [
-      { href: '/', icon: Home, label: 'Home' },
-      { href: '/programs', icon: LayoutGrid, label: 'Program' },
-    ];
+    const items = [];
+
+    // Dashboard for logged in users, Home for guests
+    if (isAuthenticated) {
+      items.push({ href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
+    } else {
+      items.push({ href: '/', icon: Home, label: 'Home' });
+    }
+
+    items.push({ href: '/programs', icon: LayoutGrid, label: 'Program' });
 
     if (isAuthenticated) {
       items.push(

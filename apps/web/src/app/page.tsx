@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, BookOpen, Trophy, Users, CheckCircle2, Star, PlayCircle, ShieldCheck, Zap, PenTool } from 'lucide-react';
