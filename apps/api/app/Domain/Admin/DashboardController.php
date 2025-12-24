@@ -62,7 +62,7 @@ class DashboardController extends Controller
         $totalAttempts = $attemptsQuery->count();
 
         // Active Programs
-        $totalPrograms = Program::where('is_active', true)->count();
+        $totalPrograms = Program::where('active', true)->count();
 
         return $this->successResponse([
             'total_users' => $totalUsers,

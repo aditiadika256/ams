@@ -57,7 +57,7 @@ Route::prefix('v1')->group(function () {
         Route::get('permissions', [\App\Domain\Admin\RoleController::class, 'permissions'])->middleware('permission:view_permissions');
         
         // Dashboard
-        Route::get('dashboard/stats', [\App\Domain\Admin\DashboardController::class, 'stats']);
+        Route::get('dashboard/stats', [\App\Domain\Admin\DashboardController::class, 'stats'])->middleware('permission:view_dashboard_admin|view_dashboard_finance|view_dashboard_learning');
     });
 
     // Learning

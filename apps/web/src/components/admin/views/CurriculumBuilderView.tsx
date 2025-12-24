@@ -62,10 +62,15 @@ export default function CurriculumBuilderView({ data }: CurriculumBuilderViewPro
 
   const handleAddLesson = async () => {
     if (!selectedModuleId || !newTitle) return;
+    
+    // Calculate new order
+    const currentModule = modules.find(m => m.id === selectedModuleId);
+    const maxOrder = currentModule?.lessons?.reduce((max: number, l: any) => Math.max(max, l.order || 0), 0) || 0;
+
     await createLesson(selectedModuleId, { 
       title: newTitle, 
       content_type: 'text', 
-      order: 1, // Logic for order needed
+      order: maxOrder + 1,
       is_published: true 
     });
     setNewTitle('');
