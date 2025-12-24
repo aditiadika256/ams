@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Bell, User, LogOut, Settings, UserCircle, Menu, X, Rocket, ShoppingBag } from 'lucide-react';
+import { Bell, User, LogOut, Settings, UserCircle, Menu, X, Rocket, ShoppingBag, LayoutDashboard } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   DropdownMenu,
@@ -130,6 +130,14 @@ const TopBar = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang'].includes(role)) && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="cursor-pointer font-medium text-primary">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Admin Panel</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="cursor-pointer">
                       <UserCircle className="mr-2 h-4 w-4" />

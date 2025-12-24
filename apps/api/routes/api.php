@@ -42,4 +42,50 @@ Route::prefix('v1')->group(function () {
     // Proctoring
     Route::post('exams/{attempt}/log', [\App\Domain\CBT\ProctorController::class, 'logEvent'])->middleware('auth:sanctum');
     Route::post('exams/{attempt}/heartbeat', [\App\Domain\CBT\ProctorController::class, 'heartbeat'])->middleware('auth:sanctum');
+
+    // CMS
+    Route::prefix('cms')->middleware(['auth:sanctum'])->group(function () {
+        Route::apiResource('posts', \App\Domain\CMS\PostController::class);
+        Route::apiResource('pages', \App\Domain\CMS\PageController::class);
+    });
+
+    // Admin
+    Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+        // Users & Roles
+        Route::apiResource('users', \App\Domain\Admin\UserController::class);
+        Route::apiResource('roles', \App\Domain\Admin\RoleController::class);
+        Route::get('permissions', [\App\Domain\Admin\RoleController::class, 'permissions']);
+        
+        // Dashboard
+        Route::get('dashboard/stats', [\App\Domain\Admin\DashboardController::class, 'stats']);
+    });
+
+    // Learning
+    Route::prefix('learning')->middleware(['auth:sanctum'])->group(function () {
+        // Mentors
+        Route::apiResource('mentors', \App\Domain\Learning\MentorController::class);
+        
+        // Schedules
+        Route::get('mentors/{mentor}/schedules', [\App\Domain\Learning\ScheduleController::class, 'index']);
+        Route::post('mentors/{mentor}/schedules', [\App\Domain\Learning\ScheduleController::class, 'update']);
+
+        // Curriculum
+        Route::get('programs/{program}/curriculum', [\App\Domain\Learning\CurriculumController::class, 'index']);
+        
+        // Modules
+        Route::post('programs/{program}/modules', [\App\Domain\Learning\CurriculumController::class, 'storeModule']);
+        Route::put('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'updateModule']);
+        Route::delete('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'destroyModule']);
+
+        // Lessons
+        Route::post('modules/{module}/lessons', [\App\Domain\Learning\CurriculumController::class, 'storeLesson']);
+        Route::put('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'updateLesson']);
+        Route::delete('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'destroyLesson']);
+    });
+
+    // Finance
+    Route::prefix('finance')->middleware(['auth:sanctum'])->group(function () {
+        Route::get('revenue/daily', [\App\Domain\Finance\ReportController::class, 'dailyRevenue']);
+        Route::get('revenue/summary', [\App\Domain\Finance\ReportController::class, 'summary']);
+    });
 });

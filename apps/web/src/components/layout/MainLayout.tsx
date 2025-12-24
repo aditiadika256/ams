@@ -14,12 +14,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isAuthPage = pathname?.startsWith('/auth');
   const isExamSession = pathname?.startsWith('/exams/session');
   const isHomePage = pathname === '/';
+  const isAdminPage = pathname?.startsWith('/admin');
 
   return (
     <div className="relative flex min-h-screen flex-col bg-background font-sans antialiased selection:bg-primary/20">
-      {!isAuthPage && !isExamSession && <TopBar />}
+      {!isAuthPage && !isExamSession && !isAdminPage && <TopBar />}
       <main className="flex-1 w-full">
-        {isHomePage || isExamSession ? (
+        {isHomePage || isExamSession || isAdminPage ? (
           children
         ) : (
           <div className="w-full pt-20 pb-8 md:pt-24 md:pb-16">
@@ -29,7 +30,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         )}
       </main>
-      {!isAuthPage && !isExamSession && <BottomNavigation />}
+      {!isAuthPage && !isExamSession && !isAdminPage && <BottomNavigation />}
     </div>
   );
 };

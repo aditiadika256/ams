@@ -37,6 +37,11 @@ class Program extends Model
         return $this->belongsToMany(Order::class, 'order_items')->withPivot(['price', 'quantity']);
     }
 
+    public function modules(): HasMany
+    {
+        return $this->hasMany(ProgramModule::class)->orderBy('order');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('active', true);
