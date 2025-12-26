@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -16,10 +16,14 @@ export default function HomePage() {
   const { isAuthenticated } = useAuthStore();
   const [mounted, setMounted] = useState(false);
 
+  const didFetch = useRef(false);
   useEffect(() => {
     setMounted(true);
     // Fetch top programs for display
-    fetchPrograms({ active: true });
+    if (!didFetch.current) {
+      didFetch.current = true;
+      fetchPrograms({ active: true });
+    }
   }, [fetchPrograms]);
 
   // Display top 4 programs

@@ -1,45 +1,59 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, LayoutGrid, FileText, ShoppingBag, User, LogIn, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useAuthStore } from '@/store/useAuthStore';
+import { apiClient } from '@/lib/api';
+import type { Menu as MenuType } from '@/types/system';
 
 const BottomNavigation = () => {
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
   const { scrollY } = useScroll();
   const { isAuthenticated, user } = useAuthStore();
+  const [dynamicMenus, setDynamicMenus] = useState<MenuType[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadMenus = async () => {
+      try {
+        const res = await apiClient.menus.get({ layout: 'users', section: 'bottomnavigation' });
+        const menus = (res.data || []) as MenuType[];
+        const filtered = menus
+          .filter(m => !m.parent_id)
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          .slice(0, 3);
+        if (mounted) setDynamicMenus(filtered);
+      } catch (_) {}
+    };
+    loadMenus();
+    return () => { mounted = false; };
+  }, []);
 
   const navItems = useMemo(() => {
-    const items = [];
-
-    // Dashboard for logged in users, Home for guests
-    if (isAuthenticated) {
-      items.push({ href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
-    } else {
-      items.push({ href: '/', icon: Home, label: 'Home' });
+    if (dynamicMenus.length > 0) {
+      return dynamicMenus.map(m => ({ href: m.url, icon: LayoutGrid, label: m.name }));
     }
-
-    items.push({ href: '/programs', icon: LayoutGrid, label: 'Program' });
-
+    const fallback = [];
     if (isAuthenticated) {
-      items.push(
-        { href: '/exams', icon: FileText, label: 'Ujian' },
-        { href: '/orders', icon: ShoppingBag, label: 'Order' },
-        { href: '/profile', icon: User, label: 'Akun' }
-      );
+      fallback.push({ href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
     } else {
-      items.push(
-        { href: '/auth/login', icon: LogIn, label: 'Masuk' }
-      );
+      fallback.push({ href: '/', icon: Home, label: 'Home' });
     }
-
-    return items;
-  }, [isAuthenticated]);
+    fallback.push({ href: '/programs', icon: LayoutGrid, label: 'Program' });
+    if (isAuthenticated) {
+      fallback.push({ href: '/exams', icon: FileText, label: 'Ujian' });
+      fallback.push({ href: '/orders', icon: ShoppingBag, label: 'Order' });
+      fallback.push({ href: '/profile', icon: User, label: 'Akun' });
+    } else {
+      fallback.push({ href: '/auth/login', icon: LogIn, label: 'Masuk' });
+    }
+    return fallback;
+  }, [isAuthenticated, dynamicMenus]);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() || 0;

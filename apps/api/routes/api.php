@@ -49,6 +49,9 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('pages', \App\Domain\CMS\PageController::class);
     });
 
+    // Public Menus
+    Route::get('menus', [\App\Domain\System\MenuController::class, 'index']);
+
     // Admin
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
         // Users & Roles
@@ -58,6 +61,9 @@ Route::prefix('v1')->group(function () {
         
         // Dashboard
         Route::get('dashboard/stats', [\App\Domain\Admin\DashboardController::class, 'stats'])->middleware('permission:view_dashboard_admin|view_dashboard_finance|view_dashboard_learning');
+
+        // Menu Management
+        Route::apiResource('menus', \App\Domain\Admin\MenuController::class)->middleware('permission:manage_menus');
     });
 
     // Learning

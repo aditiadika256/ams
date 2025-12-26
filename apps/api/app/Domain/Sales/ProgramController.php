@@ -10,6 +10,7 @@ use App\Http\Resources\ProgramResource;
 use App\Models\Program;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -68,12 +69,24 @@ class ProgramController extends Controller
 
         $perPage = $filters['per_page'] ?? 15;
 
-        $programs = $query->paginate($perPage);
+        $page = (int)($filters['page'] ?? 1);
+
+        $cacheKey = sprintf(
+            'programs:index:%s:page:%d:per:%d',
+            md5(json_encode($filters)),
+            $page,
+            $perPage
+        );
+
+        $data = Cache::remember($cacheKey, 60, function () use ($query, $perPage) {
+            $programs = $query->paginate($perPage);
+            return ProgramResource::collection($programs)->response()->getData(true);
+        });
 
         return $this->successResponse(
-            ProgramResource::collection($programs),
+            $data,
             'Programs retrieved successfully'
-        );
+        )->header('Cache-Control', 'public, max-age=60');
     }
 
     #[OA\Get(

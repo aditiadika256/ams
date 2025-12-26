@@ -10,6 +10,7 @@ export type AdminViewKey =
   | 'mentors'
   | 'programs'
   | 'curriculum-builder'
+  | 'menus'
   | 'roles'
   | 'settings';
 

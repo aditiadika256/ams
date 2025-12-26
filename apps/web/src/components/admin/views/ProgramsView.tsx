@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -22,7 +22,10 @@ export default function ProgramsView() {
   const { addTab } = useAdminStore();
   const [searchQuery, setSearchQuery] = React.useState('');
 
+  const didFetch = useRef(false);
   useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
     fetchPrograms({});
   }, [fetchPrograms]);
 

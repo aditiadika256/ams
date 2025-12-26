@@ -15,6 +15,8 @@ import CMSPostsView from '../views/CMSPostsView';
 import MentorsView from '../views/MentorsView';
 import ProgramsView from '../views/ProgramsView';
 import CurriculumBuilderView from '../views/CurriculumBuilderView';
+import RolesPermissionsView from '../views/RolesPermissionsView';
+import MenuManagementView from '../views/MenuManagementView';
 
 const ViewMap: Record<string, React.ComponentType<any>> = {
   'dashboard': DashboardView,
@@ -24,8 +26,9 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'mentors': MentorsView,
   'programs': ProgramsView,
   'curriculum-builder': CurriculumBuilderView,
+  'menus': MenuManagementView,
   // Fallbacks or others
-  'roles': () => <div>Roles View (Placeholder)</div>,
+  'roles': RolesPermissionsView,
   'cms-pages': () => <div>Pages View (Placeholder)</div>,
   'settings': () => <div>Settings View (Placeholder)</div>,
 };
@@ -38,6 +41,7 @@ const ViewPermissions: Record<string, string[]> = {
   'mentors': ['manage_students', 'view_dashboard_learning'],
   'programs': ['manage_learning_content', 'view_dashboard_learning'],
   'curriculum-builder': ['manage_learning_content'],
+  'menus': ['manage_menus'],
   'roles': ['manage_roles'],
   'cms-pages': ['manage_global_settings'],
   'settings': ['manage_global_settings'],
@@ -45,7 +49,7 @@ const ViewPermissions: Record<string, string[]> = {
 
 export default function AdminLayout() {
   const { sidebarOpen, tabs, activeTabId } = useAdminStore();
-  const { hasPermission } = useAuthStore();
+  const { hasPermission, hasRole } = useAuthStore();
   
   // Find the active tab definition
   const activeTab = tabs.find(t => t.id === activeTabId);
@@ -54,11 +58,12 @@ export default function AdminLayout() {
   // Check permissions for active view
   const isAllowed = React.useMemo(() => {
     if (!activeTab) return true; // Default or empty state
+    if (hasRole(['superadmin','direktur'])) return true;
     const requiredPermissions = ViewPermissions[activeTab.view];
     if (!requiredPermissions) return true; // No specific permissions required (safe default? or strict?)
     // Let's assume strict: if view is in map, check it.
     return hasPermission(requiredPermissions);
-  }, [activeTab, hasPermission]);
+  }, [activeTab, hasPermission, hasRole]);
 
   return (
     <div className="min-h-screen bg-background flex">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Mentor;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class MentorController extends Controller
@@ -20,13 +21,51 @@ class MentorController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Mentor::with('user');
+        $query = Mentor::with(['user:id,name,email']);
 
         if ($request->has('specialization')) {
             $query->where('specialization', 'like', '%' . $request->specialization . '%');
         }
 
-        return response()->json($query->paginate(20));
+        $page = (int)($request->get('page', 1));
+        $perPage = (int)($request->get('per_page', 20));
+
+        $filters = [
+            'specialization' => $request->get('specialization'),
+        ];
+
+        $cacheKey = sprintf(
+            'mentors:index:%s:page:%d:per:%d',
+            md5(json_encode($filters)),
+            $page,
+            $perPage
+        );
+
+        $payload = Cache::remember($cacheKey, 60, function () use ($query, $perPage) {
+            $mentors = $query->paginate($perPage);
+            return [
+                'data' => $mentors->items(),
+                'links' => [
+                    'first' => $mentors->url(1),
+                    'last' => $mentors->url($mentors->lastPage()),
+                    'prev' => $mentors->previousPageUrl(),
+                    'next' => $mentors->nextPageUrl(),
+                ],
+                'meta' => [
+                    'current_page' => $mentors->currentPage(),
+                    'from' => $mentors->firstItem(),
+                    'last_page' => $mentors->lastPage(),
+                    'path' => $mentors->path(),
+                    'per_page' => $mentors->perPage(),
+                    'to' => $mentors->lastItem(),
+                    'total' => $mentors->total(),
+                ],
+            ];
+        });
+
+        return response()
+            ->json($payload)
+            ->header('Cache-Control', 'public, max-age=60');
     }
 
     /**
