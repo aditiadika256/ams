@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSalesStore } from '@/store/useSalesStore';
 import ProgramCard from '@/components/programs/ProgramCard';
 import { ProgramCardSkeleton } from '@/components/programs/ProgramCardSkeleton';
@@ -13,7 +13,10 @@ export default function ProgramsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
 
+  const didFetch = useRef(false);
   useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
     fetchPrograms({ active: true });
   }, [fetchPrograms]);
 

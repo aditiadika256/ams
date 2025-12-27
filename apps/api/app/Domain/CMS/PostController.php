@@ -78,7 +78,7 @@ class PostController extends Controller
             'content' => 'required|string',
             'excerpt' => 'nullable|string',
             'status' => 'nullable|in:draft,published,archived',
-            'featured_image' => 'nullable|string',
+            'featured_image' => 'nullable|url',
             'published_at' => 'nullable|date',
         ]);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -17,11 +17,21 @@ import {
 import { useLearningStore } from '@/store/useLearningStore';
 
 export default function MentorsView() {
-  const { mentors, fetchMentors, isLoading } = useLearningStore();
+  const { mentors, fetchMentors, isLoading, error } = useLearningStore();
+  const [searchQuery, setSearchQuery] = React.useState('');
 
+  const didFetch = useRef(false);
   useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
     fetchMentors();
   }, [fetchMentors]);
+
+  const filteredMentors = mentors.filter(mentor => 
+    (mentor.user?.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (mentor.user?.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    mentor.specialization.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -34,6 +44,12 @@ export default function MentorsView() {
           <Plus className="mr-2 h-4 w-4" /> Add New Mentor
         </Button>
       </div>
+
+      {error && (
+        <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
+          {error}
+        </div>
+      )}
       
       <Card>
         <CardHeader>
@@ -46,6 +62,8 @@ export default function MentorsView() {
                   type="search"
                   placeholder="Search mentors..."
                   className="pl-8 w-[200px] lg:w-[300px]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </div>
@@ -54,7 +72,7 @@ export default function MentorsView() {
         <CardContent>
           {isLoading ? (
              <div className="py-8 text-center text-muted-foreground">Loading mentors...</div>
-          ) : mentors.length === 0 ? (
+          ) : filteredMentors.length === 0 ? (
              <div className="py-8 text-center text-muted-foreground">No mentors found.</div>
           ) : (
             <div className="overflow-x-auto">
@@ -69,7 +87,7 @@ export default function MentorsView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {mentors.map((mentor) => (
+                  {filteredMentors.map((mentor) => (
                     <tr key={mentor.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">

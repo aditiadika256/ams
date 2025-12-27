@@ -70,6 +70,7 @@ export default function DashboardView() {
                   <Tooltip 
                     cursor={{ fill: 'transparent' }}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                    formatter={(value: any) => [`Rp ${value}`, 'Revenue']}
                   />
                   <Bar dataKey="total" fill="currentColor" radius={[4, 4, 0, 0]} className="fill-primary" />
                 </BarChart>
@@ -84,11 +85,11 @@ export default function DashboardView() {
           <CardContent>
             <div className="space-y-8">
               {[
-                { name: 'Olivia Martin', email: 'olivia.martin@email.com', amount: '+$1,999.00' },
-                { name: 'Jackson Lee', email: 'jackson.lee@email.com', amount: '+$39.00' },
-                { name: 'Isabella Nguyen', email: 'isabella.nguyen@email.com', amount: '+$299.00' },
-                { name: 'William Kim', email: 'will@email.com', amount: '+$99.00' },
-                { name: 'Sofia Davis', email: 'sofia.davis@email.com', amount: '+$39.00' }
+                { name: 'Olivia Martin', email: 'olivia.martin@email.com', amount: 1999000 },
+                { name: 'Jackson Lee', email: 'jackson.lee@email.com', amount: 39000 },
+                { name: 'Isabella Nguyen', email: 'isabella.nguyen@email.com', amount: 299000 },
+                { name: 'William Kim', email: 'will@email.com', amount: 99000 },
+                { name: 'Sofia Davis', email: 'sofia.davis@email.com', amount: 39000 }
               ].map((user, i) => (
                 <div key={i} className="flex items-center">
                    <div className="h-9 w-9 rounded-full bg-primary/20 flex items-center justify-center">
@@ -98,7 +99,9 @@ export default function DashboardView() {
                      <p className="text-sm font-medium leading-none">{user.name}</p>
                      <p className="text-sm text-muted-foreground">{user.email}</p>
                    </div>
-                   <div className="ml-auto font-medium">{user.amount}</div>
+                   <div className="ml-auto font-medium">
+                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(user.amount)}
+                   </div>
                 </div>
               ))}
             </div>

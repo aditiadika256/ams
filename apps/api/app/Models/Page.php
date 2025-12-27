@@ -16,8 +16,6 @@ class Page extends Model
         'status',
         'meta_title',
         'meta_description',
-        'created_by',
-        'updated_by',
     ];
 
     public function scopePublished($query)

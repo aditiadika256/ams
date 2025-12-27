@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useSalesStore } from '@/store/useSalesStore';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,10 @@ import { PageLoader } from '@/components/ui/loaders';
 export default function OrderHistoryPage() {
   const { orders, fetchOrders, isLoading } = useSalesStore();
 
+  const didFetch = useRef(false);
   useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
     fetchOrders();
   }, [fetchOrders]);
 

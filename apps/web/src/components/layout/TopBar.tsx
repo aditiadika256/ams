@@ -16,6 +16,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { ModeToggle } from '../mode-toggle';
+import { apiClient } from '@/lib/api';
+import type { Menu as MenuType } from '@/types/system';
 
 const TopBar = () => {
   const router = useRouter();
@@ -55,13 +58,32 @@ const TopBar = () => {
       .substring(0, 2);
   };
 
-  const navLinks = [
+  const [navLinks, setNavLinks] = useState<{ name: string; href: string }[]>([
     { name: 'Beranda', href: '/' },
     { name: 'Program', href: '/programs' },
     { name: 'Ujian', href: '/exams' },
     { name: 'Blog', href: '/blog' },
     { name: 'Tentang', href: '/about' },
-  ];
+  ]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadMenus = async () => {
+      try {
+        const res = await apiClient.menus.get({ layout: 'users', section: 'topbar' });
+        const menus = (res.data || []) as MenuType[];
+        const topLevel = menus
+          .filter(m => !m.parent_id)
+          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          .map(m => ({ name: m.name, href: m.url }));
+        if (isMounted && topLevel.length > 0) {
+          setNavLinks(topLevel);
+        }
+      } catch (_) {}
+    };
+    loadMenus();
+    return () => { isMounted = false; };
+  }, []);
 
   return (
     <motion.header
@@ -103,6 +125,7 @@ const TopBar = () => {
         </div>
 
         <div className="flex items-center space-x-4">
+          <ModeToggle />
           {isAuthenticated ? (
             <>
               <Button variant="ghost" size="icon" className="rounded-full hidden sm:flex text-muted-foreground hover:text-primary">
@@ -130,11 +153,18 @@ const TopBar = () => {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang'].includes(role)) && (
+                  {user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang'].includes(role)) ? (
                     <DropdownMenuItem asChild>
                       <Link href="/admin" className="cursor-pointer font-medium text-primary">
                         <LayoutDashboard className="mr-2 h-4 w-4" />
                         <span>Admin Panel</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard" className="cursor-pointer font-medium text-primary">
+                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                        <span>Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                   )}

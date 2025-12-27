@@ -32,7 +32,8 @@ export const useSalesStore = create<SalesState>((set, get) => ({
     try {
       const response = await apiClient.sales.getPrograms(params);
       if (response.success && response.data) {
-        set({ programs: response.data, isLoading: false });
+        const list = (response as any)?.data?.data ?? response.data;
+        set({ programs: list, isLoading: false });
       } else {
         throw new Error(response.message || 'Failed to fetch programs');
       }

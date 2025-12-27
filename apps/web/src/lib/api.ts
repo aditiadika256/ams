@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { ApiResponse } from '../types/auth';
 import { Program, Order, CreateOrderPayload } from '../types/sales';
 import { ExamSession, Question, ExamResult } from '../types/cbt';
+import { Menu } from '../types/system';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -186,6 +187,60 @@ export const apiClient = {
       const response = await api.post<ApiResponse<any>>(`/exams/${attemptId}/heartbeat`);
       return response.data;
     },
+  },
+
+  // Menus endpoints
+  menus: {
+    get: async (params?: { layout?: 'users'|'admin'; section?: 'topbar'|'bottomnavigation'|'sidebar'|'header' }) => {
+      const response = await api.get<ApiResponse<Menu[]>>('/menus', { params });
+      return response.data;
+    },
+  },
+
+  // Admin endpoints
+  admin: {
+    menus: {
+      list: async (params?: { layout?: 'users'|'admin'; section?: 'topbar'|'bottomnavigation'|'sidebar'|'header' }) => {
+        const response = await api.get<ApiResponse<Menu[]>>('/admin/menus', { params });
+        return response.data;
+      },
+      create: async (payload: Partial<Menu>) => {
+        const response = await api.post<ApiResponse<Menu>>('/admin/menus', payload);
+        return response.data;
+      },
+      update: async (id: number, payload: Partial<Menu>) => {
+        const response = await api.put<ApiResponse<Menu>>(`/admin/menus/${id}`, payload);
+        return response.data;
+      },
+      remove: async (id: number) => {
+        const response = await api.delete(`/admin/menus/${id}`);
+        return response.data;
+      },
+    },
+    roles: {
+      list: async () => {
+        const response = await api.get<ApiResponse<any[]>>('/admin/roles');
+        return response.data;
+      },
+      create: async (payload: { name: string; permissions?: string[] }) => {
+        const response = await api.post<ApiResponse<any>>('/admin/roles', payload);
+        return response.data;
+      },
+      update: async (id: number, payload: { name?: string; permissions?: string[] }) => {
+        const response = await api.put<ApiResponse<any>>(`/admin/roles/${id}`, payload);
+        return response.data;
+      },
+      remove: async (id: number) => {
+        const response = await api.delete<ApiResponse<any>>(`/admin/roles/${id}`);
+        return response.data;
+      },
+      permissions: {
+        list: async () => {
+          const response = await api.get<ApiResponse<any[]>>('/admin/permissions');
+          return response.data;
+        }
+      }
+    }
   },
 };
 

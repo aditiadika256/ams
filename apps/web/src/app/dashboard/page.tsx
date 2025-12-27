@@ -1,12 +1,14 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Spinner } from '@/components/ui/loaders';
+import StudentDashboard from '@/components/dashboard/StudentDashboard';
+import MentorDashboard from '@/components/dashboard/MentorDashboard';
 
 function DashboardPage() {
   const router = useRouter();
@@ -17,56 +19,47 @@ function DashboardPage() {
     router.push('/auth/login');
   };
 
+  // Redirect admins to admin panel
+  useEffect(() => {
+    if (user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang', 'direktur'].includes(role))) {
+      router.replace('/admin');
+    }
+  }, [user, router]);
+
+  // Render content based on role
+  const renderDashboardContent = () => {
+    if (!user) return null;
+
+    // Check for admin roles first (though useEffect should handle redirect, this prevents flash)
+    if (user.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang', 'direktur'].includes(role))) {
+      return (
+        <div className="flex h-[50vh] items-center justify-center">
+          <div className="text-center">
+            <Spinner className="mb-4 mx-auto" />
+            <p>Redirecting to Admin Panel...</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Mentor View
+    if (user.roles?.includes('mentor')) {
+      return <MentorDashboard />;
+    }
+
+    // Default: Student/Member View
+    return <StudentDashboard />;
+  };
+
   return (
     <ProtectedRoute>
-      <div className="py-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <Button onClick={handleLogout} variant="destructive" disabled={isLoading}>
-            {isLoading ? <Spinner size="sm" variant="white" className="mr-2" /> : 'Logout'}
-          </Button>
-        </div>
-
-        <div className="grid gap-6 sm:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Informasi Pengguna</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">ID</span>
-                <span className="font-medium">{user?.id}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Name</span>
-                <span className="font-medium">{user?.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Email</span>
-                <span className="font-medium">{user?.email}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Roles</span>
-                <span className="font-medium">{user?.roles?.join(', ') || '-'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Permissions</span>
-                <span className="font-medium">{user?.permissions?.join(', ') || '-'}</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Selamat Datang!</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Anda telah berhasil masuk ke Arkanin - Edutech Platform. Fitur-fitur lainnya akan segera ditambahkan di sini.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        {/* Header with Logout (Only visible if not handled inside sub-dashboards or if we want global logout here) */}
+        {/* We can keep a minimal header or rely on TopBar. Since TopBar exists, we don't need a huge header here. */}
+        {/* However, the original code had a logout button. Let's keep it consistent or remove it if TopBar handles it. */}
+        {/* TopBar DOES handle logout. So we can remove the explicit logout button here for a cleaner look. */}
+        
+        {renderDashboardContent()}
       </div>
     </ProtectedRoute>
   );

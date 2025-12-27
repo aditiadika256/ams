@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, LayoutDashboard, FileText, PieChart, Users, ShieldCheck, Settings, Home } from 'lucide-react';
+import { X, LayoutDashboard, FileText, PieChart, Users, ShieldCheck, Settings, Home, Menu as MenuIcon } from 'lucide-react';
 import { useAdminStore } from '@/store/useAdminStore';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,7 +14,8 @@ const IconMap: Record<string, any> = {
   Users,
   ShieldCheck,
   Settings,
-  Home
+  Home,
+  Menu: MenuIcon
 };
 
 export function AdminTabs() {

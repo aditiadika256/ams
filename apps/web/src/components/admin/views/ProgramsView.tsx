@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,12 +18,21 @@ import { useSalesStore } from '@/store/useSalesStore';
 import { useAdminStore } from '@/store/useAdminStore';
 
 export default function ProgramsView() {
-  const { programs, fetchPrograms, isLoading } = useSalesStore();
+  const { programs, fetchPrograms, isLoading, error } = useSalesStore();
   const { addTab } = useAdminStore();
+  const [searchQuery, setSearchQuery] = React.useState('');
 
+  const didFetch = useRef(false);
   useEffect(() => {
+    if (didFetch.current) return;
+    didFetch.current = true;
     fetchPrograms({});
   }, [fetchPrograms]);
+
+  const filteredPrograms = programs.filter(program => 
+    program.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    program.type.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -36,6 +45,12 @@ export default function ProgramsView() {
           <Plus className="mr-2 h-4 w-4" /> Add New Program
         </Button>
       </div>
+
+      {error && (
+        <div className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm">
+          {error}
+        </div>
+      )}
       
       <Card>
         <CardHeader>
@@ -48,6 +63,8 @@ export default function ProgramsView() {
                   type="search"
                   placeholder="Search programs..."
                   className="pl-8 w-[200px] lg:w-[300px]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </div>
@@ -56,7 +73,7 @@ export default function ProgramsView() {
         <CardContent>
           {isLoading ? (
              <div className="py-8 text-center text-muted-foreground">Loading programs...</div>
-          ) : programs.length === 0 ? (
+          ) : filteredPrograms.length === 0 ? (
              <div className="py-8 text-center text-muted-foreground">No programs found.</div>
           ) : (
             <div className="overflow-x-auto">
@@ -72,7 +89,7 @@ export default function ProgramsView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {programs.map((program) => (
+                  {filteredPrograms.map((program) => (
                     <tr key={program.id} className="border-b last:border-0 hover:bg-muted/50 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">

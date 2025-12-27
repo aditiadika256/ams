@@ -121,6 +121,14 @@ class UserController extends Controller
     public function show($id)
     {
         $user = User::with(['roles', 'branch'])->findOrFail($id);
+
+        // Branch Manager restriction
+        if (request()->user()->hasRole('manajer_cabang') && !request()->user()->hasRole('superadmin')) {
+            if ($user->branch_id !== request()->user()->branch_id) {
+                return response()->json(['message' => 'Unauthorized to view user from another branch'], 403);
+            }
+        }
+
         return $this->successResponse($user, 'User details retrieved successfully');
     }
 
@@ -147,6 +155,13 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+
+        // Branch Manager restriction
+        if ($request->user()->hasRole('manajer_cabang') && !$request->user()->hasRole('superadmin')) {
+             if ($user->branch_id !== $request->user()->branch_id) {
+                 return response()->json(['message' => 'Unauthorized to update user from another branch'], 403);
+             }
+        }
         
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -189,6 +204,13 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+
+        // Branch Manager restriction
+        if (request()->user()->hasRole('manajer_cabang') && !request()->user()->hasRole('superadmin')) {
+            if ($user->branch_id !== request()->user()->branch_id) {
+                return response()->json(['message' => 'Unauthorized to delete user from another branch'], 403);
+            }
+        }
         
         // Prevent deleting self
         if (auth()->id() == $id) {

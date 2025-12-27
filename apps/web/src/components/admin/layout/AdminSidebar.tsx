@@ -22,92 +22,25 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { apiClient } from '@/lib/api';
+import type { Menu as MenuType } from '@/types/system';
 
-const menuItems = [
-  {
-    category: 'Main',
-    items: [
-      { 
-        title: 'Dashboard', 
-        view: 'dashboard', 
-        icon: LayoutDashboard,
-        permissions: ['view_dashboard_global', 'view_dashboard_branch', 'view_dashboard_finance', 'view_dashboard_learning']
-      },
-      { 
-        title: 'Analytics', 
-        view: 'finance', 
-        icon: PieChart,
-        permissions: ['view_finance_analytics']
-      },
-    ]
-  },
-  {
-    category: 'Management',
-    items: [
-      { 
-        title: 'Users', 
-        view: 'users', 
-        icon: Users,
-        permissions: ['manage_users_global', 'manage_users_branch']
-      },
-      { 
-        title: 'Roles & Permissions', 
-        view: 'roles', 
-        icon: ShieldCheck,
-        permissions: ['manage_roles']
-      },
-    ]
-  },
-  {
-    category: 'Education',
-    items: [
-      { 
-        title: 'Programs', 
-        view: 'programs', 
-        icon: BookOpen,
-        permissions: ['manage_learning_content', 'view_dashboard_learning']
-      },
-      { 
-        title: 'Mentors', 
-        view: 'mentors', 
-        icon: GraduationCap,
-        permissions: ['manage_students', 'view_dashboard_learning']
-      },
-    ]
-  },
-  {
-    category: 'Content',
-    items: [
-      { 
-        title: 'Blog Posts', 
-        view: 'cms-posts', 
-        icon: FileText,
-        permissions: ['manage_global_settings']
-      },
-      { 
-        title: 'Pages', 
-        view: 'cms-pages', 
-        icon: FileText,
-        permissions: ['manage_global_settings']
-      },
-    ]
-  },
-  {
-    category: 'System',
-    items: [
-      { 
-        title: 'Settings', 
-        view: 'settings', 
-        icon: Settings,
-        permissions: ['manage_global_settings']
-      },
-    ]
-  }
-];
+const IconMap: Record<string, any> = {
+  LayoutDashboard,
+  PieChart,
+  Users,
+  ShieldCheck,
+  BookOpen,
+  GraduationCap,
+  FileText,
+  Settings,
+  Menu,
+};
 
 export function AdminSidebar() {
   const { addTab, sidebarOpen, setSidebarOpen, toggleSidebar } = useAdminStore();
-  const { logout, hasPermission } = useAuthStore();
+  const { logout } = useAuthStore();
+  const [dynamicMenus, setDynamicMenus] = React.useState<MenuType[]>([]);
 
   React.useEffect(() => {
     // Ensure sidebar is open on desktop by default
@@ -125,17 +58,36 @@ export function AdminSidebar() {
     // return () => window.removeEventListener('resize', checkScreenSize);
   }, [setSidebarOpen]);
 
+  React.useEffect(() => {
+    let mounted = true;
+    const loadMenus = async () => {
+      try {
+        const res = await apiClient.admin.menus.list({ layout: 'admin', section: 'sidebar' });
+        const menus = (res.data || []) as MenuType[];
+        const sorted = menus.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        if (mounted) setDynamicMenus(sorted);
+      } catch (_) {}
+    };
+    loadMenus();
+    return () => { mounted = false; };
+  }, []);
+
   const handleLogout = async () => {
     await logout();
     window.location.href = '/auth/login';
   };
 
-  const handleMenuClick = (item: any) => {
-    addTab({
-      title: item.title,
-      view: item.view,
-      icon: item.icon.displayName
-    });
+  const openMenu = (m: MenuType) => {
+    if (m.url?.startsWith('admin://view/')) {
+      const viewKey = m.url.replace('admin://view/', '');
+      addTab({
+        title: m.name,
+        view: viewKey as any,
+        icon: m.icon || 'LayoutDashboard'
+      });
+    } else {
+      window.location.href = m.url;
+    }
   };
 
   return (
@@ -191,33 +143,47 @@ export function AdminSidebar() {
       </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto py-4 space-y-6">
-          {menuItems.map((group, i) => (
-            <div key={i} className="px-4">
-              {sidebarOpen && (
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
-                  {group.category}
-                </h3>
-              )}
-              <div className="space-y-1">
-                {group.items.map((item) => (
-                  <Button
-                    key={item.title}
-                    variant="ghost"
-                    size={sidebarOpen ? "default" : "icon"}
-                    className={cn(
-                      "w-full justify-start",
-                      !sidebarOpen && "justify-center px-0"
-                    )}
-                    onClick={() => handleMenuClick(item)}
-                  >
-                    <item.icon className={cn("h-5 w-5", sidebarOpen && "mr-3")} />
-                    {sidebarOpen && <span>{item.title}</span>}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ))}
+        <div className="flex-1 overflow-y-auto py-4 space-y-2 px-4">
+          {dynamicMenus.length > 0 ? (
+            dynamicMenus
+              .filter(m => !m.parent_id)
+              .map((m) => {
+                const Icon = (m.icon && IconMap[m.icon]) || LayoutDashboard;
+                return (
+                  <div key={m.id} className="space-y-1">
+                    <Button
+                      variant="ghost"
+                      size={sidebarOpen ? "default" : "icon"}
+                      className={cn("w-full justify-start", !sidebarOpen && "justify-center px-0")}
+                      onClick={() => openMenu(m)}
+                    >
+                      <Icon className={cn("h-5 w-5", sidebarOpen && "mr-3")} />
+                      {sidebarOpen && <span>{m.name}</span>}
+                    </Button>
+                    {dynamicMenus
+                      .filter(c => c.parent_id === m.id)
+                      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+                      .map((c) => {
+                        const CIcon = (c.icon && IconMap[c.icon]) || FileText;
+                        return (
+                          <Button
+                            key={c.id}
+                            variant="ghost"
+                            size={sidebarOpen ? "default" : "icon"}
+                            className={cn("w-full justify-start pl-8", !sidebarOpen && "justify-center px-0")}
+                            onClick={() => openMenu(c)}
+                          >
+                            <CIcon className={cn("h-4 w-4", sidebarOpen && "mr-3")} />
+                            {sidebarOpen && <span>{c.name}</span>}
+                          </Button>
+                        );
+                      })}
+                  </div>
+                );
+              })
+          ) : (
+            <div className="text-xs text-muted-foreground px-2">Tidak ada menu. Tambahkan di Menu Management.</div>
+          )}
         </div>
 
         {/* Footer */}
