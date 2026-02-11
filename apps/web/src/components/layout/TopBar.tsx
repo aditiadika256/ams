@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Bell, User, LogOut, Settings, UserCircle, Menu, X, Rocket, ShoppingBag, LayoutDashboard } from 'lucide-react';
@@ -17,8 +17,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
 import { ModeToggle } from '../mode-toggle';
-import { apiClient } from '@/lib/api';
-import type { Menu as MenuType } from '@/types/system';
+import { useMenuStore } from '@/store/useMenuStore';
+
+const FALLBACK_NAV = [
+  { name: 'Beranda', href: '/' },
+  { name: 'Program', href: '/programs' },
+  { name: 'Ujian', href: '/exams' },
+  { name: 'Blog', href: '/blog' },
+  { name: 'Tentang', href: '/about' },
+];
 
 const TopBar = () => {
   const router = useRouter();
@@ -27,8 +34,13 @@ const TopBar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
-  
+
   const { scrollY } = useScroll();
+
+  // Shared menu store — select raw cache to avoid creating new references
+  const menuCache = useMenuStore((s) => s.cache);
+  const fetchMenus = useMenuStore((s) => s.fetchMenus);
+  const topbarMenus = menuCache['users:topbar']?.data ?? [];
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() || 0;
@@ -58,32 +70,19 @@ const TopBar = () => {
       .substring(0, 2);
   };
 
-  const [navLinks, setNavLinks] = useState<{ name: string; href: string }[]>([
-    { name: 'Beranda', href: '/' },
-    { name: 'Program', href: '/programs' },
-    { name: 'Ujian', href: '/exams' },
-    { name: 'Blog', href: '/blog' },
-    { name: 'Tentang', href: '/about' },
-  ]);
-
+  // Fetch menus once via shared store (deduplicated)
   useEffect(() => {
-    let isMounted = true;
-    const loadMenus = async () => {
-      try {
-        const res = await apiClient.menus.get({ layout: 'users', section: 'topbar' });
-        const menus = (res.data || []) as MenuType[];
-        const topLevel = menus
-          .filter(m => !m.parent_id)
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-          .map(m => ({ name: m.name, href: m.url }));
-        if (isMounted && topLevel.length > 0) {
-          setNavLinks(topLevel);
-        }
-      } catch (_) {}
-    };
-    loadMenus();
-    return () => { isMounted = false; };
-  }, []);
+    fetchMenus('users', 'topbar');
+  }, [fetchMenus]);
+
+  // Derive navLinks from store data or fallback
+  const navLinks = useMemo(() => {
+    const topLevel = topbarMenus
+      .filter(m => !m.parent_id)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .map(m => ({ name: m.name, href: m.url }));
+    return topLevel.length > 0 ? topLevel : FALLBACK_NAV;
+  }, [topbarMenus]);
 
   return (
     <motion.header
@@ -93,11 +92,10 @@ const TopBar = () => {
       }}
       animate={hidden ? 'hidden' : 'visible'}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className={`fixed top-0 z-40 w-full transition-colors duration-300 ${
-        scrolled 
-          ? 'bg-background/80 backdrop-blur-md border-b shadow-sm' 
-          : 'bg-background/0 border-transparent'
-      }`}
+      className={`fixed top-0 z-40 w-full transition-all duration-300 ${scrolled
+        ? 'glass border-b-white/10'
+        : 'bg-transparent border-transparent'
+        }`}
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
@@ -105,18 +103,17 @@ const TopBar = () => {
             <div className="bg-primary text-primary-foreground p-1.5 rounded-lg group-hover:rotate-12 transition-transform">
               <Rocket className="h-5 w-5" />
             </div>
-            <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Arkanin</span>
+            <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text">Arkanin</span>
           </Link>
-          
+
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6">
             {navLinks.map((link) => (
-              <Link 
-                key={link.href} 
+              <Link
+                key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${
-                  pathname === link.href ? 'text-primary' : 'text-muted-foreground'
-                }`}
+                className={`text-sm font-medium transition-colors hover:text-primary ${pathname === link.href ? 'text-primary' : 'text-muted-foreground'
+                  }`}
               >
                 {link.name}
               </Link>
@@ -131,7 +128,7 @@ const TopBar = () => {
               <Button variant="ghost" size="icon" className="rounded-full hidden sm:flex text-muted-foreground hover:text-primary">
                 <Bell className="h-5 w-5" />
               </Button>
-              
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all">
@@ -187,7 +184,7 @@ const TopBar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50 dark:focus:bg-red-950/20">
+                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive-foreground focus:bg-destructive/20 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
@@ -206,9 +203,9 @@ const TopBar = () => {
           )}
 
           {/* Mobile Menu Toggle */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
@@ -232,11 +229,10 @@ const TopBar = () => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
-                    pathname === link.href 
-                      ? 'bg-primary/10 text-primary' 
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
+                  className={`block px-3 py-2 rounded-md text-base font-medium ${pathname === link.href
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    }`}
                 >
                   {link.name}
                 </Link>

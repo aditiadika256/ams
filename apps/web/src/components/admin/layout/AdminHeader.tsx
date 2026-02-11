@@ -39,7 +39,7 @@ export function AdminHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex flex-col w-full bg-background border-b shadow-sm">
+    <header className="sticky top-0 z-30 flex flex-col w-full glass border-b border-white/10 shadow-sm">
       {/* Top Bar */}
       <div className="flex items-center justify-between px-4 h-16">
         <div className="flex items-center gap-4">
@@ -51,7 +51,7 @@ export function AdminHeader() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search anything (Ctrl + K)" 
-              className="pl-9 bg-muted/50 border-none focus-visible:ring-1 focus-visible:bg-background transition-all"
+              className="pl-9 bg-white/10 border-white/10 focus-visible:ring-1 focus-visible:bg-white/20 transition-all text-foreground placeholder:text-muted-foreground/70"
             />
           </div>
         </div>

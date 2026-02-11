@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -8,19 +7,18 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { AnimatedButton } from '@/components/ui/animated-button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card';
+  GlassCard,
+  GlassCardContent,
+  GlassCardDescription,
+  GlassCardHeader,
+  GlassCardTitle,
+} from '@/components/ui/glass-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Spinner, PageLoader } from '@/components/ui/loaders';
+import { ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid').min(1, 'Email wajib diisi'),
@@ -53,7 +51,7 @@ export default function LoginPage() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: 'superadmin@example.com',
+      email: 'superadmin@arkanin.com',
       password: 'password',
     },
   });
@@ -66,79 +64,138 @@ export default function LoginPage() {
   if (isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin" />
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center py-10 sm:py-16 relative bg-muted/20">
-      <Button asChild variant="ghost" className="absolute top-4 left-4 md:top-8 md:left-8">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden py-10 sm:py-16">
+      {/* Animated Background Blobs */}
+      <motion.div 
+        animate={{ 
+          scale: [1, 1.2, 1],
+          rotate: [0, 90, 0],
+          x: [0, 50, 0],
+          y: [0, -50, 0]
+        }}
+        transition={{ 
+          duration: 20, 
+          repeat: Infinity,
+          ease: "easeInOut" 
+        }}
+        className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-purple-500/30 blur-3xl" 
+      />
+      <motion.div 
+        animate={{ 
+          scale: [1, 1.1, 1],
+          rotate: [0, -45, 0],
+          x: [0, -30, 0],
+          y: [0, 40, 0]
+        }}
+        transition={{ 
+          duration: 15, 
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: 2
+        }}
+        className="absolute top-1/2 right-0 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" 
+      />
+      <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-pink-500/20 blur-3xl" />
+
+      <AnimatedButton asChild variant="ghost" className="absolute top-4 left-4 md:top-8 md:left-8 z-10">
         <Link href="/">
            <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Link>
-      </Button>
-      <Card className="w-full max-w-md shadow-lg border-muted/60">
-        <CardHeader className="text-center space-y-1">
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            Masuk ke Akun Anda
-          </CardTitle>
-          <CardDescription>Arkanin - Edutech Platform</CardDescription>
-        </CardHeader>
-        <CardContent>
+      </AnimatedButton>
+      
+      <GlassCard className="relative z-10 w-full max-w-md mx-4" gradient>
+        <GlassCardHeader className="text-center space-y-1">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
+              <Sparkles className="h-8 w-8 text-primary" />
+            </div>
+          </div>
+          <GlassCardTitle className="text-2xl font-bold tracking-tight">
+            Selamat Datang
+          </GlassCardTitle>
+          <GlassCardDescription>
+            Masuk untuk mengakses Edutech Platform
+          </GlassCardDescription>
+        </GlassCardHeader>
+        <GlassCardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {error && (
-              <div className="rounded-lg border bg-destructive/15 p-4 text-center text-sm text-destructive">
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="rounded-lg border border-destructive/20 bg-destructive/10 backdrop-blur-sm p-4 text-center text-sm text-destructive"
+              >
                 {error}
-              </div>
+              </motion.div>
             )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="superadmin@example.com"
+                placeholder="nama@email.com"
+                className="bg-white/5 border-white/10 focus:border-primary/50 focus:bg-white/10 transition-all duration-300"
                 {...register('email')}
-                autoComplete="email"
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+                <p className="text-xs text-destructive">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Lupa password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 type="password"
-                placeholder="••••••••"
+                className="bg-white/5 border-white/10 focus:border-primary/50 focus:bg-white/10 transition-all duration-300"
                 {...register('password')}
-                autoComplete="current-password"
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password.message}</p>
+                <p className="text-xs text-destructive">
+                  {errors.password.message}
+                </p>
               )}
             </div>
-            <Button type="submit" className="w-full h-12" disabled={isLoading}>
+            <AnimatedButton
+              type="submit"
+              className="w-full"
+              variant="glass"
+              disabled={isLoading}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
               {isLoading ? (
                 <>
-                  <Spinner size="sm" variant="white" className="mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Memproses...
                 </>
               ) : (
                 'Masuk'
               )}
-            </Button>
+            </AnimatedButton>
           </form>
-        </CardContent>
-        <CardFooter className="flex justify-center border-t p-6">
-          <p className="text-sm text-muted-foreground">
+          
+          <div className="mt-6 text-center text-sm text-muted-foreground">
             Belum punya akun?{' '}
-            <Link href="/auth/register" className="text-primary hover:underline font-medium">
+            <Link href="/auth/register" className="font-medium text-primary hover:underline underline-offset-4">
               Daftar sekarang
             </Link>
-          </p>
-        </CardFooter>
-      </Card>
+          </div>
+        </GlassCardContent>
+      </GlassCard>
     </div>
   );
 }

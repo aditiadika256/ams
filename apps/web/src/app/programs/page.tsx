@@ -6,19 +6,21 @@ import ProgramCard from '@/components/programs/ProgramCard';
 import { ProgramCardSkeleton } from '@/components/programs/ProgramCardSkeleton';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { GlassCard } from '@/components/ui/glass-card';
+import { AnimatedButton } from '@/components/ui/animated-button';
 
 export default function ProgramsPage() {
   const { programs, fetchPrograms, isLoading } = useSalesStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const fetchedRef = useRef(false);
 
-  const didFetch = useRef(false);
   useEffect(() => {
-    if (didFetch.current) return;
-    didFetch.current = true;
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    console.log('[ProgramsPage] Fetching programs...');
     fetchPrograms({ active: true });
-  }, [fetchPrograms]);
+  }, []);  // Empty deps - run only once
 
   // Filter programs locally for now
   const filteredPrograms = programs.filter(program => {
@@ -33,7 +35,7 @@ export default function ProgramsPage() {
     <div className="container py-8 md:py-12 mx-auto">
       <div className="flex flex-col gap-6 mb-12">
         <div className="text-center max-w-2xl mx-auto space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold tracking-tight bg-linear-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">
              Jelajahi Program Belajar
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -42,39 +44,39 @@ export default function ProgramsPage() {
         </div>
 
         {/* Search and Filter */}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm max-w-4xl mx-auto w-full sticky top-20 z-10 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 supports-[backdrop-filter]:bg-white/60">
+        <GlassCard className="flex flex-col md:flex-row gap-4 items-center justify-between p-4 max-w-4xl mx-auto w-full sticky top-20 z-10">
            <div className="relative w-full md:max-w-md">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
              <Input 
                placeholder="Cari program (contoh: React, UI/UX)..." 
-               className="pl-9 bg-muted/30 border-muted-foreground/20"
+               className="pl-9 bg-white/5 border-white/10 focus:bg-white/10"
                value={searchQuery}
                onChange={(e) => setSearchQuery(e.target.value)}
              />
            </div>
            
            <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-              <Button 
-                variant={selectedType === null ? "default" : "outline"} 
+              <AnimatedButton 
+                variant={selectedType === null ? "default" : "glass"} 
                 size="sm"
                 onClick={() => setSelectedType(null)}
                 className="rounded-full"
               >
                 Semua
-              </Button>
+              </AnimatedButton>
               {types.map(type => (
-                <Button
+                <AnimatedButton
                   key={type}
-                  variant={selectedType === type ? "default" : "outline"}
+                  variant={selectedType === type ? "default" : "glass"}
                   size="sm"
                   onClick={() => setSelectedType(type)}
                   className="rounded-full capitalize"
                 >
                   {type}
-                </Button>
+                </AnimatedButton>
               ))}
            </div>
-        </div>
+        </GlassCard>
       </div>
 
       {isLoading && programs.length === 0 ? (
@@ -98,13 +100,13 @@ export default function ProgramsPage() {
               <p className="text-muted-foreground max-w-sm">
                 Coba gunakan kata kunci lain atau ubah filter pencarian.
               </p>
-              <Button 
+              <AnimatedButton 
                 variant="link" 
                 onClick={() => { setSearchQuery(''); setSelectedType(null); }}
                 className="mt-2 text-primary"
               >
                 Reset Filter
-              </Button>
+              </AnimatedButton>
             </div>
           )}
         </div>

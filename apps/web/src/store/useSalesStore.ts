@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { Program, Order, CreateOrderPayload } from '../types/sales';
 import { apiClient } from '../lib/api';
 
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes
+
 interface SalesState {
   programs: Program[];
   orders: Order[];
@@ -9,6 +11,8 @@ interface SalesState {
   currentOrder: Order | null;
   isLoading: boolean;
   error: string | null;
+  _programsFetchedAt: number | null;
+  _programsFetchPromise: Promise<void> | null;
 
   // Actions
   fetchPrograms: (params?: any) => Promise<void>;
@@ -26,20 +30,47 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   currentOrder: null,
   isLoading: false,
   error: null,
+  _programsFetchedAt: null,
+  _programsFetchPromise: null,
 
   fetchPrograms: async (params) => {
-    set({ isLoading: true, error: null });
-    try {
-      const response = await apiClient.sales.getPrograms(params);
-      if (response.success && response.data) {
-        const list = (response as any)?.data?.data ?? response.data;
-        set({ programs: list, isLoading: false });
-      } else {
-        throw new Error(response.message || 'Failed to fetch programs');
-      }
-    } catch (error: any) {
-      set({ isLoading: false, error: error.message || 'Failed to fetch programs' });
+    const state = get();
+
+    // Skip if data is fresh (within stale window)
+    if (
+      state._programsFetchedAt &&
+      Date.now() - state._programsFetchedAt < STALE_TIME &&
+      state.programs.length > 0
+    ) {
+      return;
     }
+
+    // Deduplicate in-flight requests
+    if (state._programsFetchPromise) {
+      await state._programsFetchPromise;
+      return;
+    }
+
+    set({ isLoading: true, error: null });
+
+    const promise = (async () => {
+      try {
+        const response = await apiClient.sales.getPrograms(params);
+        if (response.success && response.data) {
+          const list = (response as any)?.data?.data ?? response.data;
+          set({ programs: list, isLoading: false, _programsFetchedAt: Date.now() });
+        } else {
+          throw new Error(response.message || 'Failed to fetch programs');
+        }
+      } catch (error: any) {
+        set({ isLoading: false, error: error.message || 'Failed to fetch programs' });
+      } finally {
+        set({ _programsFetchPromise: null });
+      }
+    })();
+
+    set({ _programsFetchPromise: promise });
+    await promise;
   },
 
   fetchProgram: async (id) => {

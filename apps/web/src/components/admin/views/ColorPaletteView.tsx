@@ -1,0 +1,347 @@
+'use client';
+
+import React, { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trash2, Plus, Palette, Save, X } from 'lucide-react';
+import { useThemeStore } from '@/store/useThemeStore';
+import { GlassCard, GlassCardContent, GlassCardDescription, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { ColorPaletteFormData, DEFAULT_PALETTE } from '@/types/theme';
+import { cn } from '@/lib/utils';
+
+interface EditingPalette extends ColorPaletteFormData {
+  id?: string;
+}
+
+const COLOR_FIELDS = [
+  { key: 'primary', label: 'Primary' },
+  { key: 'secondary', label: 'Secondary' },
+  { key: 'destructive', label: 'Destructive' },
+  { key: 'accent', label: 'Accent' },
+  { key: 'muted', label: 'Muted' },
+  { key: 'foreground', label: 'Foreground' },
+  { key: 'background', label: 'Background' },
+  { key: 'card', label: 'Card' },
+  { key: 'cardForeground', label: 'Card Foreground' },
+  { key: 'popover', label: 'Popover' },
+  { key: 'popoverForeground', label: 'Popover Foreground' },
+  { key: 'border', label: 'Border' },
+  { key: 'input', label: 'Input' },
+  { key: 'ring', label: 'Ring' },
+  { key: 'chartOne', label: 'Chart 1' },
+  { key: 'chartTwo', label: 'Chart 2' },
+  { key: 'chartThree', label: 'Chart 3' },
+  { key: 'chartFour', label: 'Chart 4' },
+  { key: 'chartFive', label: 'Chart 5' },
+];
+
+export default function ColorPaletteView() {
+  const { palettes, palette, isLoading, error, createPalette, updatePalette, deletePalette, setDefaultPalette, fetchPalettes } = useThemeStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formData, setFormData] = useState<EditingPalette>(DEFAULT_PALETTE);
+
+  // Fetch palettes only once on mount
+  useEffect(() => {
+    const load = async () => {
+      await fetchPalettes();
+    };
+    load();
+  }, []);
+
+  const handleCreateNew = () => {
+    setFormData(DEFAULT_PALETTE);
+    setEditingId(null);
+    setIsEditing(true);
+  };
+
+  const handleEdit = (p: any) => {
+    setFormData(p);
+    setEditingId(p.id);
+    setIsEditing(true);
+  };
+
+  const handleSave = async () => {
+    if (!formData.name.trim()) {
+      alert('Please enter a palette name');
+      return;
+    }
+
+    try {
+      if (editingId) {
+        await updatePalette(editingId, formData);
+      } else {
+        await createPalette(formData);
+      }
+
+      // Refresh palettes list
+      await fetchPalettes();
+
+      setIsEditing(false);
+      setEditingId(null);
+      setFormData(DEFAULT_PALETTE);
+    } catch (error) {
+      console.error('Save error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to save palette');
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setEditingId(null);
+    setFormData(DEFAULT_PALETTE);
+  };
+
+  const handleColorChange = (key: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6"
+    >
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Color Palette Manager</h2>
+          <p className="text-muted-foreground">Manage and customize color schemes for your application.</p>
+        </motion.div>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleCreateNew}
+          className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Create Palette
+        </motion.button>
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive"
+        >
+          <p className="text-sm font-medium">Error: {error}</p>
+        </motion.div>
+      )}
+
+      {/* Editor Modal */}
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          >
+            <motion.div
+              className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-background rounded-xl border border-border/20 shadow-xl p-6"
+              initial={{ y: 20 }}
+              animate={{ y: 0 }}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-foreground">
+                  {editingId ? 'Edit Palette' : 'Create New Palette'}
+                </h3>
+                <button
+                  onClick={handleCancel}
+                  className="p-2 hover:bg-muted rounded-md transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Palette Name */}
+              <div className="mb-6">
+                <Label htmlFor="name" className="text-base font-semibold mb-2 block">
+                  Palette Name
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., Ocean Blue, Sunset Orange"
+                  className="w-full"
+                />
+              </div>
+
+              {/* Color Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                {COLOR_FIELDS.map((field) => (
+                  <div key={field.key} className="space-y-2">
+                    <Label htmlFor={field.key} className="text-sm font-medium">
+                      {field.label}
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id={field.key}
+                        type="color"
+                        value={formData[field.key as keyof ColorPaletteFormData]}
+                        onChange={(e) => handleColorChange(field.key, e.target.value)}
+                        className="w-12 h-10 rounded-md cursor-pointer border border-border/20"
+                      />
+                      <Input
+                        type="text"
+                        value={formData[field.key as keyof ColorPaletteFormData]}
+                        onChange={(e) => handleColorChange(field.key, e.target.value)}
+                        className="flex-1 font-mono text-sm"
+                        placeholder="#000000"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={isLoading}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isLoading ? 'Saving...' : 'Save Palette'}
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Palettes List */}
+      <div className="grid gap-4">
+        <AnimatePresence>
+          {palettes.map((p, index) => (
+            <motion.div
+              key={p.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ delay: index * 0.05 }}
+            >
+              <GlassCard>
+                <GlassCardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <Palette className="h-5 w-5 text-primary" />
+                      <div>
+                        <GlassCardTitle className="flex items-center gap-2">
+                          {p.name}
+                          {p.isDefault && <Badge className="bg-primary/20 text-primary">Active</Badge>}
+                        </GlassCardTitle>
+                        <GlassCardDescription>
+                          Created {new Date(p.createdAt).toLocaleDateString()}
+                        </GlassCardDescription>
+                      </div>
+                    </div>
+                  </div>
+                </GlassCardHeader>
+                <GlassCardContent>
+                  {/* Color Preview Grid */}
+                  <div className="grid grid-cols-5 sm:grid-cols-10 gap-3 mb-4">
+                    {[
+                      { key: 'primary', value: p.primary },
+                      { key: 'secondary', value: p.secondary },
+                      { key: 'destructive', value: p.destructive },
+                      { key: 'accent', value: p.accent },
+                      { key: 'muted', value: p.muted },
+                      { key: 'chartOne', value: p.chartOne },
+                      { key: 'chartTwo', value: p.chartTwo },
+                      { key: 'chartThree', value: p.chartThree },
+                      { key: 'chartFour', value: p.chartFour },
+                      { key: 'chartFive', value: p.chartFive },
+                    ].map((item) => (
+                      <div
+                        key={item.key}
+                        className="flex flex-col items-center gap-1"
+                        title={item.key}
+                      >
+                        <div
+                          className="w-10 h-10 rounded-md border border-border/20 shadow-sm"
+                          style={{ backgroundColor: item.value }}
+                        />
+                        <span className="text-xs text-muted-foreground truncate">
+                          {item.key.slice(0, 3)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    {!p.isDefault && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            await setDefaultPalette(p.id);
+                          } catch (err) {
+                            console.error('Failed to set default palette:', err);
+                          }
+                        }}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? 'Setting...' : 'Set as Active'}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(p)}
+                      disabled={isLoading}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20"
+                      onClick={async () => {
+                        if (window.confirm('Are you sure? This action cannot be undone.')) {
+                          try {
+                            await deletePalette(p.id);
+                            await fetchPalettes();
+                          } catch (err) {
+                            console.error('Failed to delete palette:', err);
+                          }
+                        }
+                      }}
+                      disabled={p.isDefault}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </GlassCardContent>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
+      {palettes.length === 0 && !isLoading && (
+        <GlassCard className="text-center py-12">
+          <div className="text-muted-foreground mb-4">
+            <Palette className="h-12 w-12 mx-auto opacity-50" />
+          </div>
+          <p className="text-muted-foreground mb-4">No color palettes yet. Create one to get started.</p>
+          <Button onClick={handleCreateNew}>
+            <Plus className="mr-2 h-4 w-4" /> Create First Palette
+          </Button>
+        </GlassCard>
+      )}
+    </motion.div>
+  );
+}

@@ -17,6 +17,7 @@ import ProgramsView from '../views/ProgramsView';
 import CurriculumBuilderView from '../views/CurriculumBuilderView';
 import RolesPermissionsView from '../views/RolesPermissionsView';
 import MenuManagementView from '../views/MenuManagementView';
+import ColorPaletteView from '../views/ColorPaletteView';
 
 const ViewMap: Record<string, React.ComponentType<any>> = {
   'dashboard': DashboardView,
@@ -27,6 +28,7 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'programs': ProgramsView,
   'curriculum-builder': CurriculumBuilderView,
   'menus': MenuManagementView,
+  'colorpalette': ColorPaletteView,// With hyphen
   // Fallbacks or others
   'roles': RolesPermissionsView,
   'cms-pages': () => <div>Pages View (Placeholder)</div>,
@@ -42,6 +44,7 @@ const ViewPermissions: Record<string, string[]> = {
   'programs': ['manage_learning_content', 'view_dashboard_learning'],
   'curriculum-builder': ['manage_learning_content'],
   'menus': ['manage_menus'],
+  'colorpalette': ['manage_global_settings'],
   'roles': ['manage_roles'],
   'cms-pages': ['manage_global_settings'],
   'settings': ['manage_global_settings'],
@@ -53,7 +56,8 @@ export default function AdminLayout() {
   
   // Find the active tab definition
   const activeTab = tabs.find(t => t.id === activeTabId);
-  const ActiveView = activeTab ? ViewMap[activeTab.view] : DashboardView;
+  
+  const ActiveView = activeTab ? (ViewMap[activeTab.view] || ViewMap['dashboard']) : DashboardView;
 
   // Check permissions for active view
   const isAllowed = React.useMemo(() => {
@@ -63,10 +67,10 @@ export default function AdminLayout() {
     if (!requiredPermissions) return true; // No specific permissions required (safe default? or strict?)
     // Let's assume strict: if view is in map, check it.
     return hasPermission(requiredPermissions);
-  }, [activeTab, hasPermission, hasRole]);
+  }, [activeTab]);  // Only activeTab - not the functions!
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen flex">
       <AdminSidebar />
       
       <div 
@@ -78,7 +82,7 @@ export default function AdminLayout() {
       >
         <AdminHeader />
         
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto bg-muted/10">
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
           <div className="max-w-7xl mx-auto w-full">
             {activeTab ? (
                isAllowed ? (

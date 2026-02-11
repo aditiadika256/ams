@@ -18,11 +18,15 @@ class DatabaseSeeder extends Seeder
         $this->call(RolesSeeder::class);
         $this->call(ProgramSeeder::class);
         $this->call(CbtSeeder::class);
+        $this->call(ColorPaletteSeeder::class);
 
         // Example test user
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => bcrypt('password'),
+            ]
+        );
     }
 }

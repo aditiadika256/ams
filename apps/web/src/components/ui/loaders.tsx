@@ -203,7 +203,7 @@ export const FileTransferLoader = ({
                     )}
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
-                    transition={{ type: "spring", stiffness: 50 }}
+                    transition={{ type: "spring" as const, stiffness: 50 }}
                   />
                 </div>
               </div>

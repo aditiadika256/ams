@@ -18,9 +18,10 @@ export default function ProgramDetailPage() {
 
   useEffect(() => {
     if (id) {
+      console.log('[ProgramDetailPage] Fetching program:', id);
       fetchProgram(id);
     }
-  }, [id, fetchProgram]);
+  }, [id]);  // Only id - not fetchProgram function!
 
   const handleBuyNow = () => {
     router.push(`/checkout?program_id=${id}`);

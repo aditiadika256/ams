@@ -28,7 +28,7 @@ class MenuController extends Controller
         $section = $request->query('section');
         if ($layout && $section) {
             $key = "menus:{$layout}:{$section}";
-            $menus = Cache::remember($key, 300, function () use ($layout, $section) {
+            $menus = Cache::remember($key, 3600, function () use ($layout, $section) {
                 return Menu::query()
                     ->where('layout', $layout)
                     ->where('section', $section)
@@ -40,7 +40,8 @@ class MenuController extends Controller
             $menus = Menu::query()->orderBy('parent_id')->orderBy('order')->get();
         }
 
-        return $this->successResponse(MenuResource::collection($menus), 'Menus retrieved successfully');
+        return $this->successResponse(MenuResource::collection($menus), 'Menus retrieved successfully')
+            ->header('Cache-Control', 'private, max-age=300');
     }
 
     #[OA\Post(
@@ -56,10 +57,15 @@ class MenuController extends Controller
             'icon' => ['nullable', 'string', 'max:100'],
             'url' => ['required', 'string', 'max:255'],
             'layout' => ['required', 'in:users,admin'],
-            'section' => ['required', 'in:topbar,bottomnavigation,sidebar,header'],
+            'section' => ['sometimes', 'nullable', 'string', 'in:topbar,bottomnavigation,sidebar,header'],
             'parent_id' => ['nullable', 'integer', 'exists:menus,id'],
             'order' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        // Set default section based on layout if not provided
+        if (empty($validated['section'])) {
+            $validated['section'] = $validated['layout'] === 'admin' ? 'sidebar' : 'topbar';
+        }
 
         if ($validated['layout'] === 'admin' && !in_array($validated['section'], ['sidebar', 'header'])) {
             return $this->validationErrorResponse(['section' => ['Section harus sidebar atau header untuk layout admin']]);
@@ -94,10 +100,15 @@ class MenuController extends Controller
             'icon' => ['nullable', 'string', 'max:100'],
             'url' => ['sometimes', 'required', 'string', 'max:255'],
             'layout' => ['sometimes', 'required', 'in:users,admin'],
-            'section' => ['sometimes', 'required', 'in:topbar,bottomnavigation,sidebar,header'],
+            'section' => ['sometimes', 'nullable', 'string', 'in:topbar,bottomnavigation,sidebar,header'],
             'parent_id' => ['nullable', 'integer', 'exists:menus,id'],
             'order' => ['nullable', 'integer', 'min:0'],
         ]);
+
+        // Set default section based on layout if not provided
+        if (isset($validated['layout']) && empty($validated['section'])) {
+            $validated['section'] = $validated['layout'] === 'admin' ? 'sidebar' : 'topbar';
+        }
 
         if (isset($validated['layout']) && $validated['layout'] === 'admin' && isset($validated['section']) && !in_array($validated['section'], ['sidebar', 'header'])) {
             return $this->validationErrorResponse(['section' => ['Section harus sidebar atau header untuk layout admin']]);
