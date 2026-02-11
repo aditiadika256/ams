@@ -19,6 +19,34 @@ export const api: AxiosInstance = axios.create({
   withCredentials: false,
 });
 
+// ---- GET request deduplication ----
+// Shares a single in-flight promise for identical concurrent GET requests
+const inflightGets = new Map<string, Promise<any>>();
+
+function buildDedupeKey(url: string, params?: any): string {
+  const p = params ? JSON.stringify(params) : '';
+  return `${url}?${p}`;
+}
+
+/**
+ * Deduplicated GET — if an identical GET is already in-flight, returns the
+ * same promise instead of firing another network request.
+ */
+export function deduplicatedGet<T>(url: string, config?: { params?: any }): Promise<{ data: T }> {
+  const key = buildDedupeKey(url, config?.params);
+
+  if (inflightGets.has(key)) {
+    return inflightGets.get(key)!;
+  }
+
+  const promise = api.get<T>(url, config).finally(() => {
+    inflightGets.delete(key);
+  });
+
+  inflightGets.set(key, promise);
+  return promise;
+}
+
 // Request interceptor - Add token to headers
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -45,7 +73,7 @@ api.interceptors.response.use(
     // Handle network errors (no response from server)
     if (!error.response) {
       let message = 'Network error: Unable to connect to server';
-      
+
       if (error.code === 'ERR_NETWORK') {
         message = 'Network error: Cannot connect to API server. Please check if the server is running.';
       } else if (error.code === 'ECONNREFUSED') {
@@ -53,7 +81,7 @@ api.interceptors.response.use(
       } else if (error.request) {
         message = 'Network error: No response from server. Please check your connection and ensure the API server is running.';
       }
-      
+
       console.error('Network Error:', {
         message: error.message,
         code: error.code,
@@ -63,7 +91,7 @@ api.interceptors.response.use(
           method: error.config?.method,
         }
       });
-      
+
       return Promise.reject(new Error(message));
     }
 
@@ -73,7 +101,7 @@ api.interceptors.response.use(
         // Clear token and redirect to login
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        
+
         // Only redirect if not already on login page
         if (window.location.pathname !== '/auth/login') {
           window.location.href = '/auth/login';
@@ -100,12 +128,12 @@ export const apiClient = {
       const response = await api.post<ApiResponse<{ user: any; token: string }>>('/auth/login', credentials);
       return response.data;
     },
-    
+
     logout: async () => {
       const response = await api.post<ApiResponse>('/auth/logout');
       return response.data;
     },
-    
+
     me: async () => {
       const response = await api.get<ApiResponse<any>>('/auth/me');
       return response.data;
@@ -154,12 +182,12 @@ export const apiClient = {
       const response = await api.post<ApiResponse<ExamSession>>('/exams/start', { package_id: packageId });
       return response.data;
     },
-    
+
     getQuestions: async (attemptId: number) => {
       const response = await api.get<ApiResponse<Question[]>>(`/exams/${attemptId}/questions`);
       return response.data;
     },
-    
+
     saveAnswer: async (attemptId: number, questionId: number, answer: string) => {
       const response = await api.post<ApiResponse<null>>(`/exams/${attemptId}/answers`, {
         question_id: questionId,
@@ -167,12 +195,12 @@ export const apiClient = {
       });
       return response.data;
     },
-    
+
     submitExam: async (attemptId: number) => {
       const response = await api.post<ApiResponse<{ score: number; submitted_at: string }>>(`/exams/${attemptId}/submit`);
       return response.data;
     },
-    
+
     getResult: async (attemptId: number) => {
       const response = await api.get<ApiResponse<ExamResult>>(`/exams/${attemptId}/result`);
       return response.data;
@@ -191,8 +219,8 @@ export const apiClient = {
 
   // Menus endpoints
   menus: {
-    get: async (params?: { layout?: 'users'|'admin'; section?: 'topbar'|'bottomnavigation'|'sidebar'|'header' }) => {
-      const response = await api.get<ApiResponse<Menu[]>>('/menus', { params });
+    get: async (params?: { layout?: 'users' | 'admin'; section?: 'topbar' | 'bottomnavigation' | 'sidebar' | 'header' }) => {
+      const response = await deduplicatedGet<ApiResponse<Menu[]>>('/menus', { params });
       return response.data;
     },
   },
@@ -200,7 +228,7 @@ export const apiClient = {
   // Admin endpoints
   admin: {
     menus: {
-      list: async (params?: { layout?: 'users'|'admin'; section?: 'topbar'|'bottomnavigation'|'sidebar'|'header' }) => {
+      list: async (params?: { layout?: 'users' | 'admin'; section?: 'topbar' | 'bottomnavigation' | 'sidebar' | 'header' }) => {
         const response = await api.get<ApiResponse<Menu[]>>('/admin/menus', { params });
         return response.data;
       },

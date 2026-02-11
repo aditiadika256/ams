@@ -7,34 +7,29 @@ import { Home, LayoutGrid, FileText, ShoppingBag, User, LogIn, LayoutDashboard }
 import { cn } from '@/lib/utils';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useAuthStore } from '@/store/useAuthStore';
-import { apiClient } from '@/lib/api';
-import type { Menu as MenuType } from '@/types/system';
+import { useMenuStore } from '@/store/useMenuStore';
 
 const BottomNavigation = () => {
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
   const { scrollY } = useScroll();
   const { isAuthenticated, user } = useAuthStore();
-  const [dynamicMenus, setDynamicMenus] = useState<MenuType[]>([]);
+
+  // Shared menu store — select raw cache to avoid creating new references
+  const menuCache = useMenuStore((s) => s.cache);
+  const fetchMenus = useMenuStore((s) => s.fetchMenus);
+  const bottomMenus = menuCache['users:bottomnavigation']?.data ?? [];
 
   useEffect(() => {
-    let mounted = true;
-    const loadMenus = async () => {
-      try {
-        const res = await apiClient.menus.get({ layout: 'users', section: 'bottomnavigation' });
-        const menus = (res.data || []) as MenuType[];
-        const filtered = menus
-          .filter(m => !m.parent_id)
-          .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-          .slice(0, 3);
-        if (mounted) setDynamicMenus(filtered);
-      } catch (_) {}
-    };
-    loadMenus();
-    return () => { mounted = false; };
-  }, []);
+    fetchMenus('users', 'bottomnavigation');
+  }, [fetchMenus]);
 
   const navItems = useMemo(() => {
+    const dynamicMenus = bottomMenus
+      .filter(m => !m.parent_id)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      .slice(0, 3);
+
     if (dynamicMenus.length > 0) {
       return dynamicMenus.map(m => ({ href: m.url, icon: LayoutGrid, label: m.name }));
     }
@@ -53,7 +48,7 @@ const BottomNavigation = () => {
       fallback.push({ href: '/auth/login', icon: LogIn, label: 'Masuk' });
     }
     return fallback;
-  }, [isAuthenticated, dynamicMenus]);
+  }, [isAuthenticated, bottomMenus]);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() || 0;
@@ -72,12 +67,12 @@ const BottomNavigation = () => {
       }}
       animate={hidden ? 'hidden' : 'visible'}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="fixed bottom-0 z-50 w-full border-t bg-background/80 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60 md:hidden pb-safe"
+      className="fixed bottom-0 z-50 w-full border-t border-white/10 glass md:hidden pb-safe"
     >
       <div className="mx-auto flex h-16 w-full items-center justify-around px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
-          
+
           return (
             <Link
               key={item.label}
@@ -88,7 +83,7 @@ const BottomNavigation = () => {
                 <motion.div
                   layoutId="bottomNavIndicator"
                   className="absolute top-0 w-8 h-1 bg-primary rounded-b-full"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  transition={{ type: "spring" as const, stiffness: 500, damping: 30 }}
                 />
               )}
               <div className={cn(

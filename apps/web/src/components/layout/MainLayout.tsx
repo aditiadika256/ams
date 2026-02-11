@@ -17,7 +17,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isAdminPage = pathname?.startsWith('/admin');
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-background font-sans antialiased selection:bg-primary/20">
+    <div className="relative flex min-h-screen flex-col font-sans antialiased selection:bg-primary/20">
       {!isAuthPage && !isExamSession && !isAdminPage && <TopBar />}
       <main className="flex-1 w-full">
         {isHomePage || isExamSession || isAdminPage ? (

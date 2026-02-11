@@ -27,9 +27,10 @@ export default function OrderDetailPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     if (id) {
+      console.log('[OrderDetailPage] Fetching order:', id);
       fetchOrder(id);
     }
-  }, [id, fetchOrder]);
+  }, [id]);  // Only id - not fetchOrder function!
 
   // Load Snap JS
   useEffect(() => {

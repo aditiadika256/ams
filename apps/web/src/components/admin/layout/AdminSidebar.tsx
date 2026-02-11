@@ -2,13 +2,13 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Users, 
-  LayoutDashboard, 
-  FileText, 
-  BarChart3, 
-  Settings, 
-  ShieldCheck, 
+import {
+  Users,
+  LayoutDashboard,
+  FileText,
+  BarChart3,
+  Settings,
+  ShieldCheck,
   PieChart,
   LogOut,
   ChevronLeft,
@@ -22,7 +22,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { apiClient } from '@/lib/api';
+import { useMenuStore } from '@/store/useMenuStore';
 import type { Menu as MenuType } from '@/types/system';
 
 const IconMap: Record<string, any> = {
@@ -37,40 +37,41 @@ const IconMap: Record<string, any> = {
   Menu,
 };
 
+// Hardcoded fallback so sidebar renders instantly while API loads
+const FALLBACK_ADMIN_MENUS: MenuType[] = [
+  { id: -1, name: 'Dashboard', icon: 'LayoutDashboard', url: 'admin://view/dashboard', layout: 'admin', section: 'sidebar', order: 0, parent_id: null },
+  { id: -2, name: 'Users', icon: 'Users', url: 'admin://view/users', layout: 'admin', section: 'sidebar', order: 1, parent_id: null },
+  { id: -3, name: 'Menu', icon: 'Menu', url: 'admin://view/menus', layout: 'admin', section: 'sidebar', order: 2, parent_id: null },
+  { id: -4, name: 'Settings', icon: 'Settings', url: 'admin://view/settings', layout: 'admin', section: 'sidebar', order: 3, parent_id: null },
+];
+
 export function AdminSidebar() {
   const { addTab, sidebarOpen, setSidebarOpen, toggleSidebar } = useAdminStore();
   const { logout } = useAuthStore();
-  const [dynamicMenus, setDynamicMenus] = React.useState<MenuType[]>([]);
+
+  // Shared menu store — cached & deduplicated
+  const menuCache = useMenuStore((s) => s.cache);
+  const fetchMenus = useMenuStore((s) => s.fetchMenus);
+  const sidebarMenus = menuCache['admin:sidebar']?.data ?? [];
+
+  // Use dynamic menus if loaded, otherwise show fallback immediately
+  const dynamicMenus = React.useMemo(() => {
+    if (sidebarMenus.length > 0) {
+      return [...sidebarMenus].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    }
+    return FALLBACK_ADMIN_MENUS;
+  }, [sidebarMenus]);
 
   React.useEffect(() => {
-    // Ensure sidebar is open on desktop by default
-    const checkScreenSize = () => {
-      if (window.innerWidth >= 768) {
-        setSidebarOpen(true);
-      }
-    };
-
-    // Check on mount
-    checkScreenSize();
-
-    // Optional: if we want to force open when resizing to desktop
-    // window.addEventListener('resize', checkScreenSize);
-    // return () => window.removeEventListener('resize', checkScreenSize);
-  }, [setSidebarOpen]);
-
-  React.useEffect(() => {
-    let mounted = true;
-    const loadMenus = async () => {
-      try {
-        const res = await apiClient.admin.menus.list({ layout: 'admin', section: 'sidebar' });
-        const menus = (res.data || []) as MenuType[];
-        const sorted = menus.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-        if (mounted) setDynamicMenus(sorted);
-      } catch (_) {}
-    };
-    loadMenus();
-    return () => { mounted = false; };
+    // Ensure sidebar is open on desktop by default - ONLY on mount
+    if (window.innerWidth >= 768) {
+      setSidebarOpen(true);
+    }
   }, []);
+
+  React.useEffect(() => {
+    fetchMenus('admin', 'sidebar');
+  }, [fetchMenus]);
 
   const handleLogout = async () => {
     await logout();
@@ -94,7 +95,7 @@ export function AdminSidebar() {
     <>
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
@@ -103,44 +104,44 @@ export function AdminSidebar() {
       {/* Sidebar */}
       <motion.aside
         initial={false}
-        animate={{ 
+        animate={{
           width: sidebarOpen ? 280 : 80,
           x: sidebarOpen ? 0 : 0
         }}
         className={cn(
-          "fixed left-0 top-0 h-screen bg-card border-r z-50 flex flex-col transition-all duration-300 shadow-xl",
+          "fixed left-0 top-0 h-screen glass border-r border-white/10 z-50 flex flex-col transition-all duration-300 shadow-xl",
           !sidebarOpen && "items-center" // Center items when collapsed
         )}
       >
         {/* Header */}
-      <div className={cn("h-16 flex items-center border-b", sidebarOpen ? "px-6 justify-between" : "justify-center")}>
-        {sidebarOpen ? (
-          <>
-            <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                A
-              </div>
-              <span>Arkanin<span className="text-muted-foreground font-normal">.Admin</span></span>
-            </Link>
+        <div className={cn("h-16 flex items-center border-b border-white/10", sidebarOpen ? "px-6 justify-between" : "justify-center")}>
+          {sidebarOpen ? (
+            <>
+              <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  A
+                </div>
+                <span>Arkanin<span className="text-muted-foreground font-normal">.Admin</span></span>
+              </Link>
+              <Button variant="ghost" size="icon" className="hidden md:flex" onClick={toggleSidebar}>
+                <Menu className="h-5 w-5" />
+              </Button>
+            </>
+          ) : (
             <Button variant="ghost" size="icon" className="hidden md:flex" onClick={toggleSidebar}>
               <Menu className="h-5 w-5" />
             </Button>
-          </>
-        ) : (
-          <Button variant="ghost" size="icon" className="hidden md:flex" onClick={toggleSidebar}>
-            <Menu className="h-5 w-5" />
-          </Button>
-        )}
-        
-        {/* Mobile Header Content when sidebar is open (overlay mode) */}
-        <div className="md:hidden flex items-center gap-2 font-bold text-xl text-primary">
-             {!sidebarOpen && (
-               <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                 A
-               </div>
-             )}
+          )}
+
+          {/* Mobile Header Content when sidebar is open (overlay mode) */}
+          <div className="md:hidden flex items-center gap-2 font-bold text-xl text-primary">
+            {!sidebarOpen && (
+              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                A
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto py-4 space-y-2 px-4">

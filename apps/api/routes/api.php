@@ -52,6 +52,11 @@ Route::prefix('v1')->group(function () {
     // Public Menus
     Route::get('menus', [\App\Domain\System\MenuController::class, 'index']);
 
+    // Theme & Settings (public for frontend)
+    Route::prefix('theme')->group(function () {
+        Route::get('palettes/active', [\App\Domain\System\ColorPaletteController::class, 'active']);
+    });
+
     // Admin
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
         // Users & Roles
@@ -64,6 +69,16 @@ Route::prefix('v1')->group(function () {
 
         // Menu Management
         Route::apiResource('menus', \App\Domain\Admin\MenuController::class)->middleware('permission:manage_menus');
+
+        // Color Palette Management
+        Route::prefix('theme')->middleware('permission:manage_global_settings')->group(function () {
+            Route::get('palettes', [\App\Domain\System\ColorPaletteController::class, 'index']);
+            Route::post('palettes', [\App\Domain\System\ColorPaletteController::class, 'store']);
+            Route::get('palettes/{id}', [\App\Domain\System\ColorPaletteController::class, 'show']);
+            Route::put('palettes/{id}', [\App\Domain\System\ColorPaletteController::class, 'update']);
+            Route::post('palettes/{id}/default', [\App\Domain\System\ColorPaletteController::class, 'setDefault']);
+            Route::delete('palettes/{id}', [\App\Domain\System\ColorPaletteController::class, 'destroy']);
+        });
     });
 
     // Learning

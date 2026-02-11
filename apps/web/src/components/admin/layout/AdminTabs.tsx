@@ -22,7 +22,7 @@ export function AdminTabs() {
   const { tabs, activeTabId, setActiveTab, closeTab } = useAdminStore();
 
   return (
-    <div className="flex items-center w-full overflow-x-auto bg-muted/30 border-b px-2 pt-2 scrollbar-hide">
+    <div className="flex items-center w-full overflow-x-auto bg-muted/30 border-b border-border/20 px-2 pt-2 scrollbar-hide backdrop-blur-sm">
       <AnimatePresence>
         {tabs.map((tab) => {
            // Default icon if none or not found
@@ -38,8 +38,8 @@ export function AdminTabs() {
                className={cn(
                  "group relative flex items-center gap-2 px-4 py-2 mr-1 rounded-t-lg border-t border-l border-r text-sm font-medium cursor-pointer transition-all select-none min-w-[150px] max-w-[200px]",
                  isActive 
-                   ? "bg-background text-foreground border-border shadow-sm z-10" 
-                   : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted hover:text-foreground"
+                   ? "bg-background text-foreground border-border/30 shadow-sm z-10 backdrop-blur-sm" 
+                   : "bg-muted/20 text-muted-foreground border-transparent hover:bg-muted/40 hover:text-foreground"
                )}
                onClick={() => setActiveTab(tab.id)}
              >
@@ -52,7 +52,7 @@ export function AdminTabs() {
                    closeTab(tab.id);
                  }}
                  className={cn(
-                   "opacity-0 group-hover:opacity-100 p-0.5 rounded-md hover:bg-destructive/10 hover:text-destructive transition-opacity",
+                   "opacity-0 group-hover:opacity-100 p-0.5 rounded-md hover:bg-destructive/20 hover:text-destructive transition-opacity",
                    isActive && "opacity-100" // Always show close on active tab
                  )}
                >
@@ -63,7 +63,7 @@ export function AdminTabs() {
                {isActive && (
                  <motion.div 
                    layoutId="activeTabIndicator"
-                   className="absolute top-0 left-0 right-0 h-0.5 bg-primary"
+                   className="absolute top-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_var(--color-primary-shadow,rgba(59,130,246,0.5))]"
                  />
                )}
              </motion.div>

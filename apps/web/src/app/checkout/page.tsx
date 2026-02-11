@@ -33,9 +33,10 @@ function CheckoutContent() {
 
   useEffect(() => {
     if (programId) {
+      console.log('[CheckoutPage] Fetching program:', programId);
       fetchProgram(programId);
     }
-  }, [programId, fetchProgram]);
+  }, [programId]);  // Only programId - not fetchProgram function!
 
   const handleCheckout = async () => {
     if (!currentProgram) return;

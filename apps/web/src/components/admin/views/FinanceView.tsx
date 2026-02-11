@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { motion } from 'framer-motion';
 
 import { 
   Dialog,
@@ -39,6 +40,28 @@ const TabMap: Record<string, React.ComponentType<any>> = {
   'transactions': FinanceTransactions,
   'invoices': FinanceInvoices,
   'reports': FinanceReports
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100
+    }
+  }
 };
 
 export default function FinanceView() {
@@ -161,20 +184,25 @@ export default function FinanceView() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6"
+    >
+      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Finance & Analytics</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Finance & Analytics</h2>
           <p className="text-muted-foreground">Manage transactions, invoices, and view financial reports.</p>
         </div>
         <div className="flex gap-2">
            <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
              <DialogTrigger asChild>
-               <Button>
+               <Button className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 border-0">
                  <Plus className="mr-2 h-4 w-4" /> New Transaction
                </Button>
              </DialogTrigger>
-             <DialogContent className="sm:max-w-[425px]">
+             <DialogContent className="sm:max-w-[425px] bg-black/80 backdrop-blur-xl border-white/10">
                <DialogHeader>
                  <DialogTitle>Add Transaction</DialogTitle>
                  <DialogDescription>
@@ -188,10 +216,10 @@ export default function FinanceView() {
                      value={newTransaction.type} 
                      onValueChange={(val: any) => setNewTransaction({...newTransaction, type: val})}
                    >
-                     <SelectTrigger className="col-span-3">
+                     <SelectTrigger className="col-span-3 bg-white/5 border-white/10">
                        <SelectValue placeholder="Select type" />
                      </SelectTrigger>
-                     <SelectContent>
+                     <SelectContent className="bg-black/90 border-white/10">
                        <SelectItem value="income">Income</SelectItem>
                        <SelectItem value="expense">Expense</SelectItem>
                      </SelectContent>
@@ -201,7 +229,7 @@ export default function FinanceView() {
                    <Label htmlFor="category" className="text-right">Category</Label>
                    <Input 
                      id="category" 
-                     className="col-span-3" 
+                     className="col-span-3 bg-white/5 border-white/10" 
                      placeholder="e.g. Sales, Salary, Rent"
                      value={newTransaction.category}
                      onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
@@ -212,7 +240,7 @@ export default function FinanceView() {
                    <Input 
                      id="amount" 
                      type="number" 
-                     className="col-span-3" 
+                     className="col-span-3 bg-white/5 border-white/10" 
                      placeholder="0"
                      value={newTransaction.amount}
                      onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
@@ -223,7 +251,7 @@ export default function FinanceView() {
                    <Input 
                      id="date" 
                      type="date" 
-                     className="col-span-3"
+                     className="col-span-3 bg-white/5 border-white/10"
                      value={newTransaction.transaction_date}
                      onChange={(e) => setNewTransaction({...newTransaction, transaction_date: e.target.value})}
                    />
@@ -232,7 +260,7 @@ export default function FinanceView() {
                    <Label htmlFor="desc" className="text-right">Desc</Label>
                    <Input 
                      id="desc" 
-                     className="col-span-3" 
+                     className="col-span-3 bg-white/5 border-white/10" 
                      placeholder="Optional description"
                      value={newTransaction.description}
                      onChange={(e) => setNewTransaction({...newTransaction, description: e.target.value})}
@@ -240,73 +268,86 @@ export default function FinanceView() {
                  </div>
                </div>
                <DialogFooter>
-                 <Button type="submit" onClick={handleCreateTransaction} disabled={isLoading}>
+                 <Button type="submit" onClick={handleCreateTransaction} disabled={isLoading} className="bg-primary hover:bg-primary/90">
                    {isLoading ? 'Saving...' : 'Save Transaction'}
                  </Button>
                </DialogFooter>
              </DialogContent>
            </Dialog>
-           <Button variant="outline" onClick={handleExport}>
+           <Button variant="outline" onClick={handleExport} className="bg-transparent border-white/10 hover:bg-white/5">
              <Download className="mr-2 h-4 w-4" /> Export
            </Button>
         </div>
-      </div>
+      </motion.div>
       
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-         <Card>
-           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-             <CardTitle className="text-sm font-medium">Total Income</CardTitle>
-             <DollarSign className="h-4 w-4 text-muted-foreground" />
-           </CardHeader>
-           <CardContent>
-             <div className="text-2xl font-bold">{stats ? formatCurrency(stats.total_income) : 'Rp 0'}</div>
-             <div className="flex items-center text-xs text-green-500 mt-1">
-               <TrendingUp className="h-3 w-3 mr-1" />
-               Recorded Income
-             </div>
-           </CardContent>
-         </Card>
-         <Card>
-           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-             <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-             <CreditCard className="h-4 w-4 text-muted-foreground" />
-           </CardHeader>
-           <CardContent>
-             <div className="text-2xl font-bold">{stats ? formatCurrency(stats.total_expense) : 'Rp 0'}</div>
-             <div className="flex items-center text-xs text-red-500 mt-1">
-               <TrendingDown className="h-3 w-3 mr-1" />
-               Recorded Expenses
-             </div>
-           </CardContent>
-         </Card>
-         <Card>
-           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-             <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-             <TrendingUp className="h-4 w-4 text-muted-foreground" />
-           </CardHeader>
-           <CardContent>
-             <div className="text-2xl font-bold">{stats ? formatCurrency(stats.net_profit) : 'Rp 0'}</div>
-             <div className={cn("flex items-center text-xs mt-1", (stats?.net_profit || 0) >= 0 ? "text-green-500" : "text-red-500")}>
-               {(stats?.net_profit || 0) >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-               Net Result
-             </div>
-           </CardContent>
-         </Card>
+         <motion.div variants={itemVariants}>
+           <GlassCard className="relative overflow-hidden group hover:scale-105 transition-all duration-300">
+             <div className="absolute inset-0 bg-linear-to-br from-green-500/10 to-emerald-500/10 group-hover:opacity-100 transition-opacity" />
+             <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+               <GlassCardTitle className="text-sm font-medium">Total Income</GlassCardTitle>
+               <DollarSign className="h-4 w-4 text-muted-foreground group-hover:text-green-400 transition-colors" />
+             </GlassCardHeader>
+             <GlassCardContent className="relative z-10">
+               <div className="text-2xl font-bold">{stats ? formatCurrency(stats.total_income) : 'Rp 0'}</div>
+               <div className="flex items-center text-xs text-green-500 mt-1">
+                 <TrendingUp className="h-3 w-3 mr-1" />
+                 Recorded Income
+               </div>
+             </GlassCardContent>
+           </GlassCard>
+         </motion.div>
+         
+         <motion.div variants={itemVariants}>
+           <GlassCard className="relative overflow-hidden group hover:scale-105 transition-all duration-300">
+             <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-pink-500/10 group-hover:opacity-100 transition-opacity" />
+             <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+               <GlassCardTitle className="text-sm font-medium">Total Expenses</GlassCardTitle>
+               <CreditCard className="h-4 w-4 text-muted-foreground group-hover:text-red-400 transition-colors" />
+             </GlassCardHeader>
+             <GlassCardContent className="relative z-10">
+               <div className="text-2xl font-bold">{stats ? formatCurrency(stats.total_expense) : 'Rp 0'}</div>
+               <div className="flex items-center text-xs text-red-500 mt-1">
+                 <TrendingDown className="h-3 w-3 mr-1" />
+                 Recorded Expenses
+               </div>
+             </GlassCardContent>
+           </GlassCard>
+         </motion.div>
+         
+         <motion.div variants={itemVariants}>
+           <GlassCard className="relative overflow-hidden group hover:scale-105 transition-all duration-300">
+             <div className="absolute inset-0 bg-linear-to-br from-blue-500/10 to-cyan-500/10 group-hover:opacity-100 transition-opacity" />
+             <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+               <GlassCardTitle className="text-sm font-medium">Net Profit</GlassCardTitle>
+               <TrendingUp className="h-4 w-4 text-muted-foreground group-hover:text-blue-400 transition-colors" />
+             </GlassCardHeader>
+             <GlassCardContent className="relative z-10">
+               <div className="text-2xl font-bold">{stats ? formatCurrency(stats.net_profit) : 'Rp 0'}</div>
+               <div className={cn("flex items-center text-xs mt-1", (stats?.net_profit || 0) >= 0 ? "text-green-500" : "text-red-500")}>
+                 {(stats?.net_profit || 0) >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                 Net Result
+               </div>
+             </GlassCardContent>
+           </GlassCard>
+         </motion.div>
       </div>
 
-      <Tabs value={activeTabId} onValueChange={setActiveTabId} className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="invoices">Invoices</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-        </TabsList>
-        
-        {/* Render only the active view, standardized with AdminLayout */}
-        <div className="mt-4">
-           <ActiveView />
-        </div>
-      </Tabs>
-    </div>
+      <motion.div variants={itemVariants}>
+        <Tabs value={activeTabId} onValueChange={setActiveTabId} className="space-y-4">
+          <TabsList className="bg-white/5 border border-white/10 backdrop-blur-sm">
+            <TabsTrigger value="transactions" className="data-[state=active]:bg-white/10">Transactions</TabsTrigger>
+            <TabsTrigger value="invoices" className="data-[state=active]:bg-white/10">Invoices</TabsTrigger>
+            <TabsTrigger value="reports" className="data-[state=active]:bg-white/10">Reports</TabsTrigger>
+          </TabsList>
+          
+          {/* Render only the active view, standardized with AdminLayout */}
+          <div className="mt-4">
+             <ActiveView />
+          </div>
+        </Tabs>
+      </motion.div>
+    </motion.div>
   );
 }

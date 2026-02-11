@@ -71,14 +71,13 @@ class ProgramController extends Controller
 
         $page = (int)($filters['page'] ?? 1);
 
-        $cacheKey = sprintf(
-            'programs:index:%s:page:%d:per:%d',
-            md5(json_encode($filters)),
-            $page,
-            $perPage
-        );
+        // Use a simpler cache key for the common active-only query
+        $isSimpleActiveQuery = count($filters) === 1 && isset($filters['active']) && $filters['active'];
+        $cacheKey = $isSimpleActiveQuery
+            ? sprintf('programs:active:page:%d:per:%d', $page, $perPage)
+            : sprintf('programs:index:%s:page:%d:per:%d', md5(json_encode($filters)), $page, $perPage);
 
-        $data = Cache::remember($cacheKey, 60, function () use ($query, $perPage) {
+        $data = Cache::remember($cacheKey, 300, function () use ($query, $perPage) {
             $programs = $query->paginate($perPage);
             return ProgramResource::collection($programs)->response()->getData(true);
         });
@@ -86,7 +85,7 @@ class ProgramController extends Controller
         return $this->successResponse(
             $data,
             'Programs retrieved successfully'
-        )->header('Cache-Control', 'public, max-age=60');
+        )->header('Cache-Control', 'public, max-age=300');
     }
 
     #[OA\Get(
