@@ -15,8 +15,7 @@ const GlassCard = React.forwardRef<HTMLDivElement, GlassCardProps>(
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
         className={cn(
-          "rounded-xl border border-black/5 bg-white/60 backdrop-blur-md shadow-xl",
-          "dark:border-white/10 dark:bg-black/20",
+          "glass rounded-xl",
           gradient && "bg-linear-to-br from-white/10 to-white/5 dark:from-white/5 dark:to-transparent",
           className
         )}

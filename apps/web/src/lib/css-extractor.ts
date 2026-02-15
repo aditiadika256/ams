@@ -51,8 +51,9 @@ export function getCurrentThemeMode(): 'light' | 'dark' {
 }
 
 /**
- * Apply color palette to CSS variables while preserving globals.css structure
- * This merges palette colors with existing CSS without overwriting everything
+ * Apply color values to CSS variables on :root.
+ * Expects a Record where keys are full CSS variable names (e.g. "--primary")
+ * and values are the raw values to set (e.g. "243.8 90.5% 58.2%").
  */
 export function applyColorsToCSSVariables(
   colors: Record<string, string>
@@ -61,37 +62,7 @@ export function applyColorsToCSSVariables(
 
   const root = document.documentElement;
 
-  // Map palette field names to CSS variable names
-  const mappings: Record<string, string> = {
-    primary: '--primary',
-    primaryForeground: '--primary-foreground',
-    secondary: '--secondary',
-    secondaryForeground: '--secondary-foreground',
-    destructive: '--destructive',
-    destructiveForeground: '--destructive-foreground',
-    muted: '--muted',
-    mutedForeground: '--muted-foreground',
-    accent: '--accent',
-    accentForeground: '--accent-foreground',
-    foreground: '--foreground',
-    background: '--background',
-    card: '--card',
-    cardForeground: '--card-foreground',
-    popover: '--popover',
-    popoverForeground: '--popover-foreground',
-    border: '--border',
-    input: '--input',
-    ring: '--ring',
-    chartOne: '--chart-1',
-    chartTwo: '--chart-2',
-    chartThree: '--chart-3',
-    chartFour: '--chart-4',
-    chartFive: '--chart-5',
-  };
-
-  // Apply only the colors that are provided, preserve others
-  Object.entries(mappings).forEach(([paletteKey, cssVar]) => {
-    const value = colors[paletteKey];
+  Object.entries(colors).forEach(([cssVar, value]) => {
     if (value) {
       root.style.setProperty(cssVar, value);
     }

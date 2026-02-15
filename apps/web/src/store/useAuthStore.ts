@@ -9,14 +9,14 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
   clearError: () => void;
-  
+
   // Helpers
   hasPermission: (permission: string | string[]) => boolean;
   hasRole: (role: string | string[]) => boolean;
@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>()(
       hasPermission: (permission: string | string[]) => {
         const { user } = get();
         if (!user || !user.permissions) return false;
-        
+
         if (Array.isArray(permission)) {
           return permission.some(p => user.permissions.includes(p));
         }
@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthState>()(
       hasRole: (role: string | string[]) => {
         const { user } = get();
         if (!user || !user.roles) return false;
-        
+
         if (Array.isArray(role)) {
           return role.some(r => user.roles.includes(r));
         }
@@ -55,15 +55,15 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await apiClient.auth.login(credentials);
-          
+
           if (response.success && response.data) {
             const { user, token } = response.data;
-            
+
             // Store token in localStorage (will be handled by persist middleware)
             if (typeof window !== 'undefined') {
               localStorage.setItem('token', token);
             }
-            
+
             set({
               user,
               token,
@@ -77,7 +77,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           // Handle validation errors (object) vs regular errors (string)
           let errorMessage = 'Login failed. Please check your credentials.';
-          
+
           if (error?.message) {
             errorMessage = error.message;
           } else if (typeof error === 'object' && error !== null) {
@@ -87,7 +87,7 @@ export const useAuthStore = create<AuthState>()(
               errorMessage = firstError[0] as string;
             }
           }
-          
+
           set({
             isLoading: false,
             error: errorMessage,
@@ -100,15 +100,41 @@ export const useAuthStore = create<AuthState>()(
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null });
         try {
-          // Note: Register endpoint doesn't exist yet, but we'll prepare for it
-          // For now, we can create user and then login
-          // This will be implemented when backend register endpoint is ready
-          throw new Error('Register endpoint not implemented yet');
+          const response = await apiClient.auth.register(data);
+
+          if (response.success && response.data) {
+            const { user, token } = response.data;
+
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('token', token);
+            }
+
+            set({
+              user,
+              token,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            throw new Error(response.message || 'Registration failed');
+          }
         } catch (error: any) {
-          const errorMessage = error?.message || 'Registration failed';
+          let errorMessage = 'Registration failed. Please check your data.';
+
+          if (error?.message) {
+            errorMessage = error.message;
+          } else if (typeof error === 'object' && error !== null) {
+            const firstError = Object.values(error)[0];
+            if (Array.isArray(firstError) && firstError.length > 0) {
+              errorMessage = firstError[0] as string;
+            }
+          }
+
           set({
             isLoading: false,
             error: errorMessage,
+            isAuthenticated: false,
           });
           throw error;
         }
@@ -130,7 +156,7 @@ export const useAuthStore = create<AuthState>()(
             localStorage.removeItem('token');
             localStorage.removeItem('user');
           }
-          
+
           set({
             user: null,
             token: null,
@@ -143,7 +169,7 @@ export const useAuthStore = create<AuthState>()(
 
       fetchUser: async () => {
         const { token } = get();
-        
+
         if (!token) {
           set({ isAuthenticated: false, user: null });
           return;
@@ -152,7 +178,7 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await apiClient.auth.me();
-          
+
           if (response.success && response.data) {
             set({
               user: response.data as User,
@@ -167,7 +193,7 @@ export const useAuthStore = create<AuthState>()(
           if (typeof window !== 'undefined') {
             localStorage.removeItem('token');
           }
-          
+
           set({
             user: null,
             token: null,

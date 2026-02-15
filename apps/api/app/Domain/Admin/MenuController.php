@@ -21,6 +21,14 @@ class MenuController extends Controller
         summary: 'List menus (flat or tree)',
         tags: ['Admin Menus'],
         security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\QueryParameter(name: 'layout', description: 'Filter by layout (users|admin)', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'section', description: 'Filter by section (topbar|bottomnavigation|sidebar|header)', required: false, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Menus retrieved'),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+        ]
     )]
     public function index(Request $request)
     {
@@ -49,6 +57,25 @@ class MenuController extends Controller
         summary: 'Create menu item',
         tags: ['Admin Menus'],
         security: [['bearerAuth' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'url', 'layout'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', example: 'Dashboard'),
+                    new OA\Property(property: 'icon', type: 'string', example: 'lucide:home', nullable: true),
+                    new OA\Property(property: 'url', type: 'string', example: '/admin/dashboard'),
+                    new OA\Property(property: 'layout', type: 'string', enum: ['users', 'admin']),
+                    new OA\Property(property: 'section', type: 'string', enum: ['topbar', 'bottomnavigation', 'sidebar', 'header'], nullable: true),
+                    new OA\Property(property: 'parent_id', type: 'integer', nullable: true),
+                    new OA\Property(property: 'order', type: 'integer', example: 0, nullable: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Menu created'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
     )]
     public function store(Request $request)
     {
@@ -87,6 +114,14 @@ class MenuController extends Controller
         summary: 'Update menu item',
         tags: ['Admin Menus'],
         security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Menu updated'),
+            new OA\Response(response: 404, description: 'Menu not found'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
     )]
     public function update(Request $request, int $id)
     {
@@ -129,6 +164,13 @@ class MenuController extends Controller
         summary: 'Delete menu item',
         tags: ['Admin Menus'],
         security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 204, description: 'Menu deleted'),
+            new OA\Response(response: 404, description: 'Menu not found'),
+        ]
     )]
     public function destroy(int $id)
     {

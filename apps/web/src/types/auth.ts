@@ -5,6 +5,8 @@ export interface User {
   email_verified_at?: string;
   profile_image_url?: string;
   avatar_url?: string;
+  google_id?: string;
+  provider?: string;
   roles: string[];
   permissions: string[];
   created_at?: string;

@@ -11,9 +11,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
-    Route::post('auth/login', [\App\Domain\Auth\AuthController::class, 'login']);
+    Route::post('auth/register', [\App\Domain\Auth\AuthController::class, 'register'])->middleware('throttle:10,1');
+    Route::post('auth/login', [\App\Domain\Auth\AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::post('auth/logout', [\App\Domain\Auth\AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::get('auth/me', [\App\Domain\Auth\AuthController::class, 'me'])->middleware('auth:sanctum');
+    Route::get('auth/google', [\App\Domain\Auth\AuthController::class, 'googleRedirect']);
+    Route::get('auth/google/callback', [\App\Domain\Auth\AuthController::class, 'googleCallback']);
 
     // Programs
     Route::get('programs', [\App\Domain\Sales\ProgramController::class, 'index']);

@@ -118,9 +118,7 @@ export function AdminSidebar() {
           {sidebarOpen ? (
             <>
               <Link href="/" className="flex items-center gap-2 font-bold text-xl text-primary">
-                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  A
-                </div>
+                <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-8 w-8 object-contain" />
                 <span>Arkanin<span className="text-muted-foreground font-normal">.Admin</span></span>
               </Link>
               <Button variant="ghost" size="icon" className="hidden md:flex" onClick={toggleSidebar}>
@@ -129,16 +127,14 @@ export function AdminSidebar() {
             </>
           ) : (
             <Button variant="ghost" size="icon" className="hidden md:flex" onClick={toggleSidebar}>
-              <Menu className="h-5 w-5" />
+              <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-6 w-6 object-contain" />
             </Button>
           )}
 
           {/* Mobile Header Content when sidebar is open (overlay mode) */}
           <div className="md:hidden flex items-center gap-2 font-bold text-xl text-primary">
             {!sidebarOpen && (
-              <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                A
-              </div>
+              <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-8 w-8 object-contain" />
             )}
           </div>
         </div>
