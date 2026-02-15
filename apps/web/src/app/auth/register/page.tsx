@@ -112,7 +112,7 @@ export default function RegisterPage() {
                 type="text"
                 placeholder="John Doe"
                 {...register('name')}
-                className="bg-white/5 border-white/10 focus:bg-white/10"
+                className="bg-white/10 border-white/20 focus:bg-white/20 focus:border-primary/50 transition-all"
               />
               {errors.name && (
                 <p className="text-xs text-red-500">{errors.name.message}</p>
@@ -125,7 +125,7 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="john.doe@example.com"
                 {...register('email')}
-                className="bg-white/5 border-white/10 focus:bg-white/10"
+                className="bg-white/10 border-white/20 focus:bg-white/20 focus:border-primary/50 transition-all"
               />
               {errors.email && (
                 <p className="text-xs text-red-500">{errors.email.message}</p>
@@ -138,7 +138,7 @@ export default function RegisterPage() {
                 type="password"
                 placeholder="••••••••"
                 {...register('password')}
-                className="bg-white/5 border-white/10 focus:bg-white/10"
+                className="bg-white/10 border-white/20 focus:bg-white/20 focus:border-primary/50 transition-all"
               />
               {errors.password && (
                 <p className="text-xs text-red-500">{errors.password.message}</p>
@@ -151,7 +151,7 @@ export default function RegisterPage() {
                 type="password"
                 placeholder="••••••••"
                 {...register('password_confirmation')}
-                className="bg-white/5 border-white/10 focus:bg-white/10"
+                className="bg-white/10 border-white/20 focus:bg-white/20 focus:border-primary/50 transition-all"
               />
               {errors.password_confirmation && (
                 <p className="text-xs text-red-500">

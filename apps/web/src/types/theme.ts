@@ -18,6 +18,8 @@ export interface DarkColorOverrides {
   chartThree?: string;
   chartFour?: string;
   chartFive?: string;
+  glassBg?: string;
+  glassBorder?: string;
 }
 
 export interface ColorPalette {
@@ -42,6 +44,8 @@ export interface ColorPalette {
   chartThree: string;
   chartFour: string;
   chartFive: string;
+  glassBg: string;
+  glassBorder: string;
   darkColors?: DarkColorOverrides | null;
   isDefault: boolean;
   createdAt: string;
@@ -69,6 +73,8 @@ export interface ColorPaletteFormData {
   chartThree: string;
   chartFour: string;
   chartFive: string;
+  glassBg: string;
+  glassBorder: string;
   darkColors?: DarkColorOverrides | null;
 }
 
@@ -93,4 +99,6 @@ export const DEFAULT_PALETTE: ColorPaletteFormData = {
   chartThree: '#ec4899',
   chartFour: '#f59e0b',
   chartFive: '#10b981',
+  glassBg: '#ffffff',
+  glassBorder: '#ffffff',
 };

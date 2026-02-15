@@ -103,11 +103,15 @@
 
 @layer utilities {
   .glass {
-    @apply backdrop-blur-xl bg-white/60 border border-black/5 shadow-xl dark:bg-white/10 dark:border-white/10;
+    @apply backdrop-blur-xl shadow-xl;
+    background-color: hsla(var(--glass-bg), 0.7);
+    border: 1px solid hsla(var(--glass-border), 0.4);
   }
   
   .glass-dark {
-    @apply backdrop-blur-xl bg-black/30 border border-white/10 shadow-xl;
+    @apply backdrop-blur-xl shadow-xl;
+    background-color: hsla(var(--glass-bg), 0.3);
+    border: 1px solid hsla(var(--glass-border), 0.1);
   }
 
   .text-gradient {
