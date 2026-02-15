@@ -24,6 +24,8 @@ class UserResource extends BaseResource
             'permissions' => $this->when($this->relationLoaded('roles'), function () {
                 return $this->getAllPermissions()->pluck('name');
             }, []),
+            'avatar_url' => $this->avatar_url,
+            'provider' => $this->provider,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

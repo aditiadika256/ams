@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { ApiResponse } from '../types/auth';
+import { ApiResponse, User, RegisterData } from '../types/auth';
 import { Program, Order, CreateOrderPayload } from '../types/sales';
 import { ExamSession, Question, ExamResult } from '../types/cbt';
 import { Menu } from '../types/system';
@@ -125,7 +125,17 @@ export const apiClient = {
   // Auth endpoints
   auth: {
     login: async (credentials: { email: string; password: string }) => {
-      const response = await api.post<ApiResponse<{ user: any; token: string }>>('/auth/login', credentials);
+      const response = await api.post<ApiResponse<{ user: User; token: string }>>('/auth/login', credentials);
+      return response.data;
+    },
+
+    register: async (data: RegisterData) => {
+      const response = await api.post<ApiResponse<{ user: User; token: string }>>('/auth/register', data);
+      return response.data;
+    },
+
+    googleRedirect: async () => {
+      const response = await api.get<ApiResponse<string>>('/auth/google');
       return response.data;
     },
 
@@ -135,7 +145,7 @@ export const apiClient = {
     },
 
     me: async () => {
-      const response = await api.get<ApiResponse<any>>('/auth/me');
+      const response = await api.get<ApiResponse<User>>('/auth/me');
       return response.data;
     },
   },

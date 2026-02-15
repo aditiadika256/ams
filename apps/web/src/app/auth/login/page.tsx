@@ -22,7 +22,7 @@ import { motion } from 'framer-motion';
 
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid').min(1, 'Email wajib diisi'),
-  password: z.string().min(6, 'Password minimal 6 karakter'),
+  password: z.string().min(8, 'Password minimal 8 karakter'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -50,15 +50,26 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: 'superadmin@arkanin.com',
-      password: 'password',
-    },
   });
 
   const onSubmit = async (data: LoginFormData) => {
     clearError();
-    await login(data);
+    try {
+      await login(data);
+    } catch (err) {
+      // Error handled by store
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await (await import('@/lib/api')).apiClient.auth.googleRedirect();
+      if (response.success && response.data) {
+        window.location.href = response.data;
+      }
+    } catch (err) {
+      console.error('Google login error:', err);
+    }
   };
 
   if (isAuthenticated) {
@@ -187,6 +198,27 @@ export default function LoginPage() {
               )}
             </AnimatedButton>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-transparent px-2 text-muted-foreground backdrop-blur-sm">Atau masuk dengan</span>
+            </div>
+          </div>
+
+          <AnimatedButton
+            type="button"
+            variant="outline"
+            className="w-full h-12 bg-white/5 border-white/10 hover:bg-white/10"
+            onClick={handleGoogleLogin}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="mr-2 h-5 w-5" alt="Google" />
+            Google
+          </AnimatedButton>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Belum punya akun?{' '}

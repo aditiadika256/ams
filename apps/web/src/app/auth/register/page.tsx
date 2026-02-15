@@ -20,7 +20,7 @@ const registerSchema = z
   .object({
     name: z.string().min(1, 'Nama wajib diisi').min(3, 'Nama minimal 3 karakter'),
     email: z.string().email('Email tidak valid').min(1, 'Email wajib diisi'),
-    password: z.string().min(6, 'Password minimal 6 karakter'),
+    password: z.string().min(8, 'Password minimal 8 karakter'),
     password_confirmation: z.string().min(1, 'Konfirmasi password wajib diisi'),
   })
   .refine((data) => data.password === data.password_confirmation, {
@@ -50,7 +50,22 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: RegisterFormData) => {
     clearError();
-    await registerUser(data);
+    try {
+      await registerUser(data);
+    } catch (err) {
+      // Error handled by store
+    }
+  };
+
+  const handleGoogleSignup = async () => {
+    try {
+      const response = await (await import('@/lib/api')).apiClient.auth.googleRedirect();
+      if (response.success && response.data) {
+        window.location.href = response.data;
+      }
+    } catch (err) {
+      console.error('Google signup error:', err);
+    }
   };
 
   if (isAuthenticated) {
@@ -100,7 +115,7 @@ export default function RegisterPage() {
                 className="bg-white/5 border-white/10 focus:bg-white/10"
               />
               {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
+                <p className="text-xs text-red-500">{errors.name.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -113,7 +128,7 @@ export default function RegisterPage() {
                 className="bg-white/5 border-white/10 focus:bg-white/10"
               />
               {errors.email && (
-                <p className="text-sm text-red-500">{errors.email.message}</p>
+                <p className="text-xs text-red-500">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -126,7 +141,7 @@ export default function RegisterPage() {
                 className="bg-white/5 border-white/10 focus:bg-white/10"
               />
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p className="text-xs text-red-500">{errors.password.message}</p>
               )}
             </div>
             <div className="space-y-2">
@@ -139,12 +154,19 @@ export default function RegisterPage() {
                 className="bg-white/5 border-white/10 focus:bg-white/10"
               />
               {errors.password_confirmation && (
-                <p className="text-sm text-red-500">
+                <p className="text-xs text-red-500">
                   {errors.password_confirmation.message}
                 </p>
               )}
             </div>
-            <AnimatedButton type="submit" className="w-full h-12 mt-6" disabled={isLoading} variant="glass" asChild>
+            <AnimatedButton
+              type="submit"
+              className="w-full h-12 mt-6"
+              disabled={isLoading}
+              variant="glass"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
               {isLoading ? (
                 <>
                   <Spinner size="sm" variant="white" className="mr-2" />
@@ -155,6 +177,27 @@ export default function RegisterPage() {
               )}
             </AnimatedButton>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-white/10" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-transparent px-2 text-muted-foreground backdrop-blur-sm">Atau daftar dengan</span>
+            </div>
+          </div>
+
+          <AnimatedButton
+            type="button"
+            variant="outline"
+            className="w-full h-12 bg-white/5 border-white/10 hover:bg-white/10"
+            onClick={handleGoogleSignup}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="mr-2 h-5 w-5" alt="Google" />
+            Google
+          </AnimatedButton>
         </GlassCardContent>
         <GlassCardFooter className="flex justify-center border-t border-white/10 p-6">
           <p className="text-sm text-muted-foreground">
