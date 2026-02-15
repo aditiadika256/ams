@@ -120,6 +120,26 @@ class ColorPaletteController extends Controller
                 'chartThree' => 'required|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
                 'chartFour' => 'required|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
                 'chartFive' => 'required|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors' => 'sometimes|nullable|array',
+                'darkColors.primary' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.secondary' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.destructive' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.muted' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.accent' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.foreground' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.background' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.card' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.cardForeground' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.popover' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.popoverForeground' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.border' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.input' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.ring' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartOne' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartTwo' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartThree' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartFour' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartFive' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
             ]);
 
             // Convert camelCase to snake_case for database
@@ -144,6 +164,7 @@ class ColorPaletteController extends Controller
                 'chart_three' => $validated['chartThree'],
                 'chart_four' => $validated['chartFour'],
                 'chart_five' => $validated['chartFive'],
+                'dark_colors' => $validated['darkColors'] ?? null,
                 'is_default' => false,
             ];
 
@@ -245,21 +266,20 @@ class ColorPaletteController extends Controller
 
             // Convert camelCase to snake_case
             $data = [];
+            $camelToSnake = [
+                'cardForeground' => 'card_foreground',
+                'popoverForeground' => 'popover_foreground',
+                'chartOne' => 'chart_one',
+                'chartTwo' => 'chart_two',
+                'chartThree' => 'chart_three',
+                'chartFour' => 'chart_four',
+                'chartFive' => 'chart_five',
+            ];
             foreach ($validated as $key => $value) {
-                if ($key === 'cardForeground') {
-                    $data['card_foreground'] = $value;
-                } elseif ($key === 'popoverForeground') {
-                    $data['popover_foreground'] = $value;
-                } elseif ($key === 'chartOne') {
-                    $data['chart_one'] = $value;
-                } elseif ($key === 'chartTwo') {
-                    $data['chart_two'] = $value;
-                } elseif ($key === 'chartThree') {
-                    $data['chart_three'] = $value;
-                } elseif ($key === 'chartFour') {
-                    $data['chart_four'] = $value;
-                } elseif ($key === 'chartFive') {
-                    $data['chart_five'] = $value;
+                if ($key === 'darkColors') {
+                    $data['dark_colors'] = $value;
+                } elseif (isset($camelToSnake[$key])) {
+                    $data[$camelToSnake[$key]] = $value;
                 } else {
                     $data[$key] = $value;
                 }

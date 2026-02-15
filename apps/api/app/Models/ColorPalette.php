@@ -28,10 +28,12 @@ class ColorPalette extends Model
         'chart_four',
         'chart_five',
         'is_default',
+        'dark_colors',
     ];
 
     protected $casts = [
         'is_default' => 'boolean',
+        'dark_colors' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -80,6 +82,7 @@ class ColorPalette extends Model
             'chartThree' => $this->chart_three,
             'chartFour' => $this->chart_four,
             'chartFive' => $this->chart_five,
+            'darkColors' => $this->dark_colors,
             'isDefault' => $this->is_default,
             'createdAt' => $this->created_at->toIso8601String(),
             'updatedAt' => $this->updated_at->toIso8601String(),
