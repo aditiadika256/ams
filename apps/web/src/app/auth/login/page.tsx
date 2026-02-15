@@ -35,7 +35,7 @@ export default function LoginPage() {
     if (isAuthenticated && user) {
       // Check for admin roles (including specific admin roles)
       const adminRoles = ['superadmin', 'admin', 'direktur', 'manajer_cabang', 'admin_keuangan', 'admin_cabang', 'admin_kemitraan', 'admin_operasional', 'admin_teknologi', 'admin_pemasaran'];
-      
+
       if (user.roles?.some(role => adminRoles.includes(role))) {
         router.push('/admin');
       } else {
@@ -72,48 +72,48 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden py-10 sm:py-16">
       {/* Animated Background Blobs */}
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           scale: [1, 1.2, 1],
           rotate: [0, 90, 0],
           x: [0, 50, 0],
           y: [0, -50, 0]
         }}
-        transition={{ 
-          duration: 20, 
+        transition={{
+          duration: 20,
           repeat: Infinity,
-          ease: "easeInOut" 
+          ease: "easeInOut"
         }}
-        className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-purple-500/30 blur-3xl" 
+        className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-purple-500/30 blur-3xl"
       />
-      <motion.div 
-        animate={{ 
+      <motion.div
+        animate={{
           scale: [1, 1.1, 1],
           rotate: [0, -45, 0],
           x: [0, -30, 0],
           y: [0, 40, 0]
         }}
-        transition={{ 
-          duration: 15, 
+        transition={{
+          duration: 15,
           repeat: Infinity,
           ease: "easeInOut",
           delay: 2
         }}
-        className="absolute top-1/2 right-0 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" 
+        className="absolute top-1/2 right-0 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl"
       />
       <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-pink-500/20 blur-3xl" />
 
       <AnimatedButton asChild variant="ghost" className="absolute top-4 left-4 md:top-8 md:left-8 z-10">
         <Link href="/">
-           <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Link>
       </AnimatedButton>
-      
+
       <GlassCard className="relative z-10 w-full max-w-md mx-4" gradient>
         <GlassCardHeader className="text-center space-y-1">
           <div className="flex justify-center mb-4">
             <div className="p-3 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
-              <Sparkles className="h-8 w-8 text-primary" />
+              <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-8 w-8 object-contain" />
             </div>
           </div>
           <GlassCardTitle className="text-2xl font-bold tracking-tight">
@@ -126,7 +126,7 @@ export default function LoginPage() {
         <GlassCardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {error && (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 className="rounded-lg border border-destructive/20 bg-destructive/10 backdrop-blur-sm p-4 text-center text-sm text-destructive"
@@ -187,7 +187,7 @@ export default function LoginPage() {
               )}
             </AnimatedButton>
           </form>
-          
+
           <div className="mt-6 text-center text-sm text-muted-foreground">
             Belum punya akun?{' '}
             <Link href="/auth/register" className="font-medium text-primary hover:underline underline-offset-4">

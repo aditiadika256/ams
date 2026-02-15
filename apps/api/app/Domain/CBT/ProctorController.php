@@ -8,10 +8,14 @@ use App\Models\ProctorEvent;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
+#[OA\Tag(
+    name: 'CBT - Proctoring',
+    description: 'Exam proctoring and monitoring endpoints'
+)]
 class ProctorController extends Controller
 {
     #[OA\Post(
-        path: '/exams/session/{attemptId}/log',
+        path: '/api/v1/exams/{attempt}/log',
         summary: 'Log a proctoring event',
         description: 'Logs events like focus lost, tab switch, etc.',
         tags: ['CBT'],
@@ -61,7 +65,7 @@ class ProctorController extends Controller
     }
 
     #[OA\Post(
-        path: '/exams/session/{attemptId}/heartbeat',
+        path: '/api/v1/exams/{attempt}/heartbeat',
         summary: 'Send a heartbeat',
         description: 'Updates the last activity timestamp of the attempt.',
         tags: ['CBT'],

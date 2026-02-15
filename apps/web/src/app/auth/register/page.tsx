@@ -63,22 +63,22 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center py-10 sm:py-16 relative overflow-hidden bg-background">
-       {/* Background Elements */}
-       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/20 blur-[120px] animate-pulse" />
-       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/20 blur-[120px] animate-pulse delay-700" />
-      
+      {/* Background Elements */}
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-500/20 blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/20 blur-[120px] animate-pulse delay-700" />
+
       <Button asChild variant="ghost" className="absolute top-4 left-4 md:top-8 md:left-8 z-20 hover:bg-white/10 text-foreground">
         <Link href="/">
-           <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
         </Link>
       </Button>
 
       <GlassCard className="w-full max-w-md mx-4 relative z-10" gradient>
         <GlassCardHeader className="text-center space-y-1">
           <div className="flex justify-center mb-4">
-             <div className="p-3 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
-               <Sparkles className="h-8 w-8 text-primary" />
-             </div>
+            <div className="p-3 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
+              <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-8 w-8 object-contain" />
+            </div>
           </div>
           <GlassCardTitle className="text-2xl font-bold tracking-tight">Buat Akun Baru</GlassCardTitle>
           <p className="text-sm text-muted-foreground">Arkanin - Edutech Platform</p>

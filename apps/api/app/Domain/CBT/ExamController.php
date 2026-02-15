@@ -22,7 +22,7 @@ class ExamController extends Controller
      * List available exam packages.
      */
     #[OA\Get(
-        path: '/exams/packages',
+        path: '/api/v1/exams/packages',
         summary: 'List exam packages',
         description: 'Retrieves a list of available exam packages.',
         tags: ['CBT'],
@@ -66,7 +66,7 @@ class ExamController extends Controller
      * Get a single exam package.
      */
     #[OA\Get(
-        path: '/exams/packages/{id}',
+        path: '/api/v1/exams/packages/{id}',
         summary: 'Get exam package details',
         description: 'Retrieves details for a specific exam package.',
         tags: ['CBT'],
@@ -121,7 +121,7 @@ class ExamController extends Controller
      * Start an exam session and attempt.
      */
     #[OA\Post(
-        path: '/exams/start',
+        path: '/api/v1/exams/start',
         summary: 'Start an exam session',
         description: 'Creates or resumes an exam session and attempt.',
         tags: ['CBT'],
@@ -231,7 +231,7 @@ class ExamController extends Controller
      * Get questions for an attempt.
      */
     #[OA\Get(
-        path: '/exams/{attempt}/questions',
+        path: '/api/v1/exams/{attempt}/questions',
         summary: 'Get questions for an attempt',
         description: 'Retrieves questions for the specified attempt. Generates them if not already created.',
         tags: ['CBT'],
@@ -322,7 +322,7 @@ class ExamController extends Controller
      * Autosave answer.
      */
     #[OA\Post(
-        path: '/exams/{attempt}/answers',
+        path: '/api/v1/exams/{attempt}/answers',
         summary: 'Autosave answer',
         description: 'Saves the user answer for a specific question.',
         tags: ['CBT'],
@@ -404,7 +404,7 @@ class ExamController extends Controller
      * Submit exam and calculate score.
      */
     #[OA\Post(
-        path: '/exams/{attempt}/submit',
+        path: '/api/v1/exams/{attempt}/submit',
         summary: 'Submit exam',
         description: 'Submits the exam, calculates the score, and finishes the session.',
         tags: ['CBT'],
@@ -513,7 +513,7 @@ class ExamController extends Controller
      * Get exam result.
      */
     #[OA\Get(
-        path: '/exams/{attempt}/result',
+        path: '/api/v1/exams/{attempt}/result',
         summary: 'Get exam result',
         description: 'Retrieves the result of a submitted exam.',
         tags: ['CBT'],

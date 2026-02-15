@@ -8,10 +8,23 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * @OA\Tag(
+ *     name="Theme - Color Palettes",
+ *     description="Color palette management and theme settings"
+ * )
+ */
 class ColorPaletteController extends Controller
 {
     /**
-     * Display a listing of all color palettes
+     * @OA\Get(
+     *     path="/api/v1/admin/theme/palettes",
+     *     summary="List all color palettes",
+     *     tags={"Theme - Color Palettes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="List of color palettes"),
+     *     @OA\Response(response=500, description="Server error")
+     * )
      */
     public function index(): JsonResponse
     {
@@ -24,7 +37,13 @@ class ColorPaletteController extends Controller
     }
 
     /**
-     * Get the active (default) color palette
+     * @OA\Get(
+     *     path="/api/v1/theme/palettes/active",
+     *     summary="Get the active (default) color palette",
+     *     tags={"Theme - Color Palettes"},
+     *     @OA\Response(response=200, description="Active color palette"),
+     *     @OA\Response(response=404, description="No palettes found")
+     * )
      */
     public function active(): JsonResponse
     {
@@ -42,7 +61,40 @@ class ColorPaletteController extends Controller
     }
 
     /**
-     * Store a newly created color palette
+     * @OA\Post(
+     *     path="/api/v1/admin/theme/palettes",
+     *     summary="Create a new color palette",
+     *     tags={"Theme - Color Palettes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name", "primary", "secondary", "destructive", "muted", "accent", "foreground", "background", "card", "cardForeground", "popover", "popoverForeground", "border", "input", "ring", "chartOne", "chartTwo", "chartThree", "chartFour", "chartFive"},
+     *             @OA\Property(property="name", type="string", example="Ocean Blue"),
+     *             @OA\Property(property="primary", type="string", example="#3B82F6"),
+     *             @OA\Property(property="secondary", type="string", example="#64748B"),
+     *             @OA\Property(property="destructive", type="string", example="#EF4444"),
+     *             @OA\Property(property="muted", type="string", example="#F1F5F9"),
+     *             @OA\Property(property="accent", type="string", example="#8B5CF6"),
+     *             @OA\Property(property="foreground", type="string", example="#0F172A"),
+     *             @OA\Property(property="background", type="string", example="#FFFFFF"),
+     *             @OA\Property(property="card", type="string", example="#FFFFFF"),
+     *             @OA\Property(property="cardForeground", type="string", example="#0F172A"),
+     *             @OA\Property(property="popover", type="string", example="#FFFFFF"),
+     *             @OA\Property(property="popoverForeground", type="string", example="#0F172A"),
+     *             @OA\Property(property="border", type="string", example="#E2E8F0"),
+     *             @OA\Property(property="input", type="string", example="#E2E8F0"),
+     *             @OA\Property(property="ring", type="string", example="#3B82F6"),
+     *             @OA\Property(property="chartOne", type="string", example="#3B82F6"),
+     *             @OA\Property(property="chartTwo", type="string", example="#10B981"),
+     *             @OA\Property(property="chartThree", type="string", example="#F59E0B"),
+     *             @OA\Property(property="chartFour", type="string", example="#EF4444"),
+     *             @OA\Property(property="chartFive", type="string", example="#8B5CF6")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Palette created"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(Request $request): JsonResponse
     {
@@ -105,7 +157,15 @@ class ColorPaletteController extends Controller
     }
 
     /**
-     * Display the specified color palette
+     * @OA\Get(
+     *     path="/api/v1/admin/theme/palettes/{id}",
+     *     summary="Get a specific color palette",
+     *     tags={"Theme - Color Palettes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Palette details"),
+     *     @OA\Response(response=404, description="Palette not found")
+     * )
      */
     public function show(string $id): JsonResponse
     {
@@ -120,7 +180,40 @@ class ColorPaletteController extends Controller
     }
 
     /**
-     * Update the specified color palette
+     * @OA\Put(
+     *     path="/api/v1/admin/theme/palettes/{id}",
+     *     summary="Update a color palette",
+     *     tags={"Theme - Color Palettes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="primary", type="string"),
+     *             @OA\Property(property="secondary", type="string"),
+     *             @OA\Property(property="destructive", type="string"),
+     *             @OA\Property(property="muted", type="string"),
+     *             @OA\Property(property="accent", type="string"),
+     *             @OA\Property(property="foreground", type="string"),
+     *             @OA\Property(property="background", type="string"),
+     *             @OA\Property(property="card", type="string"),
+     *             @OA\Property(property="cardForeground", type="string"),
+     *             @OA\Property(property="popover", type="string"),
+     *             @OA\Property(property="popoverForeground", type="string"),
+     *             @OA\Property(property="border", type="string"),
+     *             @OA\Property(property="input", type="string"),
+     *             @OA\Property(property="ring", type="string"),
+     *             @OA\Property(property="chartOne", type="string"),
+     *             @OA\Property(property="chartTwo", type="string"),
+     *             @OA\Property(property="chartThree", type="string"),
+     *             @OA\Property(property="chartFour", type="string"),
+     *             @OA\Property(property="chartFive", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Palette updated"),
+     *     @OA\Response(response=404, description="Palette not found"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function update(Request $request, string $id): JsonResponse
     {
@@ -184,7 +277,15 @@ class ColorPaletteController extends Controller
     }
 
     /**
-     * Set a palette as the default one
+     * @OA\Post(
+     *     path="/api/v1/admin/theme/palettes/{id}/default",
+     *     summary="Set a palette as the default",
+     *     tags={"Theme - Color Palettes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Palette set as default"),
+     *     @OA\Response(response=404, description="Palette not found")
+     * )
      */
     public function setDefault(string $id): JsonResponse
     {
@@ -200,7 +301,16 @@ class ColorPaletteController extends Controller
     }
 
     /**
-     * Remove the specified color palette
+     * @OA\Delete(
+     *     path="/api/v1/admin/theme/palettes/{id}",
+     *     summary="Delete a color palette",
+     *     tags={"Theme - Color Palettes"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=204, description="Palette deleted"),
+     *     @OA\Response(response=403, description="Cannot delete default palette"),
+     *     @OA\Response(response=404, description="Palette not found")
+     * )
      */
     public function destroy(string $id): JsonResponse
     {

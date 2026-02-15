@@ -17,7 +17,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Arkanin v1.0",
-  description: "Generated with teamworks",
+  description: "Arkanin - Edutech Platform",
+  icons: {
+    icon: '/logo/arkanin.ico',
+    apple: '/logo/arkanin-logo.png',
+  },
 };
 
 export default function RootLayout({
