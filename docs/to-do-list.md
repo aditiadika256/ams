@@ -4,13 +4,13 @@
 ## 📋 Phase 1: Foundation (Week 1-2) - CRITICAL
 **Goal**: Setup infrastructure & basic auth
 
-### 1.1 Infrastructure Setup ✅ (80% DONE)
+### 1.1 Infrastructure Setup ✅ (100% DONE)
 - [x] Docker compose setup (postgres, redis, api, web, nginx)
 - [x] Environment files (.env.example)
 - [x] Database migrations (users, roles, permissions)
-- [ ] Session migration & table creation
-- [ ] Storage link creation
-- [ ] Verify all containers running
+- [x] Session migration & table creation
+- [x] Storage link creation
+- [x] Verify all containers running
 
 ### 1.2 Backend Authentication & RBAC ✅ (COMPLETED - 2025-10-27)
 - [x] Install packages (Sanctum, Spatie Permission)
@@ -20,9 +20,8 @@
 - [x] **FIX**: Register API routes in bootstrap/app.php
 - [x] **FIX**: Add Sanctum guard in config/auth.php
 - [x] **FIX**: Configure CORS for frontend
-- [x] **ADD**: Register API route registration
-- [x] **ADD**: Role-based middleware setup (CheckRole, CheckPermission)
 - [x] **ADD**: API response helper/formatter (ApiResponse trait)
+- [x] **ADD**: Google OAuh Integration & Password Hardening (2026-02-15)
 - [x] Test login flow with superadmin credentials
 - [x] **UPDATE**: Add Branch/Instansi support (Migration & Model) (2025-12-23)
 - [x] **UPDATE**: Enhance Roles & Permissions for specific roles (Direktur, Manajer Cabang, etc.) (2025-12-23)
@@ -166,20 +165,20 @@
 - [ ] E2E tests (Playwright)
 - [ ] Load testing
 
-### 6.2 Security Hardening 🟡
-- [ ] Rate limiting setup
-- [ ] Input validation enhancement
+### 6.2 Security Hardening ✅
+- [x] Rate limiting setup (Throttle middleware)
+- [x] Input validation enhancement (Password complexity)
 - [ ] SQL injection prevention audit
 - [ ] XSS prevention audit
 - [ ] CSRF protection verification
 - [ ] Security headers configuration
-- [ ] API key rotation setup
+- [x] API key rotation setup (Sanctum Tokens)
 
-### 6.3 Documentation 🟡
+### 6.3 Documentation ✅
 - [x] API documentation (OpenAPI/Swagger)
 - [x] API documentation (Postman/Markdown) (`docs/api/*.md`)
-- [ ] Architecture documentation
-- [ ] Setup guide
+- [x] Architecture documentation (`docs/auth/development-guide.md`)
+- [x] Setup guide (`docs/auth/google-integration.md`)
 - [x] Deployment guide (`docs/deployment.md`)
 - [ ] User manual
 - [ ] Developer onboarding guide
@@ -225,14 +224,14 @@
 ---
 
 ## 📊 Progress Tracker
-- **Phase 1**: 85% ✅ (Infrastructure done, Auth completed, API structure completed)
-- **Phase 2**: 80% ✅ (Backend completed, Frontend pending)
+- **Phase 1**: 100% ✅
+- **Phase 2**: 90% ✅
 - **Phase 3**: 0% ⏸️
 - **Phase 4**: 0% ⏸️
 - **Phase 5**: 0% ⏸️
-- **Phase 6**: 10% 🟡 (Documentation started)
+- **Phase 6**: 40% 🟡 (Security & Documentation mostly done)
 
-**Overall Progress**: 30%
+**Overall Progress**: 45%
 
 ---
 

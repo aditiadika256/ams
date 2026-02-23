@@ -12,15 +12,22 @@ class MentorSchedule extends Model
 
     protected $fillable = [
         'mentor_id',
-        'day_of_week', // 0 = Sunday, 1 = Monday, etc.
+        'title',
+        'description',
+        'subject',
+        'location',
+        'status',
+        'guest_email',
+        'color_hex',
         'start_time',
         'end_time',
         'is_active',
     ];
 
     protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
         'is_active' => 'boolean',
-        'day_of_week' => 'integer',
     ];
 
     public function mentor(): BelongsTo

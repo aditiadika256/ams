@@ -22,9 +22,15 @@ return new class extends Migration
         Schema::create('mentor_schedules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('mentor_id')->constrained()->cascadeOnDelete();
-            $table->integer('day_of_week'); // 0-6
-            $table->time('start_time');
-            $table->time('end_time');
+            $table->string('title')->nullable(); // Student/Group
+            $table->text('description')->nullable(); 
+            $table->string('subject')->nullable();
+            $table->string('location')->nullable();
+            $table->string('status')->default('scheduled'); // scheduled, done, rescheduled, cancelled
+            $table->string('guest_email')->nullable();
+            $table->string('color_hex', 7)->nullable();
+            $table->dateTime('start_time');
+            $table->dateTime('end_time');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

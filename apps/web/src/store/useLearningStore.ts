@@ -20,7 +20,13 @@ export interface Mentor {
 export interface MentorSchedule {
   id: number;
   mentor_id: number;
-  day_of_week: number;
+  title: string | null;
+  description: string | null;
+  subject: string | null;
+  location: string | null;
+  status: 'scheduled' | 'done' | 'rescheduled' | 'cancelled';
+  guest_email: string | null;
+  color_hex: string | null;
   start_time: string;
   end_time: string;
   is_active: boolean;
@@ -54,20 +60,23 @@ interface LearningState {
   mentors: Mentor[];
   isLoading: boolean;
   error: string | null;
-  
+
   fetchMentors: () => Promise<void>;
   createMentor: (data: any) => Promise<void>;
   updateMentor: (id: number, data: any) => Promise<void>;
   deleteMentor: (id: number) => Promise<void>;
-  
-  fetchMentorSchedules: (mentorId: number) => Promise<MentorSchedule[]>;
-  updateMentorSchedules: (mentorId: number, schedules: any[]) => Promise<void>;
-  
+
+  mentorSchedules: MentorSchedule[];
+  fetchMentorSchedules: (mentorId: number, params?: any) => Promise<MentorSchedule[]>;
+  addSchedule: (mentorId: number, data: any) => Promise<void>;
+  updateSchedule: (mentorId: number, scheduleId: number, data: any) => Promise<void>;
+  deleteSchedule: (mentorId: number, scheduleId: number) => Promise<void>;
+
   fetchCurriculum: (programId: number) => Promise<ProgramModule[]>;
   createModule: (programId: number, data: any) => Promise<void>;
   updateModule: (moduleId: number, data: any) => Promise<void>;
   deleteModule: (moduleId: number) => Promise<void>;
-  
+
   createLesson: (moduleId: number, data: any) => Promise<void>;
   updateLesson: (lessonId: number, data: any) => Promise<void>;
   deleteLesson: (lessonId: number) => Promise<void>;
@@ -129,9 +138,12 @@ export const useLearningStore = create<LearningState>((set, get) => ({
     }
   },
 
-  fetchMentorSchedules: async (mentorId) => {
+  mentorSchedules: [],
+
+  fetchMentorSchedules: async (mentorId, params = {}) => {
     try {
-      const response = await axios.get(`/learning/mentors/${mentorId}/schedules`);
+      const response = await axios.get(`/learning/mentors/${mentorId}/schedules`, { params });
+      set({ mentorSchedules: response.data });
       return response.data;
     } catch (error: any) {
       console.error(error);
@@ -139,9 +151,28 @@ export const useLearningStore = create<LearningState>((set, get) => ({
     }
   },
 
-  updateMentorSchedules: async (mentorId, schedules) => {
+  addSchedule: async (mentorId, data) => {
     try {
-      await axios.post(`/learning/mentors/${mentorId}/schedules`, { schedules });
+      await axios.post(`/learning/mentors/${mentorId}/schedules`, data);
+      await get().fetchMentorSchedules(mentorId);
+    } catch (error: any) {
+      throw error;
+    }
+  },
+
+  updateSchedule: async (mentorId, scheduleId, data) => {
+    try {
+      await axios.put(`/learning/mentors/${mentorId}/schedules/${scheduleId}`, data);
+      await get().fetchMentorSchedules(mentorId);
+    } catch (error: any) {
+      throw error;
+    }
+  },
+
+  deleteSchedule: async (mentorId, scheduleId) => {
+    try {
+      await axios.delete(`/learning/mentors/${mentorId}/schedules/${scheduleId}`);
+      await get().fetchMentorSchedules(mentorId);
     } catch (error: any) {
       throw error;
     }
