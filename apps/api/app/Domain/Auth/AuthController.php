@@ -237,39 +237,32 @@ class AuthController extends Controller
 
     /**
      * Handle Google OAuth callback
+     *
+     * Google redirects the browser to this endpoint after the user authorises.
+     * Instead of returning JSON (which would be displayed as raw text), we
+     * redirect to the frontend callback page with the token (or error) in the
+     * query string so the SPA can store the token and navigate the user.
      */
     #[OA\Get(
         path: '/api/v1/auth/google/callback',
-        summary: 'Handle Google OAuth callback',
+        summary: 'Handle Google OAuth callback (redirects to frontend)',
         tags: ['Auth'],
         responses: [
             new OA\Response(
-                response: 200,
-                description: 'Google login successful',
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'success', type: 'boolean', example: true),
-                        new OA\Property(property: 'message', type: 'string', example: 'Login successful'),
-                        new OA\Property(
-                            property: 'data',
-                            type: 'object',
-                            properties: [
-                                new OA\Property(property: 'user', type: 'object'),
-                                new OA\Property(property: 'token', type: 'string'),
-                            ]
-                        ),
-                    ]
-                )
+                response: 302,
+                description: 'Redirects to frontend with token or error query parameter',
             ),
-            new OA\Response(response: 401, description: 'Authentication failed'),
+            new OA\Response(response: 401, description: 'Authentication failed — redirects to frontend with error'),
         ]
     )]
     public function googleCallback()
     {
+        $frontendUrl = config('app.frontend_url', 'http://localhost:3000');
+
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
-            
-            return DB::transaction(function () use ($googleUser) {
+
+            $token = DB::transaction(function () use ($googleUser) {
                 $user = User::updateOrCreate(
                     ['email' => $googleUser->getEmail()],
                     [
@@ -285,16 +278,18 @@ class AuthController extends Controller
                     $user->assignRole('student');
                 }
 
-                $token = $user->createToken('api-token')->plainTextToken;
-                $user->load(['roles.permissions']);
-
-                return $this->successResponse([
-                    'user' => new UserResource($user),
-                    'token' => $token,
-                ], 'Login successful');
+                return $user->createToken('api-token')->plainTextToken;
             });
+
+            return redirect()->to(
+                $frontendUrl . '/auth/google/callback?' . http_build_query(['token' => $token])
+            );
         } catch (\Exception $e) {
-            return $this->errorResponse('Google authentication failed: ' . $e->getMessage(), 401);
+            return redirect()->to(
+                $frontendUrl . '/auth/google/callback?' . http_build_query([
+                    'error' => 'Google authentication failed. Please try again.',
+                ])
+            );
         }
     }
 

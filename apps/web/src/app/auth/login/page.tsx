@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import {
   GlassCard,
@@ -61,14 +61,25 @@ export default function LoginPage() {
     }
   };
 
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
   const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    clearError();
     try {
       const response = await (await import('@/lib/api')).apiClient.auth.googleRedirect();
       if (response.success && response.data) {
         window.location.href = response.data;
+        // Keep loading state — we're navigating away
+        return;
       }
-    } catch (err) {
-      console.error('Google login error:', err);
+      throw new Error('Gagal mendapatkan URL Google');
+    } catch (err: any) {
+      setIsGoogleLoading(false);
+      // Show error via the same error banner used for login
+      useAuthStore.setState({
+        error: err?.message || 'Gagal menghubungi Google. Silahkan coba lagi.',
+      });
     }
   };
 
@@ -213,11 +224,21 @@ export default function LoginPage() {
             variant="outline"
             className="w-full h-12 bg-white/5 border-white/10 hover:bg-white/10"
             onClick={handleGoogleLogin}
+            disabled={isGoogleLoading || isLoading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="mr-2 h-5 w-5" alt="Google" />
-            Google
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Menghubungi Google…
+              </>
+            ) : (
+              <>
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="mr-2 h-5 w-5" alt="Google" />
+                Google
+              </>
+            )}
           </AnimatedButton>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">

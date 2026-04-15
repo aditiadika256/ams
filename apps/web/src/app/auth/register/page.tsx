@@ -6,12 +6,12 @@ import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent, GlassCardFooter } from '@/components/ui/glass-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Sparkles } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/loaders';
 import { AnimatedButton } from '@/components/ui/animated-button';
@@ -57,14 +57,24 @@ export default function RegisterPage() {
     }
   };
 
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
   const handleGoogleSignup = async () => {
+    setIsGoogleLoading(true);
+    clearError();
     try {
       const response = await (await import('@/lib/api')).apiClient.auth.googleRedirect();
       if (response.success && response.data) {
         window.location.href = response.data;
+        // Keep loading state — we're navigating away
+        return;
       }
-    } catch (err) {
-      console.error('Google signup error:', err);
+      throw new Error('Gagal mendapatkan URL Google');
+    } catch (err: any) {
+      setIsGoogleLoading(false);
+      useAuthStore.setState({
+        error: err?.message || 'Gagal menghubungi Google. Silahkan coba lagi.',
+      });
     }
   };
 
@@ -192,11 +202,21 @@ export default function RegisterPage() {
             variant="outline"
             className="w-full h-12 bg-white/5 border-white/10 hover:bg-white/10"
             onClick={handleGoogleSignup}
+            disabled={isGoogleLoading || isLoading}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="mr-2 h-5 w-5" alt="Google" />
-            Google
+            {isGoogleLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Menghubungi Google…
+              </>
+            ) : (
+              <>
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="mr-2 h-5 w-5" alt="Google" />
+                Google
+              </>
+            )}
           </AnimatedButton>
         </GlassCardContent>
         <GlassCardFooter className="flex justify-center border-t border-white/10 p-6">
