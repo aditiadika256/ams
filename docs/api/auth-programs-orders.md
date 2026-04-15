@@ -2,7 +2,7 @@
 
 Dokumentasi ini menjelaskan endpoint utama yang sudah diimplementasikan di Laravel API:
 
-- Auth (login, me, logout)
+- Auth (register, login, me, logout, Google OAuth)
 - Programs (produk bimbel/tryout)
 - Orders (transaksi pembelian program)
 
@@ -71,7 +71,79 @@ Nilai `token` di atas digunakan untuk header:
 Authorization: Bearer 1|abc123...
 ```
 
-### 1.2 Me (profil user login)
+### 1.2 Register
+
+- Method: `POST`
+- URL: `/auth/register`
+- Auth: tidak perlu token
+- Rate limit: 10 requests per menit
+
+**Request body (raw JSON):**
+
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "Password123",
+  "password_confirmation": "Password123"
+}
+```
+
+**Response sukses (contoh):**
+
+```json
+{
+  "success": true,
+  "message": "Registration successful",
+  "data": {
+    "user": {
+      "id": 2,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "roles": ["student"],
+      "permissions": ["view_dashboard_learning", "view_profile", "edit_profile"]
+    },
+    "token": "2|xyz789..."
+  }
+}
+```
+
+### 1.3 Google OAuth — Get Redirect URL
+
+- Method: `GET`
+- URL: `/auth/google`
+- Auth: tidak perlu token
+
+**Response sukses:**
+
+```json
+{
+  "success": true,
+  "message": "Google redirect URL retrieved",
+  "data": "https://accounts.google.com/o/oauth2/auth/..."
+}
+```
+
+Frontend menggunakan URL ini untuk melakukan redirect: `window.location.href = data`.
+
+### 1.4 Google OAuth — Callback
+
+- Method: `GET`
+- URL: `/auth/google/callback`
+- Auth: tidak perlu — endpoint ini dipanggil langsung oleh Google
+
+> [!IMPORTANT]
+> Endpoint ini **tidak mengembalikan JSON**. Setelah memproses autentikasi Google, backend akan melakukan redirect `302` ke frontend:
+> - **Sukses**: `{FRONTEND_URL}/auth/google/callback?token=xxx`
+> - **Gagal**: `{FRONTEND_URL}/auth/google/callback?error=Google+authentication+failed...`
+
+Frontend callback page (`/auth/google/callback`) kemudian:
+1. Membaca `token` dari query parameter
+2. Menyimpan token ke `localStorage`
+3. Fetch user profile via `GET /auth/me`
+4. Redirect user ke dashboard yang sesuai
+
+### 1.5 Me (profil user login)
 
 - Method: `GET`
 - URL: `/auth/me`
@@ -87,7 +159,7 @@ Authorization: Bearer 1|abc123...
   Authorization: Bearer {{token}}
   ```
 
-### 1.3 Logout
+### 1.6 Logout
 
 - Method: `POST`
 - URL: `/auth/logout`
