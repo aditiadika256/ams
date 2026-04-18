@@ -13,6 +13,7 @@ interface AuthState {
   // Actions
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
+  handleGoogleCallback: (token: string) => Promise<void>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
   clearError: () => void;
@@ -135,6 +136,45 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: errorMessage,
             isAuthenticated: false,
+          });
+          throw error;
+        }
+      },
+
+      handleGoogleCallback: async (token: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          // Persist the token received from the OAuth redirect
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('token', token);
+          }
+          set({ token });
+
+          // Fetch full user profile using the new token
+          const response = await apiClient.auth.me();
+
+          if (response.success && response.data) {
+            set({
+              user: response.data as User,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            throw new Error('Failed to fetch user profile');
+          }
+        } catch (error: any) {
+          // Clean up on failure
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+          }
+
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: error?.message || 'Google authentication failed',
           });
           throw error;
         }
