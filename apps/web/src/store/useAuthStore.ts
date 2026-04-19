@@ -1,0 +1,271 @@
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { User, LoginCredentials, RegisterData } from '../types/auth';
+import { apiClient } from '../lib/api';
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+
+  // Actions
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  handleGoogleCallback: (token: string) => Promise<void>;
+  logout: () => Promise<void>;
+  fetchUser: () => Promise<void>;
+  clearError: () => void;
+
+  // Helpers
+  hasPermission: (permission: string | string[]) => boolean;
+  hasRole: (role: string | string[]) => boolean;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
+
+      hasPermission: (permission: string | string[]) => {
+        const { user } = get();
+        if (!user || !user.permissions) return false;
+
+        if (Array.isArray(permission)) {
+          return permission.some(p => user.permissions.includes(p));
+        }
+        return user.permissions.includes(permission);
+      },
+
+      hasRole: (role: string | string[]) => {
+        const { user } = get();
+        if (!user || !user.roles) return false;
+
+        if (Array.isArray(role)) {
+          return role.some(r => user.roles.includes(r));
+        }
+        return user.roles.includes(role);
+      },
+
+      login: async (credentials: LoginCredentials) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await apiClient.auth.login(credentials);
+
+          if (response.success && response.data) {
+            const { user, token } = response.data;
+
+            // Store token in localStorage (will be handled by persist middleware)
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('token', token);
+            }
+
+            set({
+              user,
+              token,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            throw new Error(response.message || 'Login failed');
+          }
+        } catch (error: any) {
+          // Handle validation errors (object) vs regular errors (string)
+          let errorMessage = 'Login failed. Please check your credentials.';
+
+          if (error?.message) {
+            errorMessage = error.message;
+          } else if (typeof error === 'object' && error !== null) {
+            // Handle validation errors object
+            const firstError = Object.values(error)[0];
+            if (Array.isArray(firstError) && firstError.length > 0) {
+              errorMessage = firstError[0] as string;
+            }
+          }
+
+          set({
+            isLoading: false,
+            error: errorMessage,
+            isAuthenticated: false,
+          });
+          throw error;
+        }
+      },
+
+      register: async (data: RegisterData) => {
+        set({ isLoading: true, error: null });
+        try {
+          const response = await apiClient.auth.register(data);
+
+          if (response.success && response.data) {
+            const { user, token } = response.data;
+
+            if (typeof window !== 'undefined') {
+              localStorage.setItem('token', token);
+            }
+
+            set({
+              user,
+              token,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            throw new Error(response.message || 'Registration failed');
+          }
+        } catch (error: any) {
+          let errorMessage = 'Registration failed. Please check your data.';
+
+          if (error?.message) {
+            errorMessage = error.message;
+          } else if (typeof error === 'object' && error !== null) {
+            const firstError = Object.values(error)[0];
+            if (Array.isArray(firstError) && firstError.length > 0) {
+              errorMessage = firstError[0] as string;
+            }
+          }
+
+          set({
+            isLoading: false,
+            error: errorMessage,
+            isAuthenticated: false,
+          });
+          throw error;
+        }
+      },
+
+      handleGoogleCallback: async (token: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          // Persist the token received from the OAuth redirect
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('token', token);
+          }
+          set({ token });
+
+          // Fetch full user profile using the new token
+          const response = await apiClient.auth.me();
+
+          if (response.success && response.data) {
+            set({
+              user: response.data as User,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            throw new Error('Failed to fetch user profile');
+          }
+        } catch (error: any) {
+          // Clean up on failure
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+          }
+
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: error?.message || 'Google authentication failed',
+          });
+          throw error;
+        }
+      },
+
+      logout: async () => {
+        set({ isLoading: true });
+        try {
+          // Call logout API if token exists
+          if (get().token) {
+            await apiClient.auth.logout();
+          }
+        } catch (error) {
+          // Even if API call fails, clear local state
+          console.error('Logout error:', error);
+        } finally {
+          // Clear state and localStorage
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+          }
+
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: null,
+          });
+        }
+      },
+
+      fetchUser: async () => {
+        const { token } = get();
+
+        if (!token) {
+          set({ isAuthenticated: false, user: null });
+          return;
+        }
+
+        set({ isLoading: true, error: null });
+        try {
+          const response = await apiClient.auth.me();
+
+          if (response.success && response.data) {
+            set({
+              user: response.data as User,
+              isAuthenticated: true,
+              isLoading: false,
+            });
+          } else {
+            throw new Error('Failed to fetch user');
+          }
+        } catch (error: any) {
+          // If fetch fails, clear auth state
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('token');
+          }
+
+          set({
+            user: null,
+            token: null,
+            isAuthenticated: false,
+            isLoading: false,
+            error: error?.message || 'Failed to fetch user',
+          });
+        }
+      },
+
+      clearError: () => {
+        set({ error: null });
+      },
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') {
+          return localStorage;
+        }
+        return {
+          getItem: (_key: string) => null,
+          setItem: (_key: string, _value: string) => undefined,
+          removeItem: (_key: string) => undefined,
+        };
+      }),
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    }
+  )
+);
+
