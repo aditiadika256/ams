@@ -36,6 +36,8 @@ Karena repo kita adalah *Monorepo*, tools PaaS modern harus diberitahu folder (R
 > }
 > ```
 > Railpack akan otomatis menggunakan **FrankenPHP** sebagai web server dan menjalankan `composer install` saat build.
+>
+> **Catatan:** File `Dockerfile` di `apps/api/` sudah di-rename menjadi `Dockerfile.dev` agar Railway tidak menggunakannya. Railway akan memprioritaskan Dockerfile jika ada, padahal Dockerfile tersebut hanya untuk development lokal (tanpa `COPY` source code). Docker Compose lokal sudah diupdate untuk mereferensikan `Dockerfile.dev`.
 
 > [!TIP]
 > **Environment Variables Railway yang Berguna:**
