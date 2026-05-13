@@ -9,6 +9,7 @@ out/
 .env
 .env.local
 .env.*.local
+.env.prod
 .next-env.d.ts
 
 # Turbopack / cache

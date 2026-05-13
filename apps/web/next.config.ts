@@ -20,6 +20,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  eslint: {
+    // ESLint 9 + eslint-config-next@16 has a circular structure bug
+    // during build. Lint during dev instead. See: docs/dev-guide
+    ignoreDuringBuilds: true,
+  },
   turbopack: {
     root: __dirname,
   },
