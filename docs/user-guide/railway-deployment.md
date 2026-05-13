@@ -68,6 +68,15 @@ Setelah deploy berhasil, akses URL Railway yang diberikan dan pastikan:
 }
 ```
 
+### Deploy Error: "Could not open input file: artisan"
+
+**Penyebab:** Railway mendeteksi `Dockerfile` dan menggunakannya untuk build, alih-alih Railpack. Dockerfile development tidak meng-COPY source code ke dalam image (hanya menggunakan volume mount dari docker-compose).
+
+**Solusi:**
+1. Rename `Dockerfile` menjadi `Dockerfile.dev` di `apps/api/`
+2. Update referensi di `ops/docker-compose.yml` ke `Dockerfile.dev`
+3. Pastikan `railpack.json` ada — Railway akan menggunakan Railpack jika tidak ada Dockerfile
+
 ### PHP Extensions Tidak Tersedia
 
 Tambahkan environment variable di Railway:
