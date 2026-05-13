@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Trust all proxies (needed for Railway)
+        $middleware->trustProxies(at: '*');
+
         // Add Sanctum authentication to stateful domains
         $middleware->statefulApi();
         
