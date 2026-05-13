@@ -19,10 +19,10 @@ declare global {
   }
 }
 
-export default function OrderDetailPage({ params }: { params: { id: string } }) {
+export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { currentOrder, fetchOrder, isLoading } = useSalesStore();
-  const id = params.id;
+  const { id } = React.use(params);
   const [snapLoaded, setSnapLoaded] = useState(false);
 
   useEffect(() => {
