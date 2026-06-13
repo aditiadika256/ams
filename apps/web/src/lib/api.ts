@@ -237,6 +237,28 @@ export const apiClient = {
 
   // Admin endpoints
   admin: {
+    users: {
+      list: async (params?: { page?: number; limit?: number; search?: string; role?: string; branch_id?: number }) => {
+        const response = await api.get<ApiResponse<any>>('/admin/users', { params });
+        return response.data;
+      },
+      create: async (payload: any) => {
+        const response = await api.post<ApiResponse<any>>('/admin/users', payload);
+        return response.data;
+      },
+      get: async (id: number) => {
+        const response = await api.get<ApiResponse<any>>(`/admin/users/${id}`);
+        return response.data;
+      },
+      update: async (id: number, payload: any) => {
+        const response = await api.put<ApiResponse<any>>(`/admin/users/${id}`, payload);
+        return response.data;
+      },
+      remove: async (id: number) => {
+        const response = await api.delete<ApiResponse<any>>(`/admin/users/${id}`);
+        return response.data;
+      },
+    },
     menus: {
       list: async (params?: { layout?: 'users' | 'admin'; section?: 'topbar' | 'bottomnavigation' | 'sidebar' | 'header' }) => {
         const response = await api.get<ApiResponse<Menu[]>>('/admin/menus', { params });
