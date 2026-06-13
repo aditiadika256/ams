@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ProgramSeeder::class);
         $this->call(CbtSeeder::class);
         $this->call(ColorPaletteSeeder::class);
+        $this->call(MenuSeeder::class);
 
         // Example test user
         User::firstOrCreate(
