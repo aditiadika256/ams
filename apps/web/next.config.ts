@@ -4,7 +4,7 @@ import path from 'path';
 const isDev = process.env.NODE_ENV !== 'production';
 const csp = [
   "default-src 'self'",
-  "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 ws: http://localhost:3000 http://localhost:3001",
+  "connect-src 'self' https://ams-lc58.onrender.com http://localhost:8000 http://127.0.0.1:8000 ws: http://localhost:3000 http://localhost:3001",
   "img-src 'self' data: https:",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' blob:" : ""}`,
   "style-src 'self' 'unsafe-inline'",
