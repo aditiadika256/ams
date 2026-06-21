@@ -85,45 +85,16 @@ export default function LoginPage() {
 
   if (isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden py-10 sm:py-16">
-      {/* Animated Background Blobs */}
-      <motion.div
-        animate={{
-          scale: [1, 1.2, 1],
-          rotate: [0, 90, 0],
-          x: [0, 50, 0],
-          y: [0, -50, 0]
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-        className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-purple-500/30 blur-3xl"
-      />
-      <motion.div
-        animate={{
-          scale: [1, 1.1, 1],
-          rotate: [0, -45, 0],
-          x: [0, -30, 0],
-          y: [0, 40, 0]
-        }}
-        transition={{
-          duration: 15,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 2
-        }}
-        className="absolute top-1/2 right-0 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl"
-      />
-      <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-pink-500/20 blur-3xl" />
+    <div className="relative flex min-h-screen items-center justify-center bg-background/95 py-10 sm:py-16">
+      {/* Simple, firm background pattern (optional, for texture) */}
+      <div className="absolute inset-0 bg-grid-white/[0.02] bg-[size:60px_60px]" />
 
       <AnimatedButton asChild variant="ghost" className="absolute top-4 left-4 md:top-8 md:left-8 z-10">
         <Link href="/">
@@ -131,50 +102,50 @@ export default function LoginPage() {
         </Link>
       </AnimatedButton>
 
-      <GlassCard className="relative z-10 w-full max-w-md mx-4" gradient>
-        <GlassCardHeader className="text-center space-y-1">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-full bg-primary/10 backdrop-blur-sm border border-primary/20">
-              <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-8 w-8 object-contain" />
+      <GlassCard className="relative z-10 w-full max-w-md mx-4 border-border/50 bg-card/60 shadow-2xl backdrop-blur-xl">
+        <GlassCardHeader className="text-center space-y-2 pb-6">
+          <div className="flex justify-center mb-2">
+            <div className="p-3 rounded-2xl bg-primary/5 border border-primary/10">
+              <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-10 w-10 object-contain" />
             </div>
           </div>
-          <GlassCardTitle className="text-2xl font-bold tracking-tight">
+          <GlassCardTitle className="text-3xl font-bold tracking-tight">
             Selamat Datang
           </GlassCardTitle>
-          <GlassCardDescription>
-            Masuk untuk mengakses Edutech Platform
+          <GlassCardDescription className="text-muted-foreground">
+            Masuk ke akun Arkanin Anda
           </GlassCardDescription>
         </GlassCardHeader>
         <GlassCardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {error && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="rounded-lg border border-destructive/20 bg-destructive/10 backdrop-blur-sm p-4 text-center text-sm text-destructive"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-center text-sm font-medium text-destructive"
               >
                 {error}
               </motion.div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="nama@email.com"
-                className="bg-white/5 border-white/10 focus:border-primary/50 focus:bg-white/10 transition-all duration-300"
+                className="bg-background/50 border-input hover:bg-background focus:bg-background transition-colors"
                 {...register('email')}
               />
               {errors.email && (
-                <p className="text-xs text-destructive">{errors.email.message}</p>
+                <p className="text-xs text-destructive font-medium">{errors.email.message}</p>
               )}
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   Lupa password?
                 </Link>
@@ -182,22 +153,21 @@ export default function LoginPage() {
               <Input
                 id="password"
                 type="password"
-                className="bg-white/5 border-white/10 focus:border-primary/50 focus:bg-white/10 transition-all duration-300"
+                className="bg-background/50 border-input hover:bg-background focus:bg-background transition-colors"
                 {...register('password')}
               />
               {errors.password && (
-                <p className="text-xs text-destructive">
+                <p className="text-xs text-destructive font-medium">
                   {errors.password.message}
                 </p>
               )}
             </div>
             <AnimatedButton
               type="submit"
-              className="w-full"
-              variant="glass"
+              className="w-full mt-2"
               disabled={isLoading}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
             >
               {isLoading ? (
                 <>
@@ -210,40 +180,40 @@ export default function LoginPage() {
             </AnimatedButton>
           </form>
 
-          <div className="relative my-6">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-white/10" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-transparent px-2 text-muted-foreground backdrop-blur-sm">Atau masuk dengan</span>
+              <span className="bg-card px-2 text-muted-foreground font-medium">Atau lanjutkan dengan</span>
             </div>
           </div>
 
           <AnimatedButton
             type="button"
             variant="outline"
-            className="w-full h-12 bg-white/5 border-white/10 hover:bg-white/10"
+            className="w-full h-11 bg-background/50 hover:bg-background border-border"
             onClick={handleGoogleLogin}
             disabled={isGoogleLoading || isLoading}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
           >
             {isGoogleLoading ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Menghubungi Google…
+                Menghubungi Google...
               </>
             ) : (
               <>
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="mr-2 h-5 w-5" alt="Google" />
-                Google
+                Masuk dengan Google
               </>
             )}
           </AnimatedButton>
 
-          <div className="mt-6 text-center text-sm text-muted-foreground">
+          <div className="mt-8 text-center text-sm text-muted-foreground">
             Belum punya akun?{' '}
-            <Link href="/auth/register" className="font-medium text-primary hover:underline underline-offset-4">
+            <Link href="/auth/register" className="font-semibold text-primary hover:underline underline-offset-4 transition-all">
               Daftar sekarang
             </Link>
           </div>

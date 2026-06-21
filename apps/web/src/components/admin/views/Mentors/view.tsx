@@ -39,9 +39,21 @@ const itemVariants = {
   }
 };
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { MentorForm } from './form';
+
 export default function MentorsView() {
-  const { mentors, fetchMentors, isLoading, error } = useLearningStore();
+  const { mentors, fetchMentors, createMentor, updateMentor, deleteMentor, isLoading, error } = useLearningStore();
   const [searchQuery, setSearchQuery] = React.useState('');
+  
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [selectedMentor, setSelectedMentor] = React.useState<any>(null);
 
   const didFetch = useRef(false);
   useEffect(() => {
@@ -56,6 +68,40 @@ export default function MentorsView() {
     mentor.specialization.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleOpenAdd = () => {
+    setSelectedMentor(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (mentor: any) => {
+    setSelectedMentor(mentor);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data: any) => {
+    try {
+      if (selectedMentor) {
+        await updateMentor(selectedMentor.id, data);
+      } else {
+        await createMentor(data);
+      }
+      setIsModalOpen(false);
+      setSelectedMentor(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Apakah Anda yakin ingin menonaktifkan/menghapus mentor ini?')) {
+      try {
+        await deleteMentor(id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
   return (
     <motion.div 
       variants={containerVariants}
@@ -68,9 +114,8 @@ export default function MentorsView() {
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Mentors</h2>
           <p className="text-muted-foreground">Manage mentor profiles, schedules, and assignments.</p>
         </div>
-        <Button className="bg-linear-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 border-0">
-          <Plus className="mr-2 h-4 w-4" /> Add New Mentor
-        </Button>
+        <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0">
+          <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Add New Mentor</span></Button>
       </motion.div>
 
       {error && (
@@ -90,7 +135,7 @@ export default function MentorsView() {
                   <Input
                     type="search"
                     placeholder="Search mentors..."
-                    className="pl-8 w-[200px] lg:w-[300px] bg-white/5 border-white/10"
+                    className="pl-8 w-[200px] lg:w-[300px] bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -99,12 +144,12 @@ export default function MentorsView() {
             </div>
           </GlassCardHeader>
           <GlassCardContent>
-            {isLoading ? (
+            {isLoading && mentors.length === 0 ? (
                <div className="py-8 text-center text-muted-foreground">Loading mentors...</div>
             ) : filteredMentors.length === 0 ? (
                <div className="py-8 text-center text-muted-foreground">No mentors found.</div>
             ) : (
-              <div className="overflow-x-auto">
+               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-muted-foreground uppercase bg-white/5 border-b border-white/10">
                     <tr>
@@ -126,7 +171,7 @@ export default function MentorsView() {
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-linear-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center text-primary font-medium border border-white/10">
+                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
                               {mentor.user?.name ? mentor.user.name.charAt(0) : 'M'}
                             </div>
                             <div>
@@ -161,15 +206,15 @@ export default function MentorsView() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem className="focus:bg-white/10">
+                              <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="focus:bg-white/10">
                                 <Edit className="mr-2 h-4 w-4" /> Edit Profile
                               </DropdownMenuItem>
                               <DropdownMenuItem className="focus:bg-white/10">
                                  <Clock className="mr-2 h-4 w-4" /> Manage Schedule
                               </DropdownMenuItem>
                               <DropdownMenuSeparator className="bg-white/10" />
-                              <DropdownMenuItem className="text-destructive focus:bg-destructive/20">
-                                <Trash2 className="mr-2 h-4 w-4" /> Deactivate
+                              <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20">
+                                <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -183,6 +228,21 @@ export default function MentorsView() {
           </GlassCardContent>
         </GlassCard>
       </motion.div>
+
+      {/* Form Dialog */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{selectedMentor ? 'Edit Mentor' : 'Tambah Mentor Baru'}</DialogTitle>
+          </DialogHeader>
+          <MentorForm 
+            initialData={selectedMentor}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+            isLoading={isLoading}
+          />
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

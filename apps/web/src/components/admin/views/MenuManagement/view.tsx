@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/components/ui/glass-card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Menu as MenuIcon, Plus, Edit, Trash2 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { Menu } from '@/types/system';
 import { motion } from 'framer-motion';
+import { MenuForm } from './form';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -46,6 +48,7 @@ export default function MenuManagementView() {
     order: 0,
   });
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const loadMenus = async () => {
     setLoading(true);
@@ -70,6 +73,7 @@ export default function MenuManagementView() {
   const resetForm = () => {
     setForm({ name: '', icon: '', url: '', parent_id: null, order: 0 });
     setEditingId(null);
+    setIsModalOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,6 +102,7 @@ export default function MenuManagementView() {
       parent_id: m.parent_id || null,
       order: m.order,
     });
+    setIsModalOpen(true);
   };
 
   const removeMenu = async (id: number) => {
@@ -117,144 +122,35 @@ export default function MenuManagementView() {
       animate="visible"
       className="space-y-6"
     >
-      <div className="flex items-center justify-between">
-        <motion.div variants={itemVariants} className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-full bg-linear-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center border border-white/10">
-            <MenuIcon className="h-5 w-5 text-foreground" />
-          </div>
-          <h2 className="text-xl font-semibold text-foreground">Menu Management</h2>
-        </motion.div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Menu Management</h2>
+          <p className="text-muted-foreground">Atur navigasi dan menu untuk tampilan Admin maupun Users.</p>
+        </div>
+        <Dialog open={isModalOpen} onOpenChange={(open) => {
+          if (!open) resetForm();
+          else setIsModalOpen(true);
+        }}>
+          <DialogTrigger asChild>
+            <Button onClick={() => setIsModalOpen(true)} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-lg">
+              <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Tambah Menu</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{editingId ? 'Edit Menu' : 'Tambah Menu'}</DialogTitle>
+            </DialogHeader>
+            <MenuForm 
+              form={form}
+              setForm={setForm}
+              editingId={editingId}
+              handleSubmit={handleSubmit}
+              setIsModalOpen={setIsModalOpen}
+              parentOptions={parentOptions}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <motion.div variants={itemVariants}>
-        <GlassCard className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-br from-purple-500/5 to-pink-500/5" />
-          <GlassCardHeader className="relative z-10">
-            <GlassCardTitle>{editingId ? 'Edit Menu' : 'Tambah Menu'}</GlassCardTitle>
-          </GlassCardHeader>
-          <GlassCardContent className="relative z-10">
-            <form className="grid md:grid-cols-2 gap-4" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <Label>Nama</Label>
-                <Input
-                  value={form.name || ''}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  required
-                  className="bg-white/5 border-white/10 focus:border-purple-500/50"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Layout</Label>
-                <div className="flex items-center gap-6 p-2 rounded-md border border-white/10 bg-white/5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="layout"
-                      value="users"
-                      checked={(form.layout || 'users') === 'users'}
-                      onChange={(e) => setForm((f) => ({ ...f, layout: e.target.value as any, section: 'topbar', parent_id: null }))}
-                      className="accent-purple-500"
-                    />
-                    <span>Users</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="layout"
-                      value="admin"
-                      checked={(form.layout || 'users') === 'admin'}
-                      onChange={(e) => setForm((f) => ({ ...f, layout: e.target.value as any, section: 'sidebar', parent_id: null }))}
-                      className="accent-purple-500"
-                    />
-                    <span>Admin</span>
-                  </label>
-                </div>
-                <p className="text-xs text-muted-foreground">Pilih layout target: Users atau Admin.</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Section</Label>
-                <Select
-                  value={form.section || (form.layout === 'admin' ? 'sidebar' : 'topbar')}
-                  onValueChange={(v) => setForm((f) => ({ ...f, section: v as any, parent_id: null }))}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10">
-                    <SelectValue placeholder="Pilih section" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-black/90 border-white/10 backdrop-blur-xl">
-                    {(form.layout === 'admin' ? ['sidebar', 'header'] : ['topbar', 'bottomnavigation']).map(opt => (
-                      <SelectItem key={opt} value={opt}>
-                        {opt === 'sidebar' && 'Sidebar (Admin)'}
-                        {opt === 'header' && 'Header (Admin)'}
-                        {opt === 'topbar' && 'TopBar (Users)'}
-                        {opt === 'bottomnavigation' && 'BottomNavigation (Users)'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">Menentukan posisi menu sesuai layout.</p>
-              </div>
-              <div className="space-y-2">
-                <Label>Icon (lucide)</Label>
-                <Input
-                  value={form.icon || ''}
-                  onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
-                  placeholder="Contoh: Home, LayoutGrid"
-                  className="bg-white/5 border-white/10 focus:border-purple-500/50"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>URL</Label>
-                <Input
-                  value={form.url || ''}
-                  onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-                  required
-                  className="bg-white/5 border-white/10 focus:border-purple-500/50"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Parent</Label>
-                <Select
-                  value={form.parent_id ? String(form.parent_id) : 'none'}
-                  onValueChange={(v) => setForm((f) => ({ ...f, parent_id: v === 'none' ? null : Number(v) }))}
-                >
-                  <SelectTrigger className="bg-white/5 border-white/10">
-                    <SelectValue placeholder="Tidak ada (Top-level)" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-black/90 border-white/10 backdrop-blur-xl">
-                    <SelectItem value="none">Top-level</SelectItem>
-                    {parentOptions.map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Urutan</Label>
-                <Input
-                  type="number"
-                  value={form.order ?? 0}
-                  onChange={(e) => setForm((f) => ({ ...f, order: Number(e.target.value) }))}
-                  className="bg-white/5 border-white/10 focus:border-purple-500/50"
-                />
-              </div>
-
-              <div className="md:col-span-2 flex items-center justify-end gap-2 mt-4">
-                {editingId && (
-                  <Button type="button" variant="outline" onClick={resetForm} className="border-white/10 hover:bg-white/5">
-                    Batal
-                  </Button>
-                )}
-                <Button type="submit" className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0">
-                  <Plus className="h-4 w-4 mr-2" />
-                  {editingId ? 'Simpan Perubahan' : 'Tambah Menu'}
-                </Button>
-              </div>
-            </form>
-          </GlassCardContent>
-        </GlassCard>
-      </motion.div>
 
       <motion.div variants={itemVariants}>
         <GlassCard>
@@ -280,7 +176,7 @@ export default function MenuManagementView() {
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="font-semibold flex items-center gap-2">
-                            <span className="h-6 w-6 rounded-full bg-purple-500/20 flex items-center justify-center text-xs text-purple-300 border border-purple-500/20">
+                            <span className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs text-primary/80 border border-primary/20">
                               {m.order}
                             </span>
                             {m.name}

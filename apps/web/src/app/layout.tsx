@@ -36,7 +36,6 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="light"
           enableSystem
-          disableTransitionOnChange
         >
           <ThemeInitializer />
           <MainLayout>{children}</MainLayout>

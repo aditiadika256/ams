@@ -37,12 +37,8 @@ export default function HomePage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 -z-10 w-full h-full bg-background">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-purple-500/20 blur-[120px] animate-pulse" />
-        <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] rounded-full bg-blue-500/20 blur-[100px] animate-pulse delay-1000" />
-        <div className="absolute bottom-[-10%] left-[20%] w-[35%] h-[35%] rounded-full bg-indigo-500/20 blur-[120px] animate-pulse delay-2000" />
-      </div>
+      {/* Background */}
+      <div className="fixed inset-0 -z-10 w-full h-full bg-background" />
 
       <div className="flex flex-col gap-16 md:gap-24 pt-24 pb-8 md:pt-32 md:pb-16">
         {/* Hero Section */}
@@ -57,10 +53,9 @@ export default function HomePage() {
               <Sparkles className="mr-2 h-3 w-3" />
               Platform Belajar Masa Depan
             </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter bg-linear-to-br from-foreground to-foreground/50 bg-clip-text text-transparent pb-4 drop-shadow-sm">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground pb-4 drop-shadow-sm">
               Bangun Karir Impianmu <br className="hidden md:block" /> Bersama <span className="text-primary relative">
                 Arkanin
-                <span className="absolute inset-0 bg-primary/20 blur-xl -z-10"></span>
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-[700px] mx-auto mt-4 leading-relaxed">
@@ -93,7 +88,7 @@ export default function HomePage() {
               <div className="flex items-center gap-2 font-semibold">
                 <div className="flex -space-x-2">
                   {[1,2,3,4].map((i) => (
-                    <div key={i} className={`h-8 w-8 rounded-full border-2 border-background bg-linear-to-br from-zinc-200 to-zinc-400 dark:from-zinc-700 dark:to-zinc-900`} />
+                    <div key={i} className={`h-8 w-8 rounded-full border-2 border-background bg-zinc-300 dark:bg-zinc-800`} />
                   ))}
                 </div>
                 <span className="ml-2">1,000+ Siswa Bergabung</span>
@@ -130,8 +125,7 @@ export default function HomePage() {
             ].map((item, i) => (
               <GlassCard
                 key={i}
-                className="flex flex-col items-center text-center p-6 hover:-translate-y-1 transition-transform duration-300"
-                gradient
+                className="flex flex-col items-center text-center p-6 hover:-translate-y-1 transition-transform duration-300 border border-zinc-200 dark:border-zinc-800 shadow-sm"
               >
                 <div className={`h-12 w-12 rounded-xl flex items-center justify-center mb-4 ${item.bg} ${item.color} backdrop-blur-md`}>
                   <item.icon className="h-6 w-6" />
@@ -177,9 +171,8 @@ export default function HomePage() {
 
         {/* Exam CTA Section */}
         <section className="container px-4 md:px-12 mx-auto max-w-full">
-          <GlassCard className="p-8 md:p-12 relative overflow-hidden group" gradient>
-            <div className="absolute inset-0 bg-linear-to-br from-blue-600/20 to-indigo-700/20 opacity-50 group-hover:opacity-70 transition-opacity"></div>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/20 rounded-full blur-3xl -mr-16 -mt-16 animate-pulse"></div>
+          <GlassCard className="p-8 md:p-12 relative overflow-hidden group border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-900/50">
+            <div className="absolute inset-0 bg-primary/5 opacity-50 group-hover:opacity-70 transition-opacity"></div>
             
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="max-w-2xl">
@@ -189,7 +182,7 @@ export default function HomePage() {
                   Dapatkan sertifikat resmi yang diakui industri.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <AnimatedButton size="lg" className="bg-blue-600 hover:bg-blue-700 text-white border-none shadow-lg shadow-blue-500/20" asChild>
+                  <AnimatedButton size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground border-none shadow-sm" asChild>
                     <Link href="/exams">
                       Lihat Daftar Ujian <PenTool className="ml-2 h-4 w-4" />
                     </Link>

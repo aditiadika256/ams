@@ -44,15 +44,14 @@ export default function FinanceInvoices() {
     >
       <div className="flex justify-end mb-4">
          <Button className="bg-primary/20 hover:bg-primary/40 text-primary-foreground border border-primary/30 backdrop-blur-sm">
-           <Plus className="mr-2 h-4 w-4" /> Create Invoice
-         </Button>
+           <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Create Invoice</span></Button>
       </div>
       <GlassCard className="overflow-hidden relative">
-        <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-cyan-500/5" />
+        <div className="absolute inset-0 bg-primary/5" />
         <GlassCardHeader className="relative z-10">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-blue-500/20">
-              <Receipt className="h-5 w-5 text-blue-400" />
+            <div className="p-2 rounded-lg bg-primary/20">
+              <Receipt className="h-5 w-5 text-primary" />
             </div>
             <div>
               <GlassCardTitle>Invoices</GlassCardTitle>

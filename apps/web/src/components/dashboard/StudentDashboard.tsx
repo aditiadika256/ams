@@ -60,14 +60,14 @@ export default function StudentDashboard() {
       {/* Welcome Section */}
       <motion.div variants={item} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Halo, {user?.name?.split(' ')[0]}! 👋
           </h1>
           <p className="text-muted-foreground mt-1">
             Siap untuk melanjutkan pembelajaran hari ini?
           </p>
         </div>
-        <AnimatedButton asChild className="hidden md:flex shadow-lg shadow-primary/20">
+        <AnimatedButton asChild className="hidden md:flex shadow-sm">
           <Link href="/programs">Jelajahi Program Baru</Link>
         </AnimatedButton>
       </motion.div>
@@ -78,7 +78,7 @@ export default function StudentDashboard() {
           <GlassCard className="hover:bg-white/10 transition-colors" gradient>
             <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <GlassCardTitle className="text-sm font-medium">Program Aktif</GlassCardTitle>
-              <div className="p-2 rounded-full bg-blue-500/20 text-blue-500">
+              <div className="p-2 rounded-full bg-primary/20 text-primary">
                 <BookOpen className="h-4 w-4" />
               </div>
             </GlassCardHeader>
@@ -138,14 +138,13 @@ export default function StudentDashboard() {
         ) : enrolledPrograms.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {enrolledPrograms.map((program, index) => (
-              <GlassCard key={index} className="overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
-                <div className="h-32 w-full bg-linear-to-r from-blue-500/80 to-cyan-500/80 flex items-center justify-center relative overflow-hidden">
-                  <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]"></div>
-                  <BookOpen className="h-12 w-12 text-white/70 relative z-10" />
+              <GlassCard key={index} className="overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                <div className="h-32 w-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center relative overflow-hidden">
+                  <BookOpen className="h-12 w-12 text-zinc-500/70 relative z-10" />
                 </div>
                 <GlassCardContent className="p-4">
                   <div className="flex justify-between items-start mb-2">
-                    <Badge variant="outline" className="mb-2 bg-white/10 border-white/20 backdrop-blur-sm">Course</Badge>
+                    <Badge variant="outline" className="mb-2 bg-secondary border-border">Course</Badge>
                     <span className="text-xs text-muted-foreground">{program.lastAccessed}</span>
                   </div>
                   <h3 className="font-semibold text-lg line-clamp-1 mb-2">{program.name}</h3>
@@ -160,12 +159,12 @@ export default function StudentDashboard() {
                         initial={{ width: 0 }}
                         animate={{ width: `${program.progress}%` }}
                         transition={{ duration: 1, delay: 0.5 }}
-                        className="h-full bg-linear-to-r from-blue-500 to-cyan-500" 
+                        className="h-full bg-primary" 
                       />
                     </div>
                   </div>
                   
-                  <AnimatedButton className="w-full mt-4" size="sm" asChild variant="glass">
+                  <AnimatedButton className="w-full mt-4" size="sm" asChild variant="outline">
                     <Link href={`/programs/${program.id}`}>
                       <PlayCircle className="mr-2 h-4 w-4" /> Lanjut Belajar
                     </Link>
@@ -217,10 +216,10 @@ export default function StudentDashboard() {
               <GlassCardTitle className="text-lg">Rekomendasi Untuk Anda</GlassCardTitle>
               <GlassCardDescription>Program populer yang mungkin Anda suka</GlassCardDescription>
             </GlassCardHeader>
-            <GlassCardContent className="space-y-4">
+             <GlassCardContent className="space-y-4">
                {/* Static Recommendations */}
-               <div className="flex items-center gap-4 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer backdrop-blur-sm">
-                  <div className="h-10 w-10 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold">JS</div>
+               <div className="flex items-center gap-4 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer">
+                  <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold">JS</div>
                   <div className="flex-1">
                      <h4 className="font-medium text-sm">JavaScript Mastery</h4>
                      <p className="text-xs text-muted-foreground">Intermediate • 12 Minggu</p>
@@ -229,8 +228,8 @@ export default function StudentDashboard() {
                     <PlayCircle className="h-4 w-4" />
                   </AnimatedButton>
                </div>
-               <div className="flex items-center gap-4 p-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors cursor-pointer backdrop-blur-sm">
-                  <div className="h-10 w-10 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold">R</div>
+               <div className="flex items-center gap-4 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer">
+                  <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold">R</div>
                   <div className="flex-1">
                      <h4 className="font-medium text-sm">React Frontend Expert</h4>
                      <p className="text-xs text-muted-foreground">Advanced • 16 Minggu</p>

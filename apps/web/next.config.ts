@@ -25,6 +25,7 @@ const nextConfig: NextConfig & { eslint?: any } = {
     // during build. Lint during dev instead. See: docs/dev-guide
     ignoreDuringBuilds: true,
   },
+  transpilePackages: ['@theme-toggles/react'],
   turbopack: {
     root: __dirname,
   },

@@ -17,6 +17,9 @@ interface SalesState {
   // Actions
   fetchPrograms: (params?: any) => Promise<void>;
   fetchProgram: (id: number | string) => Promise<void>;
+  createProgram: (payload: any) => Promise<void>;
+  updateProgram: (id: number | string, payload: any) => Promise<void>;
+  deleteProgram: (id: number | string) => Promise<void>;
   fetchOrders: (params?: any) => Promise<void>;
   fetchOrder: (id: number | string) => Promise<void>;
   createOrder: (payload: CreateOrderPayload) => Promise<Order | null>;
@@ -84,6 +87,54 @@ export const useSalesStore = create<SalesState>((set, get) => ({
       }
     } catch (error: any) {
       set({ isLoading: false, error: error.message || 'Failed to fetch program' });
+    }
+  },
+
+  createProgram: async (payload) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await apiClient.sales.createProgram(payload);
+      if (response.success) {
+        set({ _programsFetchedAt: null }); // Force refetch
+        await get().fetchPrograms({ force: true });
+      } else {
+        throw new Error(response.message || 'Failed to create program');
+      }
+    } catch (error: any) {
+      set({ isLoading: false, error: error.message || 'Failed to create program' });
+      throw error;
+    }
+  },
+
+  updateProgram: async (id, payload) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await apiClient.sales.updateProgram(id, payload);
+      if (response.success) {
+        set({ _programsFetchedAt: null }); // Force refetch
+        await get().fetchPrograms({ force: true });
+      } else {
+        throw new Error(response.message || 'Failed to update program');
+      }
+    } catch (error: any) {
+      set({ isLoading: false, error: error.message || 'Failed to update program' });
+      throw error;
+    }
+  },
+
+  deleteProgram: async (id) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await apiClient.sales.deleteProgram(id);
+      if (response.success) {
+        set({ _programsFetchedAt: null }); // Force refetch
+        await get().fetchPrograms({ force: true });
+      } else {
+        throw new Error(response.message || 'Failed to delete program');
+      }
+    } catch (error: any) {
+      set({ isLoading: false, error: error.message || 'Failed to delete program' });
+      throw error;
     }
   },
 

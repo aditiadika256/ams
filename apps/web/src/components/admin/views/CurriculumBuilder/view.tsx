@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
+import { ModuleForm, LessonForm } from './form';
 
 interface CurriculumBuilderViewProps {
   data?: {
@@ -144,24 +145,16 @@ export default function CurriculumBuilderView({ data }: CurriculumBuilderViewPro
               <Plus className="mr-2 h-4 w-4" /> Add Module
             </motion.button>
           </DialogTrigger>
-          <DialogContent className="bg-black/80 backdrop-blur-xl border-white/10">
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Add New Module</DialogTitle>
               <DialogDescription>Create a new section for your program.</DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <Label htmlFor="module-title">Module Title</Label>
-              <Input 
-                id="module-title" 
-                value={newTitle} 
-                onChange={(e) => setNewTitle(e.target.value)} 
-                placeholder="e.g. Introduction to React" 
-                className="bg-white/5 border-white/10 mt-2"
-              />
-            </div>
-            <DialogFooter>
-              <Button onClick={handleAddModule} className="bg-blue-600 hover:bg-blue-700">Create Module</Button>
-            </DialogFooter>
+            <ModuleForm 
+              newTitle={newTitle}
+              setNewTitle={setNewTitle}
+              handleAddModule={handleAddModule}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -195,7 +188,7 @@ export default function CurriculumBuilderView({ data }: CurriculumBuilderViewPro
                     <div className="cursor-grab text-muted-foreground mr-2 hover:text-white transition-colors">
                       <GripVertical className="h-4 w-4" />
                     </div>
-                    <AccordionTrigger className="flex-1 hover:no-underline py-2 hover:text-blue-400 transition-colors">
+                    <AccordionTrigger className="flex-1 hover:no-underline py-2 hover:text-primary transition-colors">
                       <span className="font-medium text-lg">{module.title}</span>
                     </AccordionTrigger>
                     <div className="flex items-center gap-2 ml-4">
@@ -215,12 +208,12 @@ export default function CurriculumBuilderView({ data }: CurriculumBuilderViewPro
                         >
                           <div className="flex items-center gap-3">
                             {lesson.content_type === 'video' ? (
-                              <Video className="h-4 w-4 text-blue-500" />
+                              <Video className="h-4 w-4 text-primary" />
                             ) : (
-                              <FileText className="h-4 w-4 text-orange-500" />
+                              <FileText className="h-4 w-4 text-primary" />
                             )}
                             <span className="text-sm">{lesson.title}</span>
-                            {lesson.is_preview && <Badge variant="secondary" className="text-xs bg-blue-500/20 text-blue-300">Preview</Badge>}
+                            {lesson.is_preview && <Badge variant="secondary" className="text-xs bg-primary/20 text-primary/80">Preview</Badge>}
                           </div>
                           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Button variant="ghost" size="icon" className="h-7 w-7 hover:bg-white/10">
@@ -247,28 +240,17 @@ export default function CurriculumBuilderView({ data }: CurriculumBuilderViewPro
                               setNewTitle('');
                             }}
                           >
-                            <Plus className="mr-2 h-3 w-3" /> Add Lesson
-                          </Button>
+                            <Plus className="h-3 w-3 sm:mr-2" /> <span className="hidden sm:inline">Add Lesson</span></Button>
                         </DialogTrigger>
-                        <DialogContent className="bg-black/80 backdrop-blur-xl border-white/10">
+                        <DialogContent>
                           <DialogHeader>
                             <DialogTitle>Add Lesson to {module.title}</DialogTitle>
                           </DialogHeader>
-                          <div className="py-4 space-y-4">
-                            <div className="space-y-2">
-                              <Label>Lesson Title</Label>
-                              <Input 
-                                value={newTitle} 
-                                onChange={(e) => setNewTitle(e.target.value)} 
-                                placeholder="e.g. Installing Node.js" 
-                                className="bg-white/5 border-white/10"
-                              />
-                            </div>
-                            {/* Content Type selection could go here */}
-                          </div>
-                          <DialogFooter>
-                            <Button onClick={handleAddLesson} className="bg-blue-600 hover:bg-blue-700">Add Lesson</Button>
-                          </DialogFooter>
+                          <LessonForm 
+                            newTitle={newTitle}
+                            setNewTitle={setNewTitle}
+                            handleAddLesson={handleAddLesson}
+                          />
                         </DialogContent>
                       </Dialog>
                     </div>

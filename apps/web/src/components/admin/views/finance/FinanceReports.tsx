@@ -64,11 +64,11 @@ export default function FinanceReports() {
       transition={{ duration: 0.5 }}
     >
       <GlassCard className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-br from-indigo-500/5 to-purple-500/5" />
+        <div className="absolute inset-0 bg-primary/5" />
         <GlassCardHeader className="relative z-10">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-indigo-500/20">
-              <FileBarChart className="h-5 w-5 text-indigo-400" />
+            <div className="p-2 rounded-lg bg-primary/20">
+              <FileBarChart className="h-5 w-5 text-primary" />
             </div>
             <div>
               <GlassCardTitle>Custom Report Builder</GlassCardTitle>
@@ -77,7 +77,7 @@ export default function FinanceReports() {
           </div>
         </GlassCardHeader>
         <GlassCardContent className="relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 p-4 rounded-xl bg-white/5 border border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 p-4 rounded-xl bg-background/50 border border-slate-200 dark:border-white/10">
             <div>
               <label className="text-sm font-medium mb-1 flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-3 w-3" /> Start Date
@@ -103,7 +103,7 @@ export default function FinanceReports() {
             <div>
               <label className="text-sm font-medium mb-1 block text-muted-foreground">Type</label>
               <Select value={reportType} onValueChange={setReportType}>
-                <SelectTrigger className="bg-white/5 border-white/10">
+                <SelectTrigger className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
                   <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -115,7 +115,7 @@ export default function FinanceReports() {
             <div>
               <label className="text-sm font-medium mb-1 block text-muted-foreground">Group By</label>
               <Select value={groupBy} onValueChange={setGroupBy}>
-                <SelectTrigger className="bg-white/5 border-white/10">
+                <SelectTrigger className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
                   <SelectValue placeholder="Group By" />
                 </SelectTrigger>
                 <SelectContent>
@@ -142,7 +142,7 @@ export default function FinanceReports() {
               className="space-y-4"
             >
               <div className="flex justify-end">
-                 <Button variant="outline" onClick={exportPDF} className="border-white/10 hover:bg-white/10">
+                 <Button variant="outline" onClick={exportPDF} className="border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5">
                    <Download className="mr-2 h-4 w-4" />
                    Export PDF
                  </Button>
