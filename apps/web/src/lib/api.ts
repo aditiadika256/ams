@@ -162,6 +162,21 @@ export const apiClient = {
       return response.data;
     },
 
+    createProgram: async (payload: any) => {
+      const response = await api.post<ApiResponse<Program>>('/programs', payload);
+      return response.data;
+    },
+
+    updateProgram: async (id: number | string, payload: any) => {
+      const response = await api.put<ApiResponse<Program>>(`/programs/${id}`, payload);
+      return response.data;
+    },
+
+    deleteProgram: async (id: number | string) => {
+      const response = await api.delete<ApiResponse<any>>(`/programs/${id}`);
+      return response.data;
+    },
+
     getOrders: async (params?: any) => {
       const response = await api.get<ApiResponse<Order[]>>('/orders', { params });
       return response.data;

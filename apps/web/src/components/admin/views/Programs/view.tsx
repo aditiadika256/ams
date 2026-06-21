@@ -40,11 +40,23 @@ const itemVariants = {
   }
 };
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ProgramForm } from './form';
+
 export default function ProgramsView() {
-  const { programs, fetchPrograms, isLoading, error } = useSalesStore();
+  const { programs, fetchPrograms, createProgram, updateProgram, deleteProgram, isLoading, error } = useSalesStore();
   const { addTab } = useAdminStore();
   const [searchQuery, setSearchQuery] = React.useState('');
   const fetchedRef = useRef(false);
+
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [selectedProgram, setSelectedProgram] = React.useState<any>(null);
 
   useEffect(() => {
     if (fetchedRef.current) return;
@@ -58,6 +70,40 @@ export default function ProgramsView() {
     program.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleOpenAdd = () => {
+    setSelectedProgram(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (program: any) => {
+    setSelectedProgram(program);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data: any) => {
+    try {
+      if (selectedProgram) {
+        await updateProgram(selectedProgram.id, data);
+      } else {
+        await createProgram(data);
+      }
+      setIsModalOpen(false);
+      setSelectedProgram(null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Apakah Anda yakin ingin menghapus program ini?')) {
+      try {
+        await deleteProgram(id);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
   return (
     <motion.div 
       variants={containerVariants}
@@ -70,9 +116,8 @@ export default function ProgramsView() {
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Programs</h2>
           <p className="text-muted-foreground">Manage training programs, courses, and curriculum.</p>
         </div>
-        <Button className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 border-0">
-          <Plus className="mr-2 h-4 w-4" /> Add New Program
-        </Button>
+        <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0">
+          <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Add New Program</span></Button>
       </motion.div>
 
       {error && (
@@ -92,7 +137,7 @@ export default function ProgramsView() {
                   <Input
                     type="search"
                     placeholder="Search programs..."
-                    className="pl-8 w-[200px] lg:w-[300px] bg-white/5 border-white/10"
+                    className="pl-8 w-[200px] lg:w-[300px] bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -101,12 +146,12 @@ export default function ProgramsView() {
             </div>
           </GlassCardHeader>
           <GlassCardContent>
-            {isLoading ? (
+            {isLoading && programs.length === 0 ? (
                <div className="py-8 text-center text-muted-foreground">Loading programs...</div>
             ) : filteredPrograms.length === 0 ? (
                <div className="py-8 text-center text-muted-foreground">No programs found.</div>
             ) : (
-              <div className="overflow-x-auto">
+               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="text-xs text-muted-foreground uppercase bg-white/5 border-b border-white/10">
                     <tr>
@@ -129,8 +174,8 @@ export default function ProgramsView() {
                       >
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-linear-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center text-primary border border-white/10">
-                              <BookOpen className="h-4 w-4 text-purple-400" />
+                            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary border border-white/10">
+                              <BookOpen className="h-4 w-4 text-primary" />
                             </div>
                             <div>
                               <div className="font-medium text-foreground">{program.name}</div>
@@ -154,24 +199,24 @@ export default function ProgramsView() {
                         <td className="px-4 py-3 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-white/5">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
+                            <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem className="focus:bg-white/10">
+                              <DropdownMenuItem onClick={() => handleOpenEdit(program)}>
                                 <Edit className="mr-2 h-4 w-4" /> Edit Details
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => addTab({ 
                                 title: `Curriculum: ${program.name}`, 
                                 view: 'curriculum-builder', 
                                 data: { programId: program.id, programName: program.name } 
-                              })} className="focus:bg-white/10">
-                                 <Layers className="mr-2 h-4 w-4" /> Manage Curriculum
+                              })}>
+                                  <Layers className="mr-2 h-4 w-4" /> Manage Curriculum
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-white/10" />
-                              <DropdownMenuItem className="text-destructive focus:bg-destructive/20">
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleDelete(program.id)} className="text-destructive">
                                 <Trash2 className="mr-2 h-4 w-4" /> Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -186,6 +231,21 @@ export default function ProgramsView() {
           </GlassCardContent>
         </GlassCard>
       </motion.div>
+
+      {/* Form Dialog */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{selectedProgram ? 'Edit Program' : 'Tambah Program Baru'}</DialogTitle>
+          </DialogHeader>
+          <ProgramForm 
+            initialData={selectedProgram}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+            isLoading={isLoading}
+          />
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

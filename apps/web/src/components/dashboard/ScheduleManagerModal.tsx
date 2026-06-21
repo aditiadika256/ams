@@ -291,8 +291,7 @@ export function ScheduleManagerModal({ isOpen, onClose, mentorId, existingSchedu
                         <div className="flex items-center justify-between pt-4 border-t border-white/10 mt-6">
                             {existingSchedule ? (
                                 <Button type="button" variant="destructive" className="bg-red-500/10 text-red-500 hover:bg-red-500/20" onClick={handleDelete} disabled={isSubmitting}>
-                                    <Trash2 className="h-4 w-4 mr-2" /> Hapus
-                                </Button>
+                                    <Trash2 className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Hapus</span></Button>
                             ) : (
                                 <div /> // Spacer
                             )}

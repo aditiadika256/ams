@@ -8,16 +8,16 @@ import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 
 // View Imports
-import DashboardView from '../views/DashboardView';
-import UsersView from '../views/UsersView';
-import FinanceView from '../views/FinanceView';
-import CMSPostsView from '../views/CMSPostsView';
-import MentorsView from '../views/MentorsView';
-import ProgramsView from '../views/ProgramsView';
-import CurriculumBuilderView from '../views/CurriculumBuilderView';
-import RolesPermissionsView from '../views/RolesPermissionsView';
-import MenuManagementView from '../views/MenuManagementView';
-import ColorPaletteView from '../views/ColorPaletteView';
+import DashboardView from '../views/Dashboard/view';
+import UsersView from '../views/Users/view';
+import FinanceView from '../views/finance/view';
+import CMSPostsView from '../views/CMSPosts/view';
+import MentorsView from '../views/Mentors/view';
+import ProgramsView from '../views/Programs/view';
+import CurriculumBuilderView from '../views/CurriculumBuilder/view';
+import RolesPermissionsView from '../views/RolesPermissions/view';
+import MenuManagementView from '../views/MenuManagement/view';
+import ColorPaletteView from '../views/ColorPalette/view';
 
 const ViewMap: Record<string, React.ComponentType<any>> = {
   'dashboard': DashboardView,
@@ -70,20 +70,19 @@ export default function AdminLayout() {
   }, [activeTab]);  // Only activeTab - not the functions!
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen bg-background">
       <AdminSidebar />
       
       <div 
         className={cn(
-          "flex-1 flex flex-col transition-all duration-300 min-h-screen",
-          sidebarOpen ? "ml-[280px]" : "ml-[80px]",
-          "max-w-[100vw]" // Prevent overflow on mobile initially
+          "flex flex-col transition-all duration-300 min-h-screen min-w-0",
+          sidebarOpen ? "md:pl-[280px]" : "md:pl-[80px]"
         )}
       >
         <AdminHeader />
         
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
-          <div className="max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-4 md:p-8 overflow-x-hidden">
+          <div className="max-w-7xl mx-auto w-full min-w-0">
             {activeTab ? (
                isAllowed ? (
                  <ActiveView data={activeTab.data} />

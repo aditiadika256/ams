@@ -18,6 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ModeToggle } from '@/components/mode-toggle';
 
 export function AdminHeader() {
   const { toggleSidebar } = useAdminStore();
@@ -46,36 +47,37 @@ export function AdminHeader() {
           <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleSidebar}>
             <Menu className="h-5 w-5" />
           </Button>
-          
+
           <div className="hidden md:flex relative w-96">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search anything (Ctrl + K)" 
+            <Input
+              placeholder="Search anything (Ctrl + K)"
               className="pl-9 bg-white/10 border-white/10 focus-visible:ring-1 focus-visible:bg-white/20 transition-all text-foreground placeholder:text-muted-foreground/70"
             />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          <ModeToggle />
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5 text-muted-foreground" />
             <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full animate-pulse"></span>
           </Button>
           <div className="h-8 w-px bg-border mx-2"></div>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-full md:w-auto p-0 md:px-2 hover:bg-transparent md:hover:bg-accent flex items-center gap-2">
-                 <div className="text-right hidden md:block">
-                    <div className="text-sm font-medium">{user?.name || 'Admin User'}</div>
-                    <div className="text-xs text-muted-foreground capitalize">{user?.roles?.[0] || 'Admin'}</div>
-                 </div>
-                 <Avatar className="h-9 w-9 border border-primary/20">
-                    <AvatarImage src={user?.avatar_url || user?.profile_image_url || ''} alt={user?.name} />
-                    <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                      {user?.name ? getInitials(user.name) : <User className="h-4 w-4" />}
-                    </AvatarFallback>
-                 </Avatar>
+                <div className="text-right hidden md:block">
+                  <div className="text-sm font-medium">{user?.name || 'Admin User'}</div>
+                  <div className="text-xs text-muted-foreground capitalize">{user?.roles?.[0] || 'Admin'}</div>
+                </div>
+                <Avatar className="h-9 w-9 border border-primary/20">
+                  <AvatarImage src={user?.avatar_url || user?.profile_image_url || ''} alt={user?.name} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                    {user?.name ? getInitials(user.name) : <User className="h-4 w-4" />}
+                  </AvatarFallback>
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>

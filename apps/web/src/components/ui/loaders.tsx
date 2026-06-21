@@ -183,7 +183,7 @@ export const FileTransferLoader = ({
             <div className="flex items-start gap-4">
               <div className={cn(
                 "p-2 rounded-full",
-                type === 'upload' ? "bg-blue-100 text-blue-600" : "bg-green-100 text-green-600"
+                type === 'upload' ? "bg-primary/10 text-primary" : "bg-green-100 text-green-600"
               )}>
                 {type === 'upload' ? <UploadCloud className="h-5 w-5" /> : <DownloadCloud className="h-5 w-5" />}
               </div>

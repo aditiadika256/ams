@@ -27,4 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'audit' => \App\Http\Middleware\AuditLogMiddleware::class,
         ]);
     })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })
     ->create();

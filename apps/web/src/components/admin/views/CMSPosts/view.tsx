@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Search, Plus, Edit, Trash2, FileText, ArrowLeft, Save, Image as ImageIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const posts = [
+import { CMSPostForm } from './form';
+
+const postsData = [
   { id: 1, title: 'Getting Started with Arkanin', author: 'Admin', status: 'Published', date: '2023-12-01' },
   { id: 2, title: 'New Features in v2.0', author: 'Admin', status: 'Draft', date: '2023-12-05' },
   { id: 3, title: 'Best Practices for Learning', author: 'Editor', status: 'Published', date: '2023-12-10' },
@@ -40,10 +42,22 @@ const itemVariants = {
 export default function CMSPostsView() {
   const [view, setView] = useState<'list' | 'editor'>('list');
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [posts, setPosts] = useState(postsData);
 
   const handleEdit = (id: number | null) => {
     setEditingId(id);
     setView('editor');
+  };
+
+  const handleSave = (data: { title: string; slug: string; content: string; status: string }) => {
+    if (editingId) {
+      setPosts(prev => prev.map(p => p.id === editingId ? { ...p, title: data.title, status: data.status } : p));
+    } else {
+      const newId = posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1;
+      const today = new Date().toISOString().split('T')[0];
+      setPosts(prev => [...prev, { id: newId, title: data.title, author: 'Admin', status: data.status, date: today }]);
+    }
+    setView('list');
   };
 
   if (view === 'editor') {
@@ -54,81 +68,11 @@ export default function CMSPostsView() {
         animate="visible"
         className="space-y-6"
       >
-        <div className="flex items-center justify-between">
-           <div className="flex items-center gap-4">
-             <Button variant="ghost" size="icon" onClick={() => setView('list')} className="hover:bg-white/10">
-               <ArrowLeft className="h-4 w-4" />
-             </Button>
-             <div>
-               <h2 className="text-3xl font-bold tracking-tight text-foreground">{editingId ? 'Edit Post' : 'New Post'}</h2>
-               <p className="text-muted-foreground">Create or edit your content.</p>
-             </div>
-           </div>
-           <div className="flex gap-2">
-             <Button variant="outline" className="bg-transparent border-white/10 hover:bg-white/5">Save Draft</Button>
-             <Button className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 border-0">
-               <Save className="mr-2 h-4 w-4" /> Publish
-             </Button>
-           </div>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-           <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
-              <GlassCard>
-                <GlassCardContent className="p-6 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Title</label>
-                    <Input placeholder="Enter post title" defaultValue={editingId ? "Getting Started with Arkanin" : ""} className="bg-white/5 border-white/10 focus:border-blue-500/50" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Slug</label>
-                    <Input placeholder="getting-started-with-arkanin" defaultValue={editingId ? "getting-started-with-arkanin" : ""} className="bg-white/5 border-white/10 focus:border-blue-500/50" />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Content</label>
-                    <div className="min-h-[400px] p-4 rounded-md border border-white/10 bg-black/20 font-mono text-sm focus-within:ring-1 focus-within:ring-blue-500/50">
-                      <p className="text-muted-foreground">// Markdown editor would go here...</p>
-                      <br />
-                      <p># Hello World</p>
-                      <p>This is a sample content.</p>
-                    </div>
-                  </div>
-                </GlassCardContent>
-              </GlassCard>
-           </motion.div>
-           <motion.div variants={itemVariants} className="space-y-6">
-              <GlassCard>
-                <GlassCardHeader>
-                  <GlassCardTitle>Publishing</GlassCardTitle>
-                </GlassCardHeader>
-                <GlassCardContent className="space-y-4">
-                   <div className="flex items-center justify-between">
-                     <span className="text-sm">Status</span>
-                     <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border-yellow-500/20">Draft</Badge>
-                   </div>
-                   <div className="flex items-center justify-between">
-                     <span className="text-sm">Visibility</span>
-                     <span className="text-sm text-muted-foreground">Public</span>
-                   </div>
-                   <div className="flex items-center justify-between">
-                     <span className="text-sm">Author</span>
-                     <span className="text-sm text-muted-foreground">Admin</span>
-                   </div>
-                </GlassCardContent>
-              </GlassCard>
-              <GlassCard>
-                <GlassCardHeader>
-                  <GlassCardTitle>Featured Image</GlassCardTitle>
-                </GlassCardHeader>
-                <GlassCardContent>
-                   <div className="aspect-video rounded-md border-2 border-dashed border-border/30 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/20 cursor-pointer transition-colors">
-                      <ImageIcon className="h-8 w-8 mb-2" />
-                      <span className="text-xs">Click to upload</span>
-                   </div>
-                </GlassCardContent>
-              </GlassCard>
-           </motion.div>
-        </div>
+        <CMSPostForm 
+          editingId={editingId}
+          onCancel={() => setView('list')}
+          onSave={handleSave}
+        />
       </motion.div>
     );
   }
@@ -158,7 +102,7 @@ export default function CMSPostsView() {
       
       <motion.div variants={itemVariants}>
         <GlassCard className="overflow-hidden">
-          <div className="absolute inset-0 bg-linear-to-br from-blue-500/5 to-indigo-500/5" />
+          <div className="absolute inset-0 bg-primary/5" />
           <GlassCardHeader className="relative z-10">
             <div className="flex items-center justify-between">
               <GlassCardTitle>All Posts</GlassCardTitle>
@@ -167,7 +111,7 @@ export default function CMSPostsView() {
                 <Input
                   type="search"
                   placeholder="Search posts..."
-                  className="pl-8 w-[200px] lg:w-[300px] bg-white/5 border-white/10 focus:border-blue-500/50"
+                  className="pl-8 w-[200px] lg:w-[300px] bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
                 />
               </div>
             </div>

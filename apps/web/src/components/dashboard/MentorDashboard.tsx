@@ -76,7 +76,7 @@ export default function MentorDashboard() {
       {/* Welcome Section */}
       <motion.div variants={item} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Halo, Mentor {user?.name?.split(' ')[0]}! 👨‍🏫
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -84,10 +84,10 @@ export default function MentorDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          <AnimatedButton variant="outline" className="bg-white/5 border-white/10 hover:bg-white/10" onClick={openNewSchedule}>
+          <AnimatedButton variant="outline" className="bg-background border-border hover:bg-accent" onClick={openNewSchedule}>
             <Calendar className="mr-2 h-4 w-4" /> Atur Jadwal
           </AnimatedButton>
-          <AnimatedButton variant="glass">
+          <AnimatedButton variant="outline">
             <Video className="mr-2 h-4 w-4" /> Mulai Sesi
           </AnimatedButton>
         </div>
@@ -99,7 +99,7 @@ export default function MentorDashboard() {
           <GlassCard gradient className="hover:bg-white/10 transition-colors">
             <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <GlassCardTitle className="text-sm font-medium">Total Sesi Bulan Ini</GlassCardTitle>
-              <div className="p-2 rounded-full bg-purple-500/20 text-purple-500">
+              <div className="p-2 rounded-full bg-primary/20 text-primary">
                 <Users className="h-4 w-4" />
               </div>
             </GlassCardHeader>
@@ -114,7 +114,7 @@ export default function MentorDashboard() {
           <GlassCard gradient className="hover:bg-white/10 transition-colors">
             <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <GlassCardTitle className="text-sm font-medium">Jam Mengajar</GlassCardTitle>
-              <div className="p-2 rounded-full bg-blue-500/20 text-blue-500">
+              <div className="p-2 rounded-full bg-primary/20 text-primary">
                 <Clock className="h-4 w-4" />
               </div>
             </GlassCardHeader>
@@ -129,7 +129,7 @@ export default function MentorDashboard() {
           <GlassCard gradient className="hover:bg-white/10 transition-colors">
             <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <GlassCardTitle className="text-sm font-medium">Review Pending</GlassCardTitle>
-              <div className="p-2 rounded-full bg-orange-500/20 text-orange-500">
+              <div className="p-2 rounded-full bg-primary/20 text-primary">
                 <FileText className="h-4 w-4" />
               </div>
             </GlassCardHeader>
@@ -166,30 +166,30 @@ export default function MentorDashboard() {
             </GlassCardHeader>
             <GlassCardContent>
               <Tabs defaultValue="today" className="w-full">
-                <TabsList className="mb-4 bg-white/5 border border-white/10 backdrop-blur-sm p-1">
-                  <TabsTrigger value="today" className="data-[state=active]:bg-white/10 data-[state=active]:text-foreground">Hari Ini</TabsTrigger>
-                  <TabsTrigger value="week" className="data-[state=active]:bg-white/10 data-[state=active]:text-foreground">Lainnya ({weekSchedules.length})</TabsTrigger>
-                  <TabsTrigger value="requests" className="data-[state=active]:bg-white/10 data-[state=active]:text-foreground">Permintaan Baru</TabsTrigger>
+                <TabsList className="mb-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-1">
+                  <TabsTrigger value="today" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Hari Ini</TabsTrigger>
+                  <TabsTrigger value="week" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Lainnya ({weekSchedules.length})</TabsTrigger>
+                  <TabsTrigger value="requests" className="data-[state=active]:bg-background data-[state=active]:text-foreground">Permintaan Baru</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="today" className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
                   {todaySchedules.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground border border-dashed border-white/20 rounded-xl bg-white/5">
+                    <div className="text-center py-10 text-muted-foreground border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50">
                       <Calendar className="h-8 w-8 mx-auto mb-3 opacity-50" />
                       <p>Tidak ada sesi mengajar hari ini.</p>
                     </div>
                   ) : todaySchedules.map((session, i) => (
-                    <div key={session.id || i} onClick={() => openEditSchedule(session)} className="cursor-pointer flex items-center justify-between p-4 border border-zinc-800 rounded-xl bg-gradient-to-r from-zinc-900/50 to-transparent hover:bg-white/10 transition-colors backdrop-blur-sm relative overflow-hidden group">
+                    <div key={session.id || i} onClick={() => openEditSchedule(session)} className="cursor-pointer flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors relative overflow-hidden group">
                       <div className="absolute left-0 top-0 bottom-0 w-1 transition-transform group-hover:scale-y-110" style={{ backgroundColor: session.color_hex || '#3b82f6' }} />
                       <div className="flex gap-4 items-center pl-2">
-                        <div className="flex flex-col items-center justify-center h-12 w-16 bg-white/5 rounded-lg text-foreground text-xs font-medium p-1 border" style={{ borderColor: `${session.color_hex}40` || '#3b82f640' }}>
+                        <div className="flex flex-col items-center justify-center h-12 w-16 bg-background rounded-lg text-foreground text-xs font-medium p-1 border" style={{ borderColor: `${session.color_hex}40` || '#3b82f640' }}>
                           <span className="font-bold text-sm">{new Date(session.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
                             <h4 className="font-semibold text-foreground">{session.subject}</h4>
                             {session.status === 'done' && <Badge variant="secondary" className="bg-green-500/20 text-green-400 text-[10px] h-5 py-0">Selesai</Badge>}
-                            {session.status === 'rescheduled' && <Badge variant="secondary" className="bg-orange-500/20 text-orange-400 text-[10px] h-5 py-0">Reschedule</Badge>}
+                            {session.status === 'rescheduled' && <Badge variant="secondary" className="bg-primary/20 text-primary text-[10px] h-5 py-0">Reschedule</Badge>}
                             {session.status === 'cancelled' && <Badge variant="secondary" className="bg-red-500/20 text-red-400 text-[10px] h-5 py-0">Batal/Tdk Les</Badge>}
                           </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
@@ -206,14 +206,14 @@ export default function MentorDashboard() {
 
                 <TabsContent value="week" className="space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
                   {weekSchedules.length === 0 ? (
-                    <div className="text-center py-10 text-muted-foreground border border-dashed border-white/20 rounded-xl bg-white/5">
+                    <div className="text-center py-10 text-muted-foreground border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50">
                       <p>Tidak ada sesi mengajar lainnya yang dijadwalkan.</p>
                     </div>
                   ) : weekSchedules.map((session, i) => (
-                    <div key={session.id || i} onClick={() => openEditSchedule(session)} className="cursor-pointer flex items-center justify-between p-4 border border-zinc-800 rounded-xl bg-gradient-to-r from-zinc-900/50 to-transparent hover:bg-white/10 transition-colors backdrop-blur-sm relative overflow-hidden group">
+                    <div key={session.id || i} onClick={() => openEditSchedule(session)} className="cursor-pointer flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors relative overflow-hidden group">
                       <div className="absolute left-0 top-0 bottom-0 w-1 transition-transform group-hover:scale-y-110" style={{ backgroundColor: session.color_hex || '#3b82f6' }} />
                       <div className="flex gap-4 items-center pl-2">
-                        <div className="flex flex-col items-center justify-center h-12 w-16 bg-white/5 rounded-lg text-foreground text-xs font-medium p-1 border" style={{ borderColor: `${session.color_hex}40` || '#3b82f640' }}>
+                        <div className="flex flex-col items-center justify-center h-12 w-16 bg-background rounded-lg text-foreground text-xs font-medium p-1 border" style={{ borderColor: `${session.color_hex}40` || '#3b82f640' }}>
                           <span className="font-bold text-[11px] truncate">{new Date(session.start_time).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}</span>
                           <span className="text-[10px] text-muted-foreground">{new Date(session.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
@@ -252,16 +252,16 @@ export default function MentorDashboard() {
               <GlassCardTitle>Notifikasi</GlassCardTitle>
             </GlassCardHeader>
             <GlassCardContent className="space-y-4">
-              <div className="flex gap-3 items-start p-3 rounded-lg hover:bg-white/5 transition-colors">
-                <div className="h-2 w-2 mt-2 rounded-full bg-blue-500 shrink-0 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+              <div className="flex gap-3 items-start p-3 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                <div className="h-2 w-2 mt-2 rounded-full bg-primary shrink-0" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Tugas Baru Dikumpulkan</p>
                   <p className="text-xs text-muted-foreground">Siti Aminah mengumpulkan tugas "React Component".</p>
                   <span className="text-[10px] text-muted-foreground">10 menit lalu</span>
                 </div>
               </div>
-              <div className="flex gap-3 items-start p-3 rounded-lg hover:bg-white/5 transition-colors">
-                <div className="h-2 w-2 mt-2 rounded-full bg-green-500 shrink-0 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+              <div className="flex gap-3 items-start p-3 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                <div className="h-2 w-2 mt-2 rounded-full bg-green-500 shrink-0" />
                 <div className="space-y-1">
                   <p className="text-sm font-medium">Jadwal Dikonfirmasi</p>
                   <p className="text-xs text-muted-foreground">Sesi dengan Budi Santoso besok jam 10:00.</p>

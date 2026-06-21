@@ -32,9 +32,10 @@ import { useFinanceStore } from '@/store/useFinanceStore';
 import { cn } from '@/lib/utils';
 
 // Import sub-views
-import FinanceTransactions from './finance/FinanceTransactions';
-import FinanceInvoices from './finance/FinanceInvoices';
-import FinanceReports from './finance/FinanceReports';
+import FinanceTransactions from './FinanceTransactions';
+import FinanceInvoices from './FinanceInvoices';
+import FinanceReports from './FinanceReports';
+import { TransactionForm } from './form';
 
 const TabMap: Record<string, React.ComponentType<any>> = {
   'transactions': FinanceTransactions,
@@ -196,98 +197,39 @@ export default function FinanceView() {
           <p className="text-muted-foreground">Manage transactions, invoices, and view financial reports.</p>
         </div>
         <div className="flex gap-2">
-           <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
-             <DialogTrigger asChild>
-               <Button className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 border-0">
-                 <Plus className="mr-2 h-4 w-4" /> New Transaction
-               </Button>
-             </DialogTrigger>
-             <DialogContent className="sm:max-w-[425px] bg-black/80 backdrop-blur-xl border-white/10">
+            <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-green-600 hover:bg-green-700 border-0">
+                  <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">New Transaction</span></Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
                <DialogHeader>
                  <DialogTitle>Add Transaction</DialogTitle>
                  <DialogDescription>
                    Record a new income or expense transaction.
                  </DialogDescription>
                </DialogHeader>
-               <div className="grid gap-4 py-4">
-                 <div className="grid grid-cols-4 items-center gap-4">
-                   <Label htmlFor="type" className="text-right">Type</Label>
-                   <Select 
-                     value={newTransaction.type} 
-                     onValueChange={(val: any) => setNewTransaction({...newTransaction, type: val})}
-                   >
-                     <SelectTrigger className="col-span-3 bg-white/5 border-white/10">
-                       <SelectValue placeholder="Select type" />
-                     </SelectTrigger>
-                     <SelectContent className="bg-black/90 border-white/10">
-                       <SelectItem value="income">Income</SelectItem>
-                       <SelectItem value="expense">Expense</SelectItem>
-                     </SelectContent>
-                   </Select>
-                 </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                   <Label htmlFor="category" className="text-right">Category</Label>
-                   <Input 
-                     id="category" 
-                     className="col-span-3 bg-white/5 border-white/10" 
-                     placeholder="e.g. Sales, Salary, Rent"
-                     value={newTransaction.category}
-                     onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
-                   />
-                 </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                   <Label htmlFor="amount" className="text-right">Amount</Label>
-                   <Input 
-                     id="amount" 
-                     type="number" 
-                     className="col-span-3 bg-white/5 border-white/10" 
-                     placeholder="0"
-                     value={newTransaction.amount}
-                     onChange={(e) => setNewTransaction({...newTransaction, amount: e.target.value})}
-                   />
-                 </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                   <Label htmlFor="date" className="text-right">Date</Label>
-                   <Input 
-                     id="date" 
-                     type="date" 
-                     className="col-span-3 bg-white/5 border-white/10"
-                     value={newTransaction.transaction_date}
-                     onChange={(e) => setNewTransaction({...newTransaction, transaction_date: e.target.value})}
-                   />
-                 </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                   <Label htmlFor="desc" className="text-right">Desc</Label>
-                   <Input 
-                     id="desc" 
-                     className="col-span-3 bg-white/5 border-white/10" 
-                     placeholder="Optional description"
-                     value={newTransaction.description}
-                     onChange={(e) => setNewTransaction({...newTransaction, description: e.target.value})}
-                   />
-                 </div>
-               </div>
-               <DialogFooter>
-                 <Button type="submit" onClick={handleCreateTransaction} disabled={isLoading} className="bg-primary hover:bg-primary/90">
-                   {isLoading ? 'Saving...' : 'Save Transaction'}
-                 </Button>
-               </DialogFooter>
+               <TransactionForm 
+                 newTransaction={newTransaction}
+                 setNewTransaction={setNewTransaction}
+                 handleCreateTransaction={handleCreateTransaction}
+                 isLoading={isLoading}
+               />
              </DialogContent>
-           </Dialog>
-           <Button variant="outline" onClick={handleExport} className="bg-transparent border-white/10 hover:bg-white/5">
-             <Download className="mr-2 h-4 w-4" /> Export
-           </Button>
+            </Dialog>
+            <Button variant="outline" onClick={handleExport} className="bg-transparent border-border hover:bg-accent text-foreground">
+              <Download className="mr-2 h-4 w-4" /> Export
+            </Button>
         </div>
       </motion.div>
       
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
          <motion.div variants={itemVariants}>
-           <GlassCard className="relative overflow-hidden group hover:scale-105 transition-all duration-300">
-             <div className="absolute inset-0 bg-linear-to-br from-green-500/10 to-emerald-500/10 group-hover:opacity-100 transition-opacity" />
+           <GlassCard className="relative overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-900/50">
              <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                <GlassCardTitle className="text-sm font-medium">Total Income</GlassCardTitle>
-               <DollarSign className="h-4 w-4 text-muted-foreground group-hover:text-green-400 transition-colors" />
+               <DollarSign className="h-4 w-4 text-muted-foreground transition-colors" />
              </GlassCardHeader>
              <GlassCardContent className="relative z-10">
                <div className="text-2xl font-bold">{stats ? formatCurrency(stats.total_income) : 'Rp 0'}</div>
@@ -300,11 +242,10 @@ export default function FinanceView() {
          </motion.div>
          
          <motion.div variants={itemVariants}>
-           <GlassCard className="relative overflow-hidden group hover:scale-105 transition-all duration-300">
-             <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-pink-500/10 group-hover:opacity-100 transition-opacity" />
+           <GlassCard className="relative overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-900/50">
              <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                <GlassCardTitle className="text-sm font-medium">Total Expenses</GlassCardTitle>
-               <CreditCard className="h-4 w-4 text-muted-foreground group-hover:text-red-400 transition-colors" />
+               <CreditCard className="h-4 w-4 text-muted-foreground transition-colors" />
              </GlassCardHeader>
              <GlassCardContent className="relative z-10">
                <div className="text-2xl font-bold">{stats ? formatCurrency(stats.total_expense) : 'Rp 0'}</div>
@@ -317,11 +258,10 @@ export default function FinanceView() {
          </motion.div>
          
          <motion.div variants={itemVariants}>
-           <GlassCard className="relative overflow-hidden group hover:scale-105 transition-all duration-300">
-             <div className="absolute inset-0 bg-linear-to-br from-blue-500/10 to-cyan-500/10 group-hover:opacity-100 transition-opacity" />
+           <GlassCard className="relative overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-900/50">
              <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                <GlassCardTitle className="text-sm font-medium">Net Profit</GlassCardTitle>
-               <TrendingUp className="h-4 w-4 text-muted-foreground group-hover:text-blue-400 transition-colors" />
+               <TrendingUp className="h-4 w-4 text-muted-foreground transition-colors" />
              </GlassCardHeader>
              <GlassCardContent className="relative z-10">
                <div className="text-2xl font-bold">{stats ? formatCurrency(stats.net_profit) : 'Rp 0'}</div>
@@ -336,10 +276,10 @@ export default function FinanceView() {
 
       <motion.div variants={itemVariants}>
         <Tabs value={activeTabId} onValueChange={setActiveTabId} className="space-y-4">
-          <TabsList className="bg-white/5 border border-white/10 backdrop-blur-sm">
-            <TabsTrigger value="transactions" className="data-[state=active]:bg-white/10">Transactions</TabsTrigger>
-            <TabsTrigger value="invoices" className="data-[state=active]:bg-white/10">Invoices</TabsTrigger>
-            <TabsTrigger value="reports" className="data-[state=active]:bg-white/10">Reports</TabsTrigger>
+          <TabsList className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+            <TabsTrigger value="transactions" className="data-[state=active]:bg-background">Transactions</TabsTrigger>
+            <TabsTrigger value="invoices" className="data-[state=active]:bg-background">Invoices</TabsTrigger>
+            <TabsTrigger value="reports" className="data-[state=active]:bg-background">Reports</TabsTrigger>
           </TabsList>
           
           {/* Render only the active view, standardized with AdminLayout */}
