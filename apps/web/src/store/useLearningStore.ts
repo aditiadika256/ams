@@ -30,6 +30,9 @@ export interface MentorSchedule {
   start_time: string;
   end_time: string;
   is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+  mentor?: Mentor;
 }
 
 export interface ProgramModule {
@@ -68,6 +71,8 @@ interface LearningState {
 
   mentorSchedules: MentorSchedule[];
   fetchMentorSchedules: (mentorId: number, params?: any) => Promise<MentorSchedule[]>;
+  studentSchedules: MentorSchedule[];
+  fetchStudentSchedules: () => Promise<MentorSchedule[]>;
   addSchedule: (mentorId: number, data: any) => Promise<void>;
   updateSchedule: (mentorId: number, scheduleId: number, data: any) => Promise<void>;
   deleteSchedule: (mentorId: number, scheduleId: number) => Promise<void>;
@@ -139,11 +144,23 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   },
 
   mentorSchedules: [],
+  studentSchedules: [],
 
   fetchMentorSchedules: async (mentorId, params = {}) => {
     try {
       const response = await axios.get(`/learning/mentors/${mentorId}/schedules`, { params });
       set({ mentorSchedules: response.data });
+      return response.data;
+    } catch (error: any) {
+      console.error(error);
+      return [];
+    }
+  },
+
+  fetchStudentSchedules: async () => {
+    try {
+      const response = await axios.get('/learning/schedules');
+      set({ studentSchedules: response.data });
       return response.data;
     } catch (error: any) {
       console.error(error);

@@ -43,7 +43,7 @@ function DashboardPage() {
     }
 
     // Mentor View
-    if (user.roles?.includes('mentor')) {
+    if (user.roles?.some(role => role.startsWith('mentor'))) {
       return <MentorDashboard />;
     }
 

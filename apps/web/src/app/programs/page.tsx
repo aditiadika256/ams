@@ -8,11 +8,13 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { GlassCard } from '@/components/ui/glass-card';
 import { AnimatedButton } from '@/components/ui/animated-button';
+import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 
 export default function ProgramsPage() {
   const { programs, fetchPrograms, isLoading } = useSalesStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -55,44 +57,53 @@ export default function ProgramsPage() {
              />
            </div>
            
-           <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-              <AnimatedButton 
-                variant={selectedType === null ? "default" : "glass"} 
-                size="sm"
-                onClick={() => setSelectedType(null)}
-                className="rounded-full"
-              >
-                Semua
-              </AnimatedButton>
-              {types.map(type => (
-                <AnimatedButton
-                  key={type}
-                  variant={selectedType === type ? "default" : "glass"}
+           <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+              <div className="flex items-center gap-2 shrink-0">
+                <AnimatedButton 
+                  variant={selectedType === null ? "default" : "glass"} 
                   size="sm"
-                  onClick={() => setSelectedType(type)}
-                  className="rounded-full capitalize"
+                  onClick={() => setSelectedType(null)}
+                  className="rounded-full"
                 >
-                  {type}
+                  Semua
                 </AnimatedButton>
-              ))}
+                {types.map(type => (
+                  <AnimatedButton
+                    key={type}
+                    variant={selectedType === type ? "default" : "glass"}
+                    size="sm"
+                    onClick={() => setSelectedType(type)}
+                    className="rounded-full capitalize"
+                  >
+                    {type}
+                  </AnimatedButton>
+                ))}
+              </div>
+              <ViewToggle view={viewMode} onViewChange={setViewMode} className="shrink-0" />
            </div>
         </GlassCard>
       </div>
 
       {isLoading && programs.length === 0 ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className={viewMode === 'grid' 
+          ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
+          : "flex flex-col gap-4"
+        }>
            {[1,2,3,4,5,6,7,8].map((n) => (
              <ProgramCardSkeleton key={n} />
            ))}
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 min-h-[400px]">
+        <div className={viewMode === 'grid' 
+          ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 min-h-[400px]" 
+          : "flex flex-col gap-4 min-h-[400px]"
+        }>
           {filteredPrograms.length > 0 ? (
             filteredPrograms.map((program, index) => (
-              <ProgramCard key={program.id} program={program} index={index} />
+              <ProgramCard key={program.id} program={program} index={index} layout={viewMode} />
             ))
           ) : (
-            <div className="col-span-full flex flex-col items-center justify-center text-center py-20 bg-muted/20 rounded-2xl border border-dashed">
+            <div className="col-span-full flex flex-col items-center justify-center text-center py-20 bg-muted/20 rounded-2xl border border-dashed w-full">
               <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
                  <Search className="h-8 w-8 text-muted-foreground" />
               </div>

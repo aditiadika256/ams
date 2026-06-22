@@ -156,4 +156,23 @@ class ScheduleController extends Controller
 
         return response()->noContent();
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/learning/schedules",
+     *     summary="Get student schedules",
+     *     tags={"Learning"},
+     *     @OA\Response(response=200, description="List of schedules for the student")
+     * )
+     */
+    public function studentSchedules(Request $request)
+    {
+        $user = $request->user();
+        $schedules = MentorSchedule::where('guest_email', $user->email)
+            ->with('mentor.user')
+            ->orderBy('start_time')
+            ->get();
+
+        return response()->json($schedules);
+    }
 }

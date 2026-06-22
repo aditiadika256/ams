@@ -81,8 +81,25 @@ const TopBar = () => {
       .filter(m => !m.parent_id)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
       .map(m => ({ name: m.name, href: m.url }));
-    return topLevel.length > 0 ? topLevel : FALLBACK_NAV;
-  }, [topbarMenus]);
+    
+    const baseNav = topLevel.length > 0 ? topLevel : FALLBACK_NAV;
+
+    if (isAuthenticated) {
+      const isAdmin = user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang', 'direktur'].includes(role));
+      const dashboardLink = {
+        name: isAdmin ? 'Admin Panel' : 'Dashboard',
+        href: isAdmin ? '/admin' : '/dashboard'
+      };
+      
+      const hasDashboard = baseNav.some(link => link.href === '/dashboard' || link.href === '/admin');
+      if (!hasDashboard) {
+        const result = [...baseNav];
+        result.splice(1, 0, dashboardLink);
+        return result;
+      }
+    }
+    return baseNav;
+  }, [topbarMenus, isAuthenticated, user]);
 
   return (
     <motion.header

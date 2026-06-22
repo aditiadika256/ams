@@ -9,6 +9,16 @@ import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMenuStore } from '@/store/useMenuStore';
 
+const iconMap: Record<string, any> = {
+  Home: Home,
+  LayoutGrid: LayoutGrid,
+  FileText: FileText,
+  ShoppingBag: ShoppingBag,
+  User: User,
+  LogIn: LogIn,
+  LayoutDashboard: LayoutDashboard
+};
+
 const BottomNavigation = () => {
   const pathname = usePathname();
   const [hidden, setHidden] = useState(false);
@@ -25,14 +35,38 @@ const BottomNavigation = () => {
   }, [fetchMenus]);
 
   const navItems = useMemo(() => {
-    const dynamicMenus = bottomMenus
+    const filteredDynamicMenus = bottomMenus
       .filter(m => !m.parent_id)
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .slice(0, 3);
+      .filter(m => {
+        if (!isAuthenticated) {
+          // Hide orders and profile/akun for guest users
+          return m.url !== '/orders' && m.url !== '/profile';
+        }
+        return true;
+      })
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-    if (dynamicMenus.length > 0) {
-      return dynamicMenus.map(m => ({ href: m.url, icon: LayoutGrid, label: m.name }));
+    if (filteredDynamicMenus.length > 0) {
+      return filteredDynamicMenus.map(m => {
+        const IconComponent = iconMap[m.icon || ''] || LayoutGrid;
+        let href = m.url;
+        let label = m.name;
+        let Icon = IconComponent;
+
+        if (isAuthenticated && m.url === '/') {
+          href = '/dashboard';
+          label = 'Dashboard';
+          Icon = LayoutDashboard;
+        }
+
+        return {
+          href,
+          icon: Icon,
+          label
+        };
+      });
     }
+
     const fallback = [];
     if (isAuthenticated) {
       fallback.push({ href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
