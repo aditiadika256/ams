@@ -41,7 +41,7 @@ export default function FinanceTransactions() {
       transition={{ duration: 0.5 }}
     >
       <GlassCard className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-br from-emerald-500/5 to-teal-500/5" />
+        <div className="absolute inset-0 bg-primary/5" />
         <GlassCardHeader className="relative z-10">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-emerald-500/20">

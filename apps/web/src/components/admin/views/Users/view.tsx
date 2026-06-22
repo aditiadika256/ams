@@ -59,11 +59,24 @@ const itemVariants = {
   }
 };
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { UserForm } from './form';
+
 export default function UsersView() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+
   // Pagination and search state
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -80,7 +93,6 @@ export default function UsersView() {
         search: searchQuery 
       });
       
-      // Assuming paginatedResponse from backend returns a paginated object in response.data
       const paginatedData = response.data;
       if (paginatedData && Array.isArray(paginatedData.data)) {
         setUsers(paginatedData.data);
@@ -88,7 +100,6 @@ export default function UsersView() {
         setTotalUsers(paginatedData.total || 0);
         setPerPage(paginatedData.per_page || 15);
       } else {
-        // Fallback if the data is just an array
         setUsers(Array.isArray(response.data) ? response.data : []);
       }
     } catch (err: any) {
@@ -108,6 +119,47 @@ export default function UsersView() {
     setPage(1); // Reset to first page on search
   };
 
+  const handleOpenAdd = () => {
+    setSelectedUser(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (user: any) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = async (data: any) => {
+    try {
+      setIsSaving(true);
+      if (selectedUser) {
+        await apiClient.admin.users.update(selectedUser.id, data);
+      } else {
+        await apiClient.admin.users.create(data);
+      }
+      setIsModalOpen(false);
+      setSelectedUser(null);
+      fetchUsers(page, search);
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Gagal menyimpan user');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+      try {
+        await apiClient.admin.users.remove(id);
+        fetchUsers(page, search);
+      } catch (err: any) {
+        console.error(err);
+        alert(err.message || 'Gagal menghapus user');
+      }
+    }
+  };
+
   return (
     <motion.div 
       variants={containerVariants}
@@ -120,9 +172,8 @@ export default function UsersView() {
           <h2 className="text-3xl font-bold tracking-tight text-foreground">User Management</h2>
           <p className="text-muted-foreground">Manage users, roles, and branch assignments.</p>
         </div>
-        <Button className="bg-linear-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 border-0">
-          <Plus className="mr-2 h-4 w-4" /> Add New User
-        </Button>
+        <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0">
+          <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Add New User</span></Button>
       </motion.div>
       
       <motion.div variants={itemVariants}>
@@ -138,7 +189,7 @@ export default function UsersView() {
                     placeholder="Search users..."
                     value={search}
                     onChange={handleSearch}
-                    className="pl-8 w-[200px] lg:w-[300px] bg-white/5 border-white/10"
+                    className="pl-8 w-[200px] lg:w-[300px] bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
                   />
                 </div>
               </div>
@@ -192,7 +243,7 @@ export default function UsersView() {
                         >
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <div className="h-9 w-9 rounded-full bg-linear-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center text-primary font-medium border border-white/10">
+                              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
                                 {user.name.charAt(0).toUpperCase()}
                               </div>
                               <div>
@@ -218,17 +269,17 @@ export default function UsersView() {
                           <td className="px-4 py-3 text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-white/5">
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
+                              <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem className="focus:bg-white/10 cursor-pointer">
+                                <DropdownMenuItem onClick={() => handleOpenEdit(user)} className="cursor-pointer">
                                   <Edit className="mr-2 h-4 w-4" /> Edit
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-white/10" />
-                                <DropdownMenuItem className="text-destructive focus:bg-destructive/20 cursor-pointer">
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleDelete(user.id)} className="text-destructive cursor-pointer">
                                   <Trash2 className="mr-2 h-4 w-4" /> Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -271,6 +322,21 @@ export default function UsersView() {
           </GlassCardContent>
         </GlassCard>
       </motion.div>
+
+      {/* Form Dialog */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{selectedUser ? 'Edit User' : 'Tambah User Baru'}</DialogTitle>
+          </DialogHeader>
+          <UserForm 
+            initialData={selectedUser}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsModalOpen(false)}
+            isLoading={isSaving}
+          />
+        </DialogContent>
+      </Dialog>
     </motion.div>
   );
 }

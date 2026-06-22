@@ -25,19 +25,19 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index = 0 }) => {
     >
       <GlassCard className="flex flex-col h-full overflow-hidden hover:scale-[1.02] transition-all duration-300 group">
         <GlassCardHeader className="p-0 relative overflow-hidden">
-          <div className="aspect-video w-full bg-linear-to-br from-primary/10 to-blue-500/10 flex items-center justify-center">
+          <div className="aspect-video w-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
             {/* Fallback visual if no image */}
-             <div className="bg-white/10 backdrop-blur-sm p-4 rounded-full shadow-sm border border-white/20">
+             <div className="bg-white dark:bg-zinc-950 p-4 rounded-full shadow-sm border border-zinc-200 dark:border-zinc-800">
                 <BookOpen className="h-8 w-8 text-primary" />
              </div>
           </div>
           <div className="absolute top-3 left-3 flex gap-2">
-            <Badge variant="secondary" className="bg-secondary/40 backdrop-blur-md text-xs font-semibold shadow-sm text-secondary-foreground border-secondary/50">
+            <Badge variant="secondary" className="bg-secondary text-xs font-semibold shadow-sm text-secondary-foreground border-secondary">
               {program.level}
             </Badge>
           </div>
           <div className="absolute top-3 right-3">
-             <Badge className={`text-xs capitalize shadow-sm border-0 ${program.type === 'bootcamp' ? 'bg-blue-500/80 backdrop-blur-md' : 'bg-emerald-500/80 backdrop-blur-md'}`}>
+             <Badge className={`text-xs capitalize shadow-sm border-0 ${program.type === 'bootcamp' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
               {program.type}
             </Badge>
           </div>
@@ -61,14 +61,14 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index = 0 }) => {
              </div>
           </div>
         </GlassCardContent>
-        <GlassCardFooter className="p-5 pt-0 flex items-center justify-between border-t border-white/5 mt-auto">
+        <GlassCardFooter className="p-5 pt-0 flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 mt-auto">
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">Harga</span>
             <p className="text-lg font-bold text-primary">
                 {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(program.price)}
             </p>
           </div>
-          <AnimatedButton asChild size="sm" variant="glass" className="rounded-full px-4">
+          <AnimatedButton asChild size="sm" variant="outline" className="rounded-full px-4">
             <Link href={`/programs/${program.id}`}>Detail</Link>
           </AnimatedButton>
         </GlassCardFooter>

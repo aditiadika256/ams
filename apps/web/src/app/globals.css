@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark, .dark *));
 @theme {
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -25,13 +26,14 @@
 @layer base {
   :root {
     /* Light mode defaults - stored as HSL */
-    --background: 210 40% 98%; /* Light gray-blue background for contrast */
+    --background: 210 40% 98%;
+    /* Light gray-blue background for contrast */
     --foreground: 222.2 84% 4.9%;
-    
+
     /* Glass Effect Variables */
     --glass-border: 0 0% 100%;
     --glass-bg: 0 0% 100%;
-    
+
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
@@ -54,9 +56,10 @@
 
   .dark {
     /* Dark mode defaults - stored as HSL */
-    --background: 224 71% 4%; /* Deep dark blue */
+    --background: 224 71% 4%;
+    /* Deep dark blue */
     --foreground: 210 40% 98%;
-    
+
     /* Glass Effect Variables */
     --glass-border: 217 33% 17%;
     --glass-bg: 224 71% 4%;
@@ -65,7 +68,8 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 263.4 70% 50.4%; /* Purple accent */
+    --primary: 263.4 70% 50.4%;
+    /* Purple accent */
     --primary-foreground: 210 40% 98%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -83,21 +87,10 @@
   * {
     border-color: hsl(var(--border));
   }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    background-image: 
-      radial-gradient(at 0% 0%, hsla(253,16%,95%,1) 0, transparent 50%), 
-      radial-gradient(at 50% 0%, hsla(225,39%,90%,1) 0, transparent 50%), 
-      radial-gradient(at 100% 0%, hsla(339,49%,90%,1) 0, transparent 50%);
-    background-attachment: fixed;
-  }
-  
-  .dark body {
-     background-image: 
-      radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
-      radial-gradient(at 50% 0%, hsla(225,39%,15%,1) 0, transparent 50%), 
-      radial-gradient(at 100% 0%, hsla(339,49%,15%,1) 0, transparent 50%);
   }
 }
 
@@ -107,7 +100,7 @@
     background-color: hsla(var(--glass-bg), 0.7);
     border: 1px solid hsla(var(--glass-border), 0.4);
   }
-  
+
   .glass-dark {
     @apply backdrop-blur-xl shadow-xl;
     background-color: hsla(var(--glass-bg), 0.3);
@@ -117,4 +110,26 @@
   .text-gradient {
     @apply bg-clip-text text-transparent bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500;
   }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+::view-transition-new(root) {
+  z-index: 9999;
+}
+
+.dark::view-transition-old(root) {
+  z-index: 9999;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 1;
 }

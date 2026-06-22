@@ -101,7 +101,7 @@ const TopBar = () => {
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight group">
             <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-8 w-8 object-contain group-hover:rotate-12 transition-transform" />
-            <span className="bg-linear-to-r from-primary to-blue-600 bg-clip-text">Arkanin</span>
+            <span className="text-primary">Arkanin</span>
           </Link>
 
           {/* Desktop Nav */}
