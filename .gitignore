@@ -36,3 +36,10 @@ yarn-error.log*
 *.log
 
 .agent/*
+.agents/*
+.codex/*
+.devin/*
+.cursor/*
+.gemini/*
+.kiro/*
+.opencode/*

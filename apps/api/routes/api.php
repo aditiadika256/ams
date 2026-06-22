@@ -90,8 +90,11 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('mentors', \App\Domain\Learning\MentorController::class);
         
         // Schedules
+        Route::get('schedules', [\App\Domain\Learning\ScheduleController::class, 'studentSchedules']);
         Route::get('mentors/{mentor}/schedules', [\App\Domain\Learning\ScheduleController::class, 'index']);
-        Route::post('mentors/{mentor}/schedules', [\App\Domain\Learning\ScheduleController::class, 'update']);
+        Route::post('mentors/{mentor}/schedules', [\App\Domain\Learning\ScheduleController::class, 'store']);
+        Route::put('mentors/{mentor}/schedules/{schedule}', [\App\Domain\Learning\ScheduleController::class, 'update']);
+        Route::delete('mentors/{mentor}/schedules/{schedule}', [\App\Domain\Learning\ScheduleController::class, 'destroy']);
 
         // Curriculum
         Route::get('programs/{program}/curriculum', [\App\Domain\Learning\CurriculumController::class, 'index']);

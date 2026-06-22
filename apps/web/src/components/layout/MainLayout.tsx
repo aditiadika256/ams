@@ -33,7 +33,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         )}
       </main>
-      {showNavigation && <Footer />}
+      {showNavigation && isHomePage && <Footer />}
       {showNavigation && <BottomNavigation />}
     </div>
   );
