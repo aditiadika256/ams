@@ -15,9 +15,14 @@ import { Plus, FileText, Receipt } from 'lucide-react';
 import { useFinanceStore } from '@/store/useFinanceStore';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 export default function FinanceInvoices() {
   const { invoices } = useFinanceStore();
+  const [page, setPage] = React.useState(1);
+  const perPage = 5;
+
+  const paginatedInvoices = invoices.slice((page - 1) * perPage, page * perPage);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -80,7 +85,7 @@ export default function FinanceInvoices() {
                     <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No invoices found.</TableCell>
                   </TableRow>
                 ) : (
-                  invoices.map((inv) => (
+                  paginatedInvoices.map((inv) => (
                     <TableRow key={inv.id} className="border-border/20 hover:bg-muted/40 transition-colors">
                       <TableCell className="font-medium font-mono text-primary">{inv.invoice_number}</TableCell>
                       <TableCell>{formatDate(inv.issue_date)}</TableCell>
@@ -107,6 +112,15 @@ export default function FinanceInvoices() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls
+            currentPage={page}
+            lastPage={Math.ceil(invoices.length / perPage) || 1}
+            total={invoices.length}
+            from={invoices.length > 0 ? (page - 1) * perPage + 1 : 0}
+            to={invoices.length > 0 ? Math.min(page * perPage, invoices.length) : 0}
+            onPageChange={setPage}
+            itemLabel="invoices"
+          />
         </GlassCardContent>
       </GlassCard>
     </motion.div>

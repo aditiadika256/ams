@@ -9,12 +9,15 @@ import { Input } from '@/components/ui/input';
 import { GlassCard } from '@/components/ui/glass-card';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 export default function ProgramsPage() {
   const { programs, fetchPrograms, isLoading } = useSalesStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [page, setPage] = useState(1);
+  const perPage = 8;
   const fetchedRef = useRef(false);
 
   useEffect(() => {
@@ -32,6 +35,12 @@ export default function ProgramsPage() {
   });
 
   const types = ['bootcamp', 'course'];
+
+  useEffect(() => {
+    setPage(1);
+  }, [searchQuery, selectedType]);
+
+  const paginatedPrograms = filteredPrograms.slice((page - 1) * perPage, page * perPage);
 
   return (
     <div className="container py-8 md:py-12 mx-auto">
@@ -79,9 +88,12 @@ export default function ProgramsPage() {
                   </AnimatedButton>
                 ))}
               </div>
-              <ViewToggle view={viewMode} onViewChange={setViewMode} className="shrink-0" />
+              
            </div>
         </GlassCard>
+      </div>
+      <div className="flex justify-end mb-4">
+        <ViewToggle view={viewMode} onViewChange={setViewMode} className="shrink-0" />
       </div>
 
       {isLoading && programs.length === 0 ? (
@@ -99,7 +111,7 @@ export default function ProgramsPage() {
           : "flex flex-col gap-4 min-h-[400px]"
         }>
           {filteredPrograms.length > 0 ? (
-            filteredPrograms.map((program, index) => (
+            paginatedPrograms.map((program, index) => (
               <ProgramCard key={program.id} program={program} index={index} layout={viewMode} />
             ))
           ) : (
@@ -120,6 +132,19 @@ export default function ProgramsPage() {
               </AnimatedButton>
             </div>
           )}
+        </div>
+      )}
+      {filteredPrograms.length > perPage && (
+        <div className="mt-12">
+          <PaginationControls
+            currentPage={page}
+            lastPage={Math.ceil(filteredPrograms.length / perPage) || 1}
+            total={filteredPrograms.length}
+            from={filteredPrograms.length > 0 ? (page - 1) * perPage + 1 : 0}
+            to={filteredPrograms.length > 0 ? Math.min(page * perPage, filteredPrograms.length) : 0}
+            onPageChange={setPage}
+            itemLabel="program"
+          />
         </div>
       )}
     </div>

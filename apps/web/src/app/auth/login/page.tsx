@@ -17,7 +17,8 @@ import {
 } from '@/components/ui/glass-card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+import { Spinner } from '@/components/ui/loaders';
 import { motion } from 'framer-motion';
 
 const loginSchema = z.object({
@@ -30,6 +31,17 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { login, isAuthenticated, isLoading, error, clearError, user } = useAuthStore();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('reason') === 'session_expired') {
+        useAuthStore.setState({ error: 'Sesi Anda telah berakhir karena tidak ada aktivitas.' });
+        // Clear query parameters
+        router.replace('/auth/login');
+      }
+    }
+  }, [router]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -86,7 +98,7 @@ export default function LoginPage() {
   if (isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <Spinner size="xl" />
       </div>
     );
   }
@@ -171,7 +183,7 @@ export default function LoginPage() {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Spinner size="sm" variant="white" className="mr-2" />
                   Memproses...
                 </>
               ) : (
@@ -200,7 +212,7 @@ export default function LoginPage() {
           >
             {isGoogleLoading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Spinner size="sm" className="mr-2" />
                 Menghubungi Google...
               </>
             ) : (

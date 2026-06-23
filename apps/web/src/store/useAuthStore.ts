@@ -193,6 +193,7 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           // Clear state and localStorage
           if (typeof window !== 'undefined') {
+            localStorage.removeItem('auth-storage');
             localStorage.removeItem('token');
             localStorage.removeItem('user');
           }

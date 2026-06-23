@@ -7,7 +7,7 @@ import { apiClient } from '@/lib/api';
 import { ExamResult } from '@/types/cbt';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Spinner } from '@/components/ui/loaders';
+import { Spinner, PageLoader } from '@/components/ui/loaders';
 import { CheckCircle, Home, RotateCcw } from 'lucide-react';
 // date-fns is not installed; using native Intl.DateTimeFormat for formatting
 const formatDate = (date: Date) =>
@@ -48,12 +48,7 @@ export default function ExamResultPage({ params }: { params: Promise<{ attemptId
   }, [attemptId]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Spinner size="lg" />
-        <span className="ml-3">Memuat Hasil...</span>
-      </div>
-    );
+    return <PageLoader message="Memuat hasil ujian..." />;
   }
 
   if (error || !result) {

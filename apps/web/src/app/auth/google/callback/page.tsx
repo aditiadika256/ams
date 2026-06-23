@@ -11,7 +11,8 @@ import {
   GlassCardTitle,
 } from '@/components/ui/glass-card';
 import { AnimatedButton } from '@/components/ui/animated-button';
-import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle } from 'lucide-react';
+import { Spinner } from '@/components/ui/loaders';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
@@ -153,16 +154,7 @@ function GoogleCallbackInner() {
             {/* Processing state */}
             {status === 'processing' && (
               <>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  }}
-                >
-                  <Loader2 className="h-16 w-16 text-primary" />
-                </motion.div>
+                <Spinner size="xl" />
                 <p className="text-sm text-muted-foreground text-center">
                   Sedang memverifikasi akun Google Anda…
                 </p>
@@ -250,7 +242,7 @@ export default function GoogleCallbackPage() {
     <Suspense
       fallback={
         <div className="flex min-h-screen items-center justify-center">
-          <Loader2 className="h-16 w-16 animate-spin text-primary" />
+          <Spinner size="xl" />
         </div>
       }
     >

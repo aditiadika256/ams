@@ -9,6 +9,8 @@ import { Search, Plus, Edit, Trash2, FileText, ArrowLeft, Save, Image as ImageIc
 import { motion } from 'framer-motion';
 
 import { CMSPostForm } from './form';
+import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 const postsData = [
   { id: 1, title: 'Getting Started with Arkanin', author: 'Admin', status: 'Published', date: '2023-12-01' },
@@ -41,8 +43,23 @@ const itemVariants = {
 
 export default function CMSPostsView() {
   const [view, setView] = useState<'list' | 'editor'>('list');
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [posts, setPosts] = useState(postsData);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const perPage = 5;
+
+  const filteredPosts = posts.filter(post => 
+    post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    post.author.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
+  const paginatedPosts = filteredPosts.slice((page - 1) * perPage, page * perPage);
 
   const handleEdit = (id: number | null) => {
     setEditingId(id);
@@ -106,70 +123,124 @@ export default function CMSPostsView() {
           <GlassCardHeader className="relative z-10">
             <div className="flex items-center justify-between">
               <GlassCardTitle>All Posts</GlassCardTitle>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search posts..."
-                  className="pl-8 w-[200px] lg:w-[300px] bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
-                />
+              <div className="flex items-center gap-2">
+                <ViewToggle view={viewMode} onViewChange={setViewMode} />
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search posts..."
+                    className="pl-8 w-[200px] lg:w-[300px] bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
               </div>
             </div>
           </GlassCardHeader>
           <GlassCardContent className="relative z-10">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
-                  <tr>
-                    <th className="px-4 py-3 font-medium">Title</th>
-                    <th className="px-4 py-3 font-medium">Author</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Date</th>
-                    <th className="px-4 py-3 font-medium text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {posts.map((post, index) => (
-                    <motion.tr 
+            <div className={viewMode === 'list' ? "overflow-x-auto" : ""}>
+              {viewMode === 'list' ? (
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Title</th>
+                      <th className="px-4 py-3 font-medium">Author</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                      <th className="px-4 py-3 font-medium">Date</th>
+                      <th className="px-4 py-3 font-medium text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedPosts.map((post, index) => (
+                      <motion.tr 
+                        key={post.id} 
+                        className="border-b border-border/20 last:border-0 hover:bg-muted/40 transition-colors"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                      >
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded bg-primary/20 flex items-center justify-center text-primary border border-primary/20">
+                              <FileText className="h-4 w-4" />
+                            </div>
+                            <span className="font-medium text-foreground">{post.title}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">{post.author}</td>
+                        <td className="px-4 py-3">
+                          <Badge 
+                            variant={post.status === 'Published' ? 'default' : 'secondary'}
+                            className={post.status === 'Published' ? 'bg-green-500/20 text-green-500 dark:text-green-400 hover:bg-green-500/30 border-green-500/20' : 'bg-muted text-muted-foreground hover:bg-muted/70 border-muted'}
+                          >
+                            {post.status}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">{post.date}</td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => handleEdit(post.id)} className="hover:bg-primary/20 hover:text-primary">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {paginatedPosts.map((post, index) => (
+                    <motion.div 
                       key={post.id} 
-                      className="border-b border-border/20 last:border-0 hover:bg-muted/40 transition-colors"
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
+                      className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col hover:bg-white/10 transition-colors"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded bg-primary/20 flex items-center justify-center text-primary border border-primary/20">
-                            <FileText className="h-4 w-4" />
-                          </div>
-                          <span className="font-medium text-foreground">{post.title}</span>
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="h-10 w-10 rounded bg-primary/20 flex items-center justify-center text-primary border border-primary/20">
+                          <FileText className="h-5 w-5" />
                         </div>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{post.author}</td>
-                      <td className="px-4 py-3">
-                        <Badge 
-                          variant={post.status === 'Published' ? 'default' : 'secondary'}
-                          className={post.status === 'Published' ? 'bg-green-500/20 text-green-500 dark:text-green-400 hover:bg-green-500/30 border-green-500/20' : 'bg-muted text-muted-foreground hover:bg-muted/70 border-muted'}
-                        >
-                          {post.status}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground">{post.date}</td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon" onClick={() => handleEdit(post.id)} className="hover:bg-primary/20 hover:text-primary">
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleEdit(post.id)} className="h-8 w-8 hover:bg-primary/20 hover:text-primary">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive-foreground hover:bg-destructive/20">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      </td>
-                    </motion.tr>
+                      </div>
+                      <h3 className="font-semibold text-lg mb-1 line-clamp-2">{post.title}</h3>
+                      <p className="text-sm text-muted-foreground mb-4">By {post.author}</p>
+                      
+                      <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/5">
+                        <div className="text-xs text-muted-foreground">{post.date}</div>
+                        <Badge 
+                          variant={post.status === 'Published' ? 'default' : 'secondary'}
+                          className={post.status === 'Published' ? 'bg-green-500/20 text-green-500 dark:text-green-400 border-green-500/20' : 'bg-muted text-muted-foreground border-muted'}
+                        >
+                          {post.status}
+                        </Badge>
+                      </div>
+                    </motion.div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
+            <PaginationControls
+              currentPage={page}
+              lastPage={Math.ceil(filteredPosts.length / perPage) || 1}
+              total={filteredPosts.length}
+              from={filteredPosts.length > 0 ? (page - 1) * perPage + 1 : 0}
+              to={filteredPosts.length > 0 ? Math.min(page * perPage, filteredPosts.length) : 0}
+              onPageChange={setPage}
+              itemLabel="posts"
+            />
           </GlassCardContent>
         </GlassCard>
       </motion.div>

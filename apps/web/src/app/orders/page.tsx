@@ -9,9 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PageLoader } from '@/components/ui/loaders';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 export default function OrderHistoryPage() {
   const { orders, fetchOrders, isLoading } = useSalesStore();
+  const [page, setPage] = React.useState(1);
+  const perPage = 5;
 
   useEffect(() => {
     console.log('[OrderHistory] Fetching orders...');
@@ -44,7 +47,7 @@ export default function OrderHistoryPage() {
       ) : (
         <div className="space-y-4">
           {orders.length > 0 ? (
-            orders.map((order, index) => (
+            orders.slice((page - 1) * perPage, page * perPage).map((order, index) => (
               <motion.div
                 key={order.id}
                 initial={{ opacity: 0, y: 10 }}
@@ -98,6 +101,19 @@ export default function OrderHistoryPage() {
               <Button asChild>
                 <Link href="/programs">Lihat Program</Link>
               </Button>
+            </div>
+          )}
+          {orders.length > perPage && (
+            <div className="mt-8">
+              <PaginationControls
+                currentPage={page}
+                lastPage={Math.ceil(orders.length / perPage) || 1}
+                total={orders.length}
+                from={orders.length > 0 ? (page - 1) * perPage + 1 : 0}
+                to={orders.length > 0 ? Math.min(page * perPage, orders.length) : 0}
+                onPageChange={setPage}
+                itemLabel="pesanan"
+              />
             </div>
           )}
         </div>

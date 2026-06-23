@@ -4,6 +4,8 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 
+import { PageLoader } from '@/components/ui/loaders';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
   redirectTo?: string;
@@ -64,14 +66,7 @@ export default function ProtectedRoute({
 
   // Show loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-          <p className="mt-2 text-muted-foreground">Memuat...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   // If not authenticated, don't render children (will redirect)

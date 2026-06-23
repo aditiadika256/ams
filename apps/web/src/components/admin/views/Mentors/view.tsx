@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLearningStore } from '@/store/useLearningStore';
+import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -50,6 +52,9 @@ import { MentorForm } from './form';
 export default function MentorsView() {
   const { mentors, fetchMentors, createMentor, updateMentor, deleteMentor, isLoading, error } = useLearningStore();
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [viewMode, setViewMode] = React.useState<ViewMode>('list');
+  const [page, setPage] = React.useState(1);
+  const perPage = 6;
   
   // Modal states
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -67,6 +72,12 @@ export default function MentorsView() {
     (mentor.user?.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     mentor.specialization.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  React.useEffect(() => {
+    setPage(1);
+  }, [searchQuery]);
+
+  const paginatedMentors = filteredMentors.slice((page - 1) * perPage, page * perPage);
 
   const handleOpenAdd = () => {
     setSelectedMentor(null);
@@ -130,6 +141,7 @@ export default function MentorsView() {
             <div className="flex items-center justify-between">
               <GlassCardTitle>All Mentors</GlassCardTitle>
               <div className="flex items-center gap-2">
+                <ViewToggle view={viewMode} onViewChange={setViewMode} />
                 <div className="relative">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -149,82 +161,156 @@ export default function MentorsView() {
             ) : filteredMentors.length === 0 ? (
                <div className="py-8 text-center text-muted-foreground">No mentors found.</div>
             ) : (
-               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-muted-foreground uppercase bg-white/5 border-b border-white/10">
-                    <tr>
-                      <th className="px-4 py-3 font-medium">Name</th>
-                      <th className="px-4 py-3 font-medium">Specialization</th>
-                      <th className="px-4 py-3 font-medium">Experience</th>
-                      <th className="px-4 py-3 font-medium">Status</th>
-                      <th className="px-4 py-3 font-medium text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {filteredMentors.map((mentor) => (
-                      <motion.tr 
-                        key={mentor.id} 
-                        className="hover:bg-white/5 transition-colors"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
-                              {mentor.user?.name ? mentor.user.name.charAt(0) : 'M'}
-                            </div>
-                            <div>
-                              <div className="font-medium text-foreground">{mentor.user?.name || 'Unknown User'}</div>
-                              <div className="text-xs text-muted-foreground">{mentor.user?.email || 'No Email'}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <GraduationCap className="h-3 w-3 text-muted-foreground" />
-                            <span>{mentor.specialization}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                             <Clock className="h-3 w-3 text-muted-foreground" />
-                             <span>{mentor.experience_years} Years</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge variant={mentor.is_active ? 'default' : 'secondary'} className={mentor.is_active ? "bg-green-500/20 text-green-400 hover:bg-green-500/30" : ""}>
-                            {mentor.is_active ? 'Active' : 'Inactive'}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="focus:bg-white/10">
-                                <Edit className="mr-2 h-4 w-4" /> Edit Profile
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="focus:bg-white/10">
-                                 <Clock className="mr-2 h-4 w-4" /> Manage Schedule
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-white/10" />
-                              <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20">
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+               <div className={viewMode === 'list' ? "overflow-x-auto" : ""}>
+                 {viewMode === 'list' ? (
+                   <table className="w-full text-sm text-left">
+                     <thead className="text-xs text-muted-foreground uppercase bg-white/5 border-b border-white/10">
+                       <tr>
+                         <th className="px-4 py-3 font-medium">Name</th>
+                         <th className="px-4 py-3 font-medium">Specialization</th>
+                         <th className="px-4 py-3 font-medium">Experience</th>
+                         <th className="px-4 py-3 font-medium">Status</th>
+                         <th className="px-4 py-3 font-medium text-right">Actions</th>
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y divide-white/5">
+                       {paginatedMentors.map((mentor) => (
+                         <motion.tr 
+                           key={mentor.id} 
+                           className="hover:bg-white/5 transition-colors"
+                           initial={{ opacity: 0 }}
+                           animate={{ opacity: 1 }}
+                           transition={{ duration: 0.3 }}
+                         >
+                           <td className="px-4 py-3">
+                             <div className="flex items-center gap-3">
+                               <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
+                                 {mentor.user?.name ? mentor.user.name.charAt(0) : 'M'}
+                               </div>
+                               <div>
+                                 <div className="font-medium text-foreground">{mentor.user?.name || 'Unknown User'}</div>
+                                 <div className="text-xs text-muted-foreground">{mentor.user?.email || 'No Email'}</div>
+                               </div>
+                             </div>
+                           </td>
+                           <td className="px-4 py-3">
+                             <div className="flex items-center gap-2">
+                               <GraduationCap className="h-3 w-3 text-muted-foreground" />
+                               <span>{mentor.specialization}</span>
+                             </div>
+                           </td>
+                           <td className="px-4 py-3">
+                             <div className="flex items-center gap-2">
+                                <Clock className="h-3 w-3 text-muted-foreground" />
+                                <span>{mentor.experience_years} Years</span>
+                             </div>
+                           </td>
+                           <td className="px-4 py-3">
+                             <Badge variant={mentor.is_active ? 'default' : 'secondary'} className={mentor.is_active ? "bg-green-500/20 text-green-400 hover:bg-green-500/30" : ""}>
+                               {mentor.is_active ? 'Active' : 'Inactive'}
+                             </Badge>
+                           </td>
+                           <td className="px-4 py-3 text-right">
+                             <DropdownMenu>
+                               <DropdownMenuTrigger asChild>
+                                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
+                                   <MoreHorizontal className="h-4 w-4" />
+                                 </Button>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
+                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                 <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="focus:bg-white/10">
+                                   <Edit className="mr-2 h-4 w-4" /> Edit Profile
+                                 </DropdownMenuItem>
+                                 <DropdownMenuItem className="focus:bg-white/10">
+                                    <Clock className="mr-2 h-4 w-4" /> Manage Schedule
+                                 </DropdownMenuItem>
+                                 <DropdownMenuSeparator className="bg-white/10" />
+                                 <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20">
+                                   <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
+                                 </DropdownMenuItem>
+                               </DropdownMenuContent>
+                             </DropdownMenu>
+                           </td>
+                         </motion.tr>
+                       ))}
+                     </tbody>
+                   </table>
+                 ) : (
+                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                     {paginatedMentors.map((mentor) => (
+                       <motion.div 
+                         key={mentor.id} 
+                         className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col hover:bg-white/10 transition-colors"
+                         initial={{ opacity: 0, scale: 0.95 }}
+                         animate={{ opacity: 1, scale: 1 }}
+                         transition={{ duration: 0.3 }}
+                       >
+                         <div className="flex justify-between items-start mb-3">
+                           <div className="flex items-center gap-3">
+                             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
+                               {mentor.user?.name ? mentor.user.name.charAt(0) : 'M'}
+                             </div>
+                             <div>
+                               <h3 className="font-semibold text-base line-clamp-1">{mentor.user?.name || 'Unknown User'}</h3>
+                               <p className="text-xs text-muted-foreground line-clamp-1">{mentor.user?.email || 'No Email'}</p>
+                             </div>
+                           </div>
+                           <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                               <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10 shrink-0">
+                                 <MoreHorizontal className="h-4 w-4" />
+                               </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
+                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                               <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="focus:bg-white/10">
+                                 <Edit className="mr-2 h-4 w-4" /> Edit Profile
+                               </DropdownMenuItem>
+                               <DropdownMenuItem className="focus:bg-white/10">
+                                  <Clock className="mr-2 h-4 w-4" /> Manage Schedule
+                               </DropdownMenuItem>
+                               <DropdownMenuSeparator className="bg-white/10" />
+                               <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20">
+                                 <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
+                               </DropdownMenuItem>
+                             </DropdownMenuContent>
+                           </DropdownMenu>
+                         </div>
+                         
+                         <div className="flex gap-2 mb-4">
+                           <Badge variant="outline" className="border-white/20 bg-white/5 text-xs flex items-center gap-1">
+                             <GraduationCap className="h-3 w-3 text-muted-foreground" />
+                             <span className="truncate max-w-[120px]">{mentor.specialization}</span>
+                           </Badge>
+                           <Badge variant="outline" className="border-white/20 bg-white/5 text-xs flex items-center gap-1">
+                              <Clock className="h-3 w-3 text-muted-foreground" />
+                              <span>{mentor.experience_years} Yrs</span>
+                           </Badge>
+                         </div>
+                         
+                         <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/5">
+                           <div className="text-xs text-muted-foreground">ID: {mentor.id}</div>
+                           <Badge variant={mentor.is_active ? 'default' : 'secondary'} className={mentor.is_active ? "bg-green-500/20 text-green-400" : "text-xs"}>
+                             {mentor.is_active ? 'Active' : 'Inactive'}
+                           </Badge>
+                         </div>
+                       </motion.div>
+                     ))}
+                   </div>
+                 )}
+               </div>
             )}
+            <PaginationControls
+              currentPage={page}
+              lastPage={Math.ceil(filteredMentors.length / perPage) || 1}
+              total={filteredMentors.length}
+              from={filteredMentors.length > 0 ? (page - 1) * perPage + 1 : 0}
+              to={filteredMentors.length > 0 ? Math.min(page * perPage, filteredMentors.length) : 0}
+              onPageChange={setPage}
+              itemLabel="mentors"
+              isLoading={isLoading}
+            />
           </GlassCardContent>
         </GlassCard>
       </motion.div>

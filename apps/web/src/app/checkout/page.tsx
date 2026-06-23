@@ -8,7 +8,7 @@ import { useSalesStore } from '@/store/useSalesStore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Loader2, ShieldCheck, ArrowRight, AlertCircle, CreditCard, Wallet, Lock } from 'lucide-react';
+import { ShieldCheck, ArrowRight, AlertCircle, CreditCard, Wallet, Lock } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { ProcessingLoader, Spinner, PageLoader } from '@/components/ui/loaders';
@@ -65,7 +65,7 @@ function CheckoutContent() {
   if (authLoading || (salesLoading && !currentProgram)) {
     return (
       <div className="container flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -219,7 +219,7 @@ export default function CheckoutPage() {
   return (
     <Suspense fallback={
       <div className="container flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Spinner size="lg" />
       </div>
     }>
       <CheckoutContent />

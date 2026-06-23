@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar, Users, Clock, Video, FileText, CheckCircle2, ChevronRight, X, MapPin } from 'lucide-react';
 import { ScheduleManagerModal } from './ScheduleManagerModal';
-import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 
 export default function MentorDashboard() {
   const { user } = useAuthStore();
@@ -19,7 +18,6 @@ export default function MentorDashboard() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<MentorSchedule | null>(null);
-  const [scheduleViewMode, setScheduleViewMode] = useState<ViewMode>('list');
 
   useEffect(() => {
     fetchMentors();
@@ -216,7 +214,6 @@ export default function MentorDashboard() {
                 <GlassCardTitle>Jadwal Mengajar</GlassCardTitle>
                 <GlassCardDescription>Sesi mentoring yang akan datang</GlassCardDescription>
               </div>
-              <ViewToggle view={scheduleViewMode} onViewChange={setScheduleViewMode} className="scale-90 shrink-0" />
             </GlassCardHeader>
             <GlassCardContent className="pt-4">
               <Tabs defaultValue="today" className="w-full">
@@ -233,31 +230,8 @@ export default function MentorDashboard() {
                       <p>Tidak ada sesi mengajar hari ini.</p>
                     </div>
                   ) : (
-                    <div className={scheduleViewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2" : "space-y-4 pb-2"}>
+                    <div className="space-y-4 pb-2">
                       {todaySchedules.map((session, i) => (
-                        scheduleViewMode === 'grid' ? (
-                          <div key={session.id || i} onClick={() => openEditSchedule(session)} className="cursor-pointer flex flex-col p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors relative overflow-hidden group h-full">
-                            <div className="absolute left-0 right-0 top-0 h-1 transition-transform group-hover:scale-x-110" style={{ backgroundColor: session.color_hex || '#3b82f6' }} />
-                            <div className="flex justify-between items-start mb-3 pt-1">
-                              <span className="font-bold text-xs bg-background py-1 px-2.5 rounded-lg border text-muted-foreground" style={{ borderColor: `${session.color_hex}40` || '#3b82f640' }}>
-                                {new Date(session.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                              {session.status === 'done' && <Badge variant="secondary" className="bg-green-500/20 text-green-400 text-[10px] h-5 py-0">Selesai</Badge>}
-                              {session.status === 'rescheduled' && <Badge variant="secondary" className="bg-primary/20 text-primary text-[10px] h-5 py-0">Reschedule</Badge>}
-                              {session.status === 'cancelled' && <Badge variant="secondary" className="bg-red-500/20 text-red-400 text-[10px] h-5 py-0">Batal/Tdk Les</Badge>}
-                              {session.status === 'scheduled' && <Badge variant="outline" className="text-[10px] h-5 py-0">Scheduled</Badge>}
-                            </div>
-                            <h4 className="font-semibold text-foreground line-clamp-1 mb-2 group-hover:text-primary transition-colors">{session.subject}</h4>
-                            <div className="space-y-2 mt-auto text-xs text-muted-foreground">
-                              <div className="flex items-center gap-2">
-                                <Users className="h-3.5 w-3.5 text-primary shrink-0" /> <span className="truncate">{session.title || 'Tanpa Nama'}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" /> <span className="truncate">{session.location || '-'}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
                           <div key={session.id || i} onClick={() => openEditSchedule(session)} className="cursor-pointer flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors relative overflow-hidden group">
                             <div className="absolute left-0 top-0 bottom-0 w-1 transition-transform group-hover:scale-y-110" style={{ backgroundColor: session.color_hex || '#3b82f6' }} />
                             <div className="flex gap-4 items-center pl-2">
@@ -280,7 +254,6 @@ export default function MentorDashboard() {
                               <ChevronRight className="h-5 w-5 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity" />
                             </div>
                           </div>
-                        )
                       ))}
                     </div>
                   )}
@@ -292,32 +265,8 @@ export default function MentorDashboard() {
                       <p>Tidak ada sesi mengajar lainnya yang dijadwalkan.</p>
                     </div>
                   ) : (
-                    <div className={scheduleViewMode === 'grid' ? "grid grid-cols-1 sm:grid-cols-2 gap-4 pb-2" : "space-y-4 pb-2"}>
+                    <div className="space-y-4 pb-2">
                       {weekSchedules.map((session, i) => (
-                        scheduleViewMode === 'grid' ? (
-                          <div key={session.id || i} onClick={() => openEditSchedule(session)} className="cursor-pointer flex flex-col p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors relative overflow-hidden group h-full">
-                            <div className="absolute left-0 right-0 top-0 h-1 transition-transform group-hover:scale-x-110" style={{ backgroundColor: session.color_hex || '#3b82f6' }} />
-                            <div className="flex justify-between items-start mb-3 pt-1">
-                              <span className="font-bold text-[10px] bg-background py-1 px-2 rounded-lg border text-muted-foreground" style={{ borderColor: `${session.color_hex}40` || '#3b82f640' }}>
-                                {new Date(session.start_time).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })} • {new Date(session.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                              {session.status !== 'scheduled' && (
-                                <Badge variant="secondary" className="bg-white/10 hover:bg-white/20 text-[10px] h-5 py-0 backdrop-blur-md">
-                                  {session.status}
-                                </Badge>
-                              )}
-                            </div>
-                            <h4 className="font-semibold text-foreground line-clamp-1 mb-2 group-hover:text-primary transition-colors">{session.subject}</h4>
-                            <div className="space-y-2 mt-auto text-xs text-muted-foreground">
-                              <div className="flex items-center gap-2">
-                                <Users className="h-3.5 w-3.5 text-primary shrink-0" /> <span className="truncate">{session.title || 'Tanpa Nama'}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-3.5 w-3.5 text-primary shrink-0" /> <span className="truncate">{session.location || '-'}</span>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
                           <div key={session.id || i} onClick={() => openEditSchedule(session)} className="cursor-pointer flex items-center justify-between p-4 border border-zinc-200 dark:border-zinc-800 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors relative overflow-hidden group">
                             <div className="absolute left-0 top-0 bottom-0 w-1 transition-transform group-hover:scale-y-110" style={{ backgroundColor: session.color_hex || '#3b82f6' }} />
                             <div className="flex gap-4 items-center pl-2">
@@ -343,7 +292,6 @@ export default function MentorDashboard() {
                               <ChevronRight className="h-5 w-5 text-muted-foreground opacity-50 group-hover:opacity-100 transition-opacity shrink-0" />
                             </div>
                           </div>
-                        )
                       ))}
                     </div>
                   )}
