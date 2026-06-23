@@ -6,7 +6,7 @@ import { useExamStore } from '@/store/useExamStore';
 import { apiClient } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
-import { Spinner } from '@/components/ui/loaders';
+import { Spinner, PageLoader } from '@/components/ui/loaders';
 import { AlertTriangle, ChevronLeft, ChevronRight, Clock, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -140,12 +140,7 @@ export default function ExamSessionPage({ params }: { params: Promise<{ attemptI
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Spinner size="lg" />
-        <span className="ml-3 text-lg">Memuat Soal...</span>
-      </div>
-    );
+    return <PageLoader message="Memuat soal ujian..." />;
   }
 
   if (error) {
@@ -228,7 +223,11 @@ export default function ExamSessionPage({ params }: { params: Promise<{ attemptI
             </div>
             
             <Button variant="destructive" onClick={handleSubmitExam} disabled={isSubmitting}>
-              {isSubmitting ? "Memproses..." : "Selesai Ujian"}
+              {isSubmitting ? (
+                <>
+                  <Spinner size="sm" variant="white" className="mr-2" /> Memproses...
+                </>
+              ) : "Selesai Ujian"}
             </Button>
           </div>
         </header>

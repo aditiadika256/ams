@@ -12,15 +12,11 @@ import { AnimatedButton } from '@/components/ui/animated-button';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Clock, PlayCircle, Trophy, Calendar, Sparkles } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 
 export default function StudentDashboard() {
   const { user } = useAuthStore();
   const { orders, fetchOrders, isLoading } = useSalesStore();
   const { studentSchedules, fetchStudentSchedules } = useLearningStore();
-
-  const [learningViewMode, setLearningViewMode] = useState<ViewMode>('grid');
-  const [recommendationsViewMode, setRecommendationsViewMode] = useState<ViewMode>('list');
 
   const [progressData, setProgressData] = useState<{
     total_exams_taken: number;
@@ -152,7 +148,6 @@ export default function StudentDashboard() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold tracking-tight">Pembelajaran Saya</h2>
           <div className="flex items-center gap-2">
-            <ViewToggle view={learningViewMode} onViewChange={setLearningViewMode} className="scale-90" />
             <AnimatedButton variant="outline" size="sm" asChild className="text-xs">
               <Link href="/learning/my-courses">Lihat Semua</Link>
             </AnimatedButton>
@@ -166,12 +161,8 @@ export default function StudentDashboard() {
             ))}
           </div>
         ) : enrolledPrograms.length > 0 ? (
-          <div className={learningViewMode === 'grid' 
-            ? "grid gap-4 md:grid-cols-2 lg:grid-cols-3" 
-            : "flex flex-col gap-3"
-          }>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {enrolledPrograms.map((program, index) => (
-              learningViewMode === 'grid' ? (
                 <GlassCard key={index} className="overflow-hidden hover:shadow-md hover:-translate-y-1 transition-all duration-300 border border-zinc-200 dark:border-zinc-800 shadow-sm">
                   <div className="h-32 w-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center relative overflow-hidden">
                     <BookOpen className="h-12 w-12 text-zinc-500/70 relative z-10" />
@@ -205,36 +196,6 @@ export default function StudentDashboard() {
                     </AnimatedButton>
                   </GlassCardContent>
                 </GlassCard>
-              ) : (
-                <GlassCard key={index} className="overflow-hidden hover:shadow-sm hover:translate-x-1 transition-all duration-300 border border-zinc-200 dark:border-zinc-800 shadow-sm p-4 flex flex-col sm:flex-row items-center gap-4">
-                  <div className="h-16 w-16 bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center rounded-xl shrink-0">
-                    <BookOpen className="h-6 w-6 text-zinc-500/70" />
-                  </div>
-                  <div className="flex-1 min-w-0 py-1 text-center sm:text-left">
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
-                      <Badge variant="outline" className="bg-secondary border-border py-0 text-[10px]">Course</Badge>
-                      <span className="text-[10px] text-muted-foreground">Akses terakhir: {program.lastAccessed}</span>
-                    </div>
-                    <h3 className="font-semibold text-base truncate">{program.name}</h3>
-                    <div className="flex items-center gap-3 mt-2 max-w-md mx-auto sm:mx-0">
-                      <div className="flex-1 h-1.5 bg-secondary/50 rounded-full overflow-hidden">
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          animate={{ width: `${program.progress}%` }}
-                          transition={{ duration: 1, delay: 0.5 }}
-                          className="h-full bg-primary" 
-                        />
-                      </div>
-                      <span className="text-[10px] text-muted-foreground shrink-0 font-medium">{program.progress}%</span>
-                    </div>
-                  </div>
-                  <AnimatedButton size="sm" asChild variant="outline" className="shrink-0 w-full sm:w-auto">
-                    <Link href={`/programs/${program.id}`}>
-                      <PlayCircle className="mr-2 h-4 w-4" /> Lanjut Belajar
-                    </Link>
-                  </AnimatedButton>
-                </GlassCard>
-              )
             ))}
           </div>
         ) : (
@@ -303,28 +264,12 @@ export default function StudentDashboard() {
                 <GlassCardTitle className="text-lg">Rekomendasi Untuk Anda</GlassCardTitle>
                 <GlassCardDescription>{recommendations?.reason || "Program/Tryout populer yang mungkin Anda suka"}</GlassCardDescription>
               </div>
-              <ViewToggle view={recommendationsViewMode} onViewChange={setRecommendationsViewMode} className="scale-90 shrink-0" />
             </GlassCardHeader>
             <GlassCardContent className="pt-4">
               {recommendations?.packages && recommendations.packages.length > 0 ? (
-                <div className={recommendationsViewMode === 'grid' 
-                  ? "grid grid-cols-1 sm:grid-cols-2 gap-4" 
-                  : "flex flex-col gap-3"
-                }>
+                <div className="flex flex-col gap-3">
                   {recommendations.packages.map((pkg: any) => (
                     <Link href={`/exams`} key={pkg.id}>
-                      {recommendationsViewMode === 'grid' ? (
-                        <div className="flex flex-col h-full p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer group">
-                           <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold mb-3 group-hover:scale-105 transition-transform shrink-0">
-                             {pkg.name ? pkg.name.substring(0, 2).toUpperCase() : 'EX'}
-                           </div>
-                           <h4 className="font-semibold text-sm text-foreground truncate mb-1 group-hover:text-primary transition-colors">{pkg.name}</h4>
-                           <p className="text-xs text-muted-foreground mb-4">{pkg.sections_count || pkg.sections?.length || 0} Bagian • {pkg.duration_minutes || 90} Mins</p>
-                           <AnimatedButton variant="outline" size="sm" className="w-full mt-auto">
-                             <PlayCircle className="mr-2 h-4 w-4" /> Mulai
-                           </AnimatedButton>
-                        </div>
-                      ) : (
                         <div className="flex items-center gap-4 p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer group">
                            <div className="h-10 w-10 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">
                              {pkg.name ? pkg.name.substring(0, 2).toUpperCase() : 'EX'}
@@ -337,7 +282,6 @@ export default function StudentDashboard() {
                              <PlayCircle className="h-4 w-4" />
                            </AnimatedButton>
                         </div>
-                      )}
                     </Link>
                   ))}
                 </div>

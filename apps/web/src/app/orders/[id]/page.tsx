@@ -11,7 +11,6 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CreditCard, CheckCircle2, XCircle, Clock, PlayCircle, BookOpen, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Spinner, PageLoader } from '@/components/ui/loaders';
-import { Loader2 } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -73,7 +72,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   if (isLoading && !currentOrder) {
     return (
       <div className="container flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <Spinner size="lg" />
       </div>
     );
   }
