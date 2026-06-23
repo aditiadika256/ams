@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle, Clock, Info } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import { Spinner } from '@/components/ui/loaders';
+import { Spinner, PageLoader } from '@/components/ui/loaders';
 
 interface ExamPackage {
   id: number;
@@ -64,11 +64,7 @@ export default function ExamStartPage({ params }: { params: Promise<{ packageId:
   };
 
   if (isFetching) {
-    return (
-      <div className="container max-w-3xl py-12 flex justify-center">
-        <Spinner className="h-8 w-8 text-primary" />
-      </div>
-    );
+    return <PageLoader message="Memuat detail ujian..." />;
   }
 
   if (error && !examPackage) {
@@ -143,7 +139,7 @@ export default function ExamStartPage({ params }: { params: Promise<{ packageId:
           <Button onClick={handleStartExam} disabled={isLoading}>
             {isLoading ? (
               <>
-                <Spinner className="mr-2 h-4 w-4" /> Memproses...
+                <Spinner size="sm" variant="white" className="mr-2" /> Memproses...
               </>
             ) : (
               <>

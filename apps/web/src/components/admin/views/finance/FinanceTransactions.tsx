@@ -14,9 +14,14 @@ import { useFinanceStore } from '@/store/useFinanceStore';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { ArrowRightLeft } from 'lucide-react';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 export default function FinanceTransactions() {
   const { transactions, isLoading } = useFinanceStore();
+  const [page, setPage] = React.useState(1);
+  const perPage = 5;
+
+  const paginatedTransactions = transactions.slice((page - 1) * perPage, page * perPage);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -79,7 +84,7 @@ export default function FinanceTransactions() {
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No transactions found.</TableCell>
                   </TableRow>
                 ) : (
-                  transactions.map((trx) => (
+                  paginatedTransactions.map((trx) => (
                     <TableRow key={trx.id} className="border-border/20 hover:bg-muted/40 transition-colors">
                       <TableCell>{formatDate(trx.transaction_date)}</TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">{trx.reference_number}</TableCell>
@@ -105,6 +110,16 @@ export default function FinanceTransactions() {
               </TableBody>
             </Table>
           </div>
+          <PaginationControls
+            currentPage={page}
+            lastPage={Math.ceil(transactions.length / perPage) || 1}
+            total={transactions.length}
+            from={transactions.length > 0 ? (page - 1) * perPage + 1 : 0}
+            to={transactions.length > 0 ? Math.min(page * perPage, transactions.length) : 0}
+            onPageChange={setPage}
+            itemLabel="transactions"
+            isLoading={isLoading}
+          />
         </GlassCardContent>
       </GlassCard>
     </motion.div>

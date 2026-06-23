@@ -98,7 +98,8 @@ api.interceptors.response.use(
     // Handle 401 Unauthorized - Token expired or invalid
     if (error.response.status === 401) {
       if (typeof window !== 'undefined') {
-        // Clear token and redirect to login
+        // Clear token, user, and Zustand auth-storage
+        localStorage.removeItem('auth-storage');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
 

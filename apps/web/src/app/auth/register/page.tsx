@@ -12,7 +12,6 @@ import { GlassCard, GlassCardHeader, GlassCardTitle, GlassCardContent, GlassCard
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/loaders';
 import { AnimatedButton } from '@/components/ui/animated-button';
 
@@ -81,7 +80,7 @@ export default function RegisterPage() {
   if (isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        <Spinner size="xl" />
       </div>
     );
   }
@@ -208,7 +207,7 @@ export default function RegisterPage() {
           >
             {isGoogleLoading ? (
               <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <Spinner size="sm" className="mr-2" />
                 Menghubungi Google…
               </>
             ) : (

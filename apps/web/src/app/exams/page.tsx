@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
 import { Clock, FileText, AlertCircle, Sparkles, BookOpen } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import { Spinner } from '@/components/ui/loaders';
+import { PageLoader } from '@/components/ui/loaders';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 interface ExamPackage {
   id: number;
@@ -43,6 +44,8 @@ export default function ExamsPage() {
   const [exams, setExams] = useState<ExamPackage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const perPage = 6;
 
   const didFetch = useRef(false);
   useEffect(() => {
@@ -71,11 +74,7 @@ export default function ExamsPage() {
   }, []);
 
   if (isLoading) {
-    return (
-      <div className="container py-24 flex justify-center min-h-[50vh] mx-auto">
-        <Spinner className="h-8 w-8 text-primary" />
-      </div>
-    );
+    return <PageLoader message="Memuat daftar ujian..." />;
   }
 
   return (
@@ -129,7 +128,7 @@ export default function ExamsPage() {
           animate="show"
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
-          {exams.map((exam) => (
+          {exams.slice((page - 1) * perPage, page * perPage).map((exam) => (
             <motion.div key={exam.id} variants={item}>
               <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-300 border-muted/60 hover:border-primary/20 bg-background/60 backdrop-blur-sm group">
                 <CardHeader>
@@ -179,6 +178,20 @@ export default function ExamsPage() {
             </motion.div>
           ))}
         </motion.div>
+        
+        {exams.length > perPage && (
+          <div className="mt-8">
+            <PaginationControls
+              currentPage={page}
+              lastPage={Math.ceil(exams.length / perPage) || 1}
+              total={exams.length}
+              from={exams.length > 0 ? (page - 1) * perPage + 1 : 0}
+              to={exams.length > 0 ? Math.min(page * perPage, exams.length) : 0}
+              onPageChange={setPage}
+              itemLabel="ujian"
+            />
+          </div>
+        )}
       </div>
     </div>
   );

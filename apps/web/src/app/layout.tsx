@@ -1,6 +1,7 @@
 import MainLayout from "@/components/layout/MainLayout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
+import { IdleTimerProvider } from "@/components/auth/IdleTimerProvider";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -38,7 +39,9 @@ export default function RootLayout({
           enableSystem
         >
           <ThemeInitializer />
-          <MainLayout>{children}</MainLayout>
+          <IdleTimerProvider>
+            <MainLayout>{children}</MainLayout>
+          </IdleTimerProvider>
         </ThemeProvider>
       </body>
     </html>
