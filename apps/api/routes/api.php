@@ -63,6 +63,7 @@ Route::prefix('v1')->group(function () {
     // Admin
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
         // Users & Roles
+        Route::get('branches', [\App\Domain\Admin\UserController::class, 'branches']);
         Route::apiResource('users', \App\Domain\Admin\UserController::class)->middleware('permission:manage_users_global|manage_users_branch');
         Route::apiResource('roles', \App\Domain\Admin\RoleController::class)->middleware('permission:manage_roles');
         Route::get('permissions', [\App\Domain\Admin\RoleController::class, 'permissions'])->middleware('permission:view_permissions');
