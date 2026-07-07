@@ -38,6 +38,7 @@ const getAuthToken = () => {
 const getApiHeaders = (includeAuth = false) => {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   };
 
   if (includeAuth) {

@@ -221,4 +221,19 @@ class UserController extends Controller
 
         return $this->successResponse(null, 'User deleted successfully');
     }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/admin/branches",
+     *     tags={"Admin - Users"},
+     *     summary="List all branches",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(response=200, description="List of branches")
+     * )
+     */
+    public function branches()
+    {
+        $branches = \App\Models\Branch::where('is_active', true)->get();
+        return $this->successResponse($branches, 'Branches retrieved successfully');
+    }
 }

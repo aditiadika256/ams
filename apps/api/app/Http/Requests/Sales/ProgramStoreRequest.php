@@ -10,8 +10,8 @@ class ProgramStoreRequest extends BaseFormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'level' => ['required', 'string', 'in:sd,smp,sma,cpns'],
-            'type' => ['required', 'string', 'in:tryout,bimbel'],
+            'level' => ['required', 'string', 'in:sd,smp,sma,cpns,umum'],
+            'type' => ['required', 'string', 'in:tryout,bimbel,bootcamp'],
             'price' => ['required', 'integer', 'min:0'],
             'active' => ['sometimes', 'boolean'],
         ];

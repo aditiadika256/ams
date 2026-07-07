@@ -112,7 +112,16 @@ api.interceptors.response.use(
 
     // Handle 422 Validation errors - Extract error messages
     if (error.response.status === 422 && error.response.data?.errors) {
-      return Promise.reject(error.response.data.errors);
+      const validationErrors = error.response.data.errors;
+      const firstError = Object.values(validationErrors)[0];
+      const detailMessage = Array.isArray(firstError) && firstError.length > 0
+        ? firstError[0]
+        : 'Validation failed';
+      
+      const customError = new Error(detailMessage) as any;
+      customError.errors = validationErrors;
+      customError.status = 422;
+      return Promise.reject(customError);
     }
 
     // Handle other HTTP errors
@@ -253,6 +262,12 @@ export const apiClient = {
 
   // Admin endpoints
   admin: {
+    branches: {
+      list: async () => {
+        const response = await api.get<ApiResponse<any[]>>('/admin/branches');
+        return response.data;
+      },
+    },
     users: {
       list: async (params?: { page?: number; limit?: number; search?: string; role?: string; branch_id?: number }) => {
         const response = await api.get<ApiResponse<any>>('/admin/users', { params });

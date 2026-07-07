@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { apiClient } from '@/lib/api';
 
 interface UserFormProps {
   initialData?: any;
@@ -21,8 +22,49 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
   const [name, setName] = useState(initialData?.name || '');
   const [email, setEmail] = useState(initialData?.email || '');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState(initialData?.roles && initialData.roles.length > 0 ? initialData.roles[0].name : 'user');
+  const [role, setRole] = useState(initialData?.roles && initialData.roles.length > 0 ? initialData.roles[0].name : '');
   const [branchId, setBranchId] = useState<string>(initialData?.branch?.id?.toString() || 'none');
+
+  const [roles, setRoles] = useState<any[]>([]);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    const loadMetadata = async () => {
+      try {
+        const [rolesRes, branchesRes] = await Promise.all([
+          apiClient.admin.roles.list(),
+          apiClient.admin.branches.list()
+        ]);
+        if (active) {
+          if (rolesRes.success && rolesRes.data) {
+            setRoles(rolesRes.data);
+          }
+          if (branchesRes.success && branchesRes.data) {
+            setBranches(branchesRes.data);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load roles or branches:', err);
+      } finally {
+        if (active) {
+          setIsLoadingMetadata(false);
+        }
+      }
+    };
+    loadMetadata();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!role && roles.length > 0) {
+      const defaultRole = roles.find(r => r.name === 'student') || roles[0];
+      setRole(defaultRole?.name || '');
+    }
+  }, [roles, role]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,28 +125,33 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="user-role">Role</Label>
-          <Select value={role} onValueChange={setRole}>
+          <Select value={role} onValueChange={setRole} disabled={isLoadingMetadata}>
             <SelectTrigger id="user-role" className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
-              <SelectValue placeholder="Pilih Role" />
+              <SelectValue placeholder={isLoadingMetadata ? "Loading roles..." : "Pilih Role"} />
             </SelectTrigger>
             <SelectContent className="border-slate-200 dark:border-white/10">
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="mentor">Mentor</SelectItem>
-              <SelectItem value="user">User</SelectItem>
+              {roles.map((r) => (
+                <SelectItem key={r.id} value={r.name}>
+                  {r.name.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="user-branch">Cabang / Branch</Label>
-          <Select value={branchId} onValueChange={setBranchId}>
+          <Select value={branchId} onValueChange={setBranchId} disabled={isLoadingMetadata}>
             <SelectTrigger id="user-branch" className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
-              <SelectValue placeholder="Pilih Cabang" />
+              <SelectValue placeholder={isLoadingMetadata ? "Loading branches..." : "Pilih Cabang"} />
             </SelectTrigger>
             <SelectContent className="border-slate-200 dark:border-white/10">
               <SelectItem value="none">Tidak Ada</SelectItem>
-              <SelectItem value="1">Cabang Utama</SelectItem>
-              <SelectItem value="2">Cabang Pembantu</SelectItem>
+              {branches.map((b) => (
+                <SelectItem key={b.id} value={b.id.toString()}>
+                  {b.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -114,7 +161,7 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
         <Button type="button" variant="outline" onClick={onCancel} className="border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5">
           Batal
         </Button>
-        <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button type="submit" disabled={isLoading || isLoadingMetadata} className="bg-primary hover:bg-primary/90 text-primary-foreground">
           {isLoading ? 'Menyimpan...' : 'Simpan User'}
         </Button>
       </div>

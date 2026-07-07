@@ -10,8 +10,8 @@ class ProgramUpdateRequest extends BaseFormRequest
     {
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'level' => ['sometimes', 'string', 'in:sd,smp,sma,cpns'],
-            'type' => ['sometimes', 'string', 'in:tryout,bimbel'],
+            'level' => ['sometimes', 'string', 'in:sd,smp,sma,cpns,umum'],
+            'type' => ['sometimes', 'string', 'in:tryout,bimbel,bootcamp'],
             'price' => ['sometimes', 'integer', 'min:0'],
             'active' => ['sometimes', 'boolean'],
         ];
