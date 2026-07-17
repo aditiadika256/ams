@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { apiClient } from '@/lib/api';
 import { Mentor } from '@/store/useLearningStore';
 
 interface MentorFormProps {
@@ -12,37 +14,111 @@ interface MentorFormProps {
 }
 
 export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: MentorFormProps) {
+  const [users, setUsers] = useState<{ id: number; name: string; email: string }[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState(initialData?.user_id?.toString() || '');
   const [name, setName] = useState(initialData?.user?.name || '');
   const [email, setEmail] = useState(initialData?.user?.email || '');
   const [specialization, setSpecialization] = useState(initialData?.specialization || '');
   const [experienceYears, setExperienceYears] = useState(initialData?.experience_years ?? 0);
   const [bio, setBio] = useState(initialData?.bio || '');
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadUsers = async () => {
+      try {
+        setIsLoadingUsers(true);
+        const response = await apiClient.admin.users.list({ limit: 10, page: 1, fields: 'id,name,email' });
+        if (!active) return;
+
+        if (!response.success) {
+          return;
+        }
+
+        const responseData = response.data;
+        const usersData = Array.isArray(responseData)
+          ? responseData
+          : Array.isArray(responseData?.data)
+          ? responseData.data
+          : [];
+
+        setUsers(usersData);
+      } catch (error) {
+        console.error('Failed to load users:', error);
+      } finally {
+        if (active) {
+          setIsLoadingUsers(false);
+        }
+      }
+    };
+
+    loadUsers();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedUserId || users.length === 0) {
+      return;
+    }
+
+    const user = users.find((item) => item.id.toString() === selectedUserId);
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+    }
+  }, [selectedUserId, users]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
-      name,
-      email,
+
+    const payload: any = {
       specialization,
       experience_years: Number(experienceYears),
       bio,
-      is_active: isActive
-    });
+      is_active: isActive,
+    };
+
+    if (selectedUserId) {
+      payload.user_id = Number(selectedUserId);
+    } else {
+      payload.name = name;
+      payload.email = email;
+    }
+
+    onSubmit(payload);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 py-4">
       <div className="space-y-2">
         <Label htmlFor="mentor-name">Nama Lengkap</Label>
-        <Input
-          id="mentor-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          placeholder="Masukkan nama lengkap"
-          className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
-        />
+        <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+          <SelectTrigger id="mentor-name" className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
+            <SelectValue placeholder={isLoadingUsers ? 'Loading users...' : 'Pilih user'} />
+          </SelectTrigger>
+          <SelectContent className="border-slate-200 dark:border-white/10">
+            {isLoadingUsers ? (
+              <SelectItem value="loading" disabled className="cursor-not-allowed opacity-50">
+                Memuat user...
+              </SelectItem>
+            ) : users.length === 0 ? (
+              <SelectItem value="none" disabled className="cursor-default opacity-50">
+                Tidak ada user tersedia
+              </SelectItem>
+            ) : (
+              users.map((user) => (
+                <SelectItem key={user.id} value={user.id.toString()}>
+                  {user.name}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="space-y-2">
@@ -54,6 +130,7 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="mentor@arkanin.id"
+          readOnly={Boolean(selectedUserId)}
           className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
         />
       </div>
