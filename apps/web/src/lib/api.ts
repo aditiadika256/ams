@@ -269,7 +269,7 @@ export const apiClient = {
       },
     },
     users: {
-      list: async (params?: { page?: number; limit?: number; search?: string; role?: string; branch_id?: number }) => {
+      list: async (params?: { page?: number; limit?: number; search?: string; role?: string; branch_id?: number; fields?: string }) => {
         const response = await api.get<ApiResponse<any>>('/admin/users', { params });
         return response.data;
       },
