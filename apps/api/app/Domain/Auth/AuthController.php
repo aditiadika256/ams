@@ -58,7 +58,7 @@ class AuthController extends Controller
                                         new OA\Property(property: 'id', type: 'integer', example: 1),
                                         new OA\Property(property: 'name', type: 'string', example: 'John Doe'),
                                         new OA\Property(property: 'email', type: 'string', format: 'email', example: 'john@example.com'),
-                                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'), example: ['student']),
+                                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'), example: ['member']),
                                     ]
                                 ),
                                 new OA\Property(property: 'token', type: 'string', example: '1|abc123...'),
@@ -81,7 +81,7 @@ class AuthController extends Controller
             ]);
 
             // Assign default role
-            $user->assignRole('student');
+            $user->assignRole('member');
 
             $issuedToken = $this->issueToken($user);
 
@@ -278,7 +278,7 @@ class AuthController extends Controller
 
                 // Assign default role if new user
                 if ($user->wasRecentlyCreated) {
-                    $user->assignRole('student');
+                    $user->assignRole('member');
                 }
 
                 return $this->issueToken($user);
