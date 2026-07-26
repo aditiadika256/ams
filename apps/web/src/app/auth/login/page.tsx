@@ -36,7 +36,7 @@ export default function LoginPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('reason') === 'session_expired') {
-        useAuthStore.setState({ error: 'Sesi Anda telah berakhir karena tidak ada aktivitas.' });
+        useAuthStore.setState({ error: 'Sesi Anda telah berakhir. Silakan login kembali.' });
         // Clear query parameters
         router.replace('/auth/login');
       }

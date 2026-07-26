@@ -3,11 +3,17 @@ import { ApiResponse, User, RegisterData } from '../types/auth';
 import { Program, Order, CreateOrderPayload } from '../types/sales';
 import { ExamSession, Question, ExamResult } from '../types/cbt';
 import { Menu } from '../types/system';
+import { ColorPalette, ColorPaletteFormData } from '../types/theme';
+import { clearBrowserSession } from './session';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Normalize API URL (remove trailing slash if exists)
 const normalizedApiUrl = API_URL.replace(/\/$/, '');
+
+type ApiErrorResponse = ApiResponse & {
+  error?: string;
+};
 
 // Create axios instance
 export const api: AxiosInstance = axios.create({
@@ -69,7 +75,7 @@ api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error: AxiosError<ApiResponse>) => {
+  (error: AxiosError<ApiErrorResponse>) => {
     // Handle network errors (no response from server)
     if (!error.response) {
       let message = 'Network error: Unable to connect to server';
@@ -102,10 +108,11 @@ api.interceptors.response.use(
         localStorage.removeItem('auth-storage');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        clearBrowserSession();
 
         // Only redirect if not already on login page
         if (window.location.pathname !== '/auth/login') {
-          window.location.href = '/auth/login';
+          window.location.href = '/auth/login?reason=session_expired';
         }
       }
     }
@@ -114,9 +121,9 @@ api.interceptors.response.use(
     if (error.response.status === 422 && error.response.data?.errors) {
       const validationErrors = error.response.data.errors;
       const firstError = Object.values(validationErrors)[0];
-      const detailMessage = Array.isArray(firstError) && firstError.length > 0
+      const detailMessage = Array.isArray(firstError)
         ? firstError[0]
-        : 'Validation failed';
+        : firstError || error.response.data.message || 'Validation failed';
       
       const customError = new Error(detailMessage) as any;
       customError.errors = validationErrors;
@@ -125,8 +132,14 @@ api.interceptors.response.use(
     }
 
     // Handle other HTTP errors
-    const message = error.response.data?.message || error.message || 'An error occurred';
-    return Promise.reject(new Error(message));
+    const message =
+      error.response.data?.message ||
+      error.response.data?.error ||
+      error.message ||
+      `API request failed with status ${error.response.status}`;
+    const requestError = new Error(message) as Error & { status?: number };
+    requestError.status = error.response.status;
+    return Promise.reject(requestError);
   }
 );
 
@@ -135,12 +148,20 @@ export const apiClient = {
   // Auth endpoints
   auth: {
     login: async (credentials: { email: string; password: string }) => {
-      const response = await api.post<ApiResponse<{ user: User; token: string }>>('/auth/login', credentials);
+      const response = await api.post<ApiResponse<{
+        user: User;
+        token: string;
+        expires_at?: string | null;
+      }>>('/auth/login', credentials);
       return response.data;
     },
 
     register: async (data: RegisterData) => {
-      const response = await api.post<ApiResponse<{ user: User; token: string }>>('/auth/register', data);
+      const response = await api.post<ApiResponse<{
+        user: User;
+        token: string;
+        expires_at?: string | null;
+      }>>('/auth/register', data);
       return response.data;
     },
 
@@ -183,8 +204,7 @@ export const apiClient = {
     },
 
     deleteProgram: async (id: number | string) => {
-      const response = await api.delete<ApiResponse<any>>(`/programs/${id}`);
-      return response.data;
+      await api.delete(`/programs/${id}`);
     },
 
     getOrders: async (params?: any) => {
@@ -257,6 +277,102 @@ export const apiClient = {
     get: async (params?: { layout?: 'users' | 'admin'; section?: 'topbar' | 'bottomnavigation' | 'sidebar' | 'header' }) => {
       const response = await deduplicatedGet<ApiResponse<Menu[]>>('/menus', { params });
       return response.data;
+    },
+  },
+
+  // CMS endpoints
+  cms: {
+    posts: {
+      list: async (params?: { page?: number; limit?: number; search?: string; status?: string }) => {
+        const response = await api.get<ApiResponse<any>>('/cms/posts', { params });
+        return response.data;
+      },
+      remove: async (id: number) => {
+        const response = await api.delete<ApiResponse<null>>(`/cms/posts/${id}`);
+        return response.data;
+      },
+    },
+    pages: {
+      remove: async (id: number) => {
+        const response = await api.delete<ApiResponse<null>>(`/cms/pages/${id}`);
+        return response.data;
+      },
+    },
+  },
+
+  // Learning endpoints
+  learning: {
+    mentors: {
+      remove: async (id: number) => {
+        const response = await api.delete(`/learning/mentors/${id}`);
+        return response.data;
+      },
+    },
+    schedules: {
+      remove: async (mentorId: number, scheduleId: number) => {
+        const response = await api.delete(`/learning/mentors/${mentorId}/schedules/${scheduleId}`);
+        return response.data;
+      },
+    },
+    curriculum: {
+      modules: {
+        remove: async (id: number) => {
+          const response = await api.delete(`/learning/modules/${id}`);
+          return response.data;
+        },
+      },
+      lessons: {
+        remove: async (id: number) => {
+          const response = await api.delete(`/learning/lessons/${id}`);
+          return response.data;
+        },
+      },
+    },
+  },
+
+  // Finance endpoints
+  finance: {
+    transactions: {
+      remove: async (id: number) => {
+        const response = await api.delete(`/finance/transactions/${id}`);
+        return response.data;
+      },
+    },
+    invoices: {
+      remove: async (id: number) => {
+        const response = await api.delete(`/finance/invoices/${id}`);
+        return response.data;
+      },
+    },
+  },
+
+  // Theme endpoints
+  theme: {
+    palettes: {
+      list: async () => {
+        const response = await api.get<ColorPalette[]>('/admin/theme/palettes');
+        return response.data;
+      },
+      active: async () => {
+        const response = await api.get<ColorPalette>('/theme/palettes/active');
+        return response.data;
+      },
+      create: async (payload: ColorPaletteFormData) => {
+        const response = await api.post<ColorPalette>('/admin/theme/palettes', payload);
+        return response.data;
+      },
+      update: async (id: number, payload: ColorPaletteFormData) => {
+        const response = await api.put<ColorPalette>(`/admin/theme/palettes/${id}`, payload);
+        return response.data;
+      },
+      setDefault: async (id: number) => {
+        const response = await api.post<ColorPalette>(`/admin/theme/palettes/${id}/default`);
+        return response.data;
+      },
+      remove: async (id: number) => {
+        const response = await api.delete(`/admin/theme/palettes/${id}`);
+        return response.data;
+      },
     },
   },
 
