@@ -131,4 +131,19 @@ class InvoiceController extends Controller
 
         return response()->json($invoice);
     }
+
+    /**
+     * Delete an invoice.
+     *
+     * Route::apiResource already exposes DELETE /finance/invoices/{invoice};
+     * this action keeps that route from resolving to a missing controller
+     * method and returns the same no-content contract used by the other
+     * destructive endpoints.
+     */
+    public function destroy(Invoice $invoice)
+    {
+        $invoice->delete();
+
+        return response()->noContent();
+    }
 }

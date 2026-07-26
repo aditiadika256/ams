@@ -23,7 +23,7 @@ export interface DarkColorOverrides {
 }
 
 export interface ColorPalette {
-  id: string;
+  id: number;
   name: string;
   primary: string;
   secondary: string;

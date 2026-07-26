@@ -1,137 +1,213 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/useAuthStore';
 import { apiClient } from '@/lib/api';
+import {
+  readBrowserSession,
+  SESSION_CONFIG,
+  SESSION_STORAGE_KEYS,
+  startBrowserSession,
+  touchBrowserSession,
+} from '@/lib/session';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, Clock, LogOut, ShieldAlert } from 'lucide-react';
+import { Clock, LogOut, ShieldAlert } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/animated-button';
 
 interface IdleTimerProviderProps {
   children: React.ReactNode;
 }
 
-export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({ children }) => {
-  const { isAuthenticated, logout } = useAuthStore();
+const ACTIVITY_WRITE_THROTTLE_MS = 5_000;
+
+export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
+  children,
+}) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
+  const clearLocalSession = useAuthStore((state) => state.clearLocalSession);
   const pathname = usePathname();
   const router = useRouter();
 
   const [showWarning, setShowWarning] = useState(false);
-  const [countdown, setCountdown] = useState(120); // 2 minutes in seconds
+  const [countdown, setCountdown] = useState(
+    Math.ceil(SESSION_CONFIG.warningBeforeMs / 1000),
+  );
 
-  const lastActiveTimeRef = useRef<number>(Date.now());
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const warningVisibleRef = useRef(false);
+  const lastActivityWriteRef = useRef(0);
+  const logoutInProgressRef = useRef(false);
 
-  // Configure timeouts: 120 minutes on exam session, 30 minutes on other pages
   const isExamPage = pathname?.startsWith('/exams/session');
-  const IDLE_TIMEOUT = isExamPage ? 120 * 60 * 1000 : 30 * 60 * 1000;
-  const WARNING_BEFORE = 2 * 60 * 1000; // Show warning 2 minutes before logout
+  const idleTimeoutMs = isExamPage
+    ? SESSION_CONFIG.examIdleTimeoutMs
+    : SESSION_CONFIG.idleTimeoutMs;
 
-  const resetActivity = () => {
-    lastActiveTimeRef.current = Date.now();
-    if (showWarning) {
-      setShowWarning(false);
-      setCountdown(120);
-    }
-  };
-
-  const handleStayLoggedIn = async () => {
-    resetActivity();
-    try {
-      // Fetch profile to update "last_used_at" for token on backend
-      await apiClient.auth.me();
-    } catch (err) {
-      console.error('Failed to keep backend session alive:', err);
-    }
-  };
-
-  const handleLogout = async () => {
-    setShowWarning(false);
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-    
-    await logout();
-    router.push('/auth/login?reason=session_expired');
-  };
-
-  // Activity listeners
   useEffect(() => {
-    if (!isAuthenticated) return;
+    warningVisibleRef.current = showWarning;
+  }, [showWarning]);
 
-    const events = ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart'];
-    
-    const activityHandler = () => {
-      // Only reset activity if we're not currently showing the warning modal
-      if (!showWarning) {
-        resetActivity();
-      }
-    };
+  const redirectToExpiredLogin = useCallback(() => {
+    router.replace('/auth/login?reason=session_expired');
+  }, [router]);
 
-    events.forEach((event) => {
-      window.addEventListener(event, activityHandler);
-    });
+  const handleLogout = useCallback(async () => {
+    if (logoutInProgressRef.current) return;
 
-    return () => {
-      events.forEach((event) => {
-        window.removeEventListener(event, activityHandler);
-      });
-    };
-  }, [isAuthenticated, showWarning]);
+    logoutInProgressRef.current = true;
+    warningVisibleRef.current = false;
+    setShowWarning(false);
 
-  // Main inactivity timer checker (runs every second)
+    await logout();
+    redirectToExpiredLogin();
+  }, [logout, redirectToExpiredLogin]);
+
+  const handleStayLoggedIn = useCallback(async () => {
+    try {
+      // Validate that the database-backed Sanctum token is still valid.
+      await apiClient.auth.me();
+      const now = Date.now();
+      touchBrowserSession(now);
+      lastActivityWriteRef.current = now;
+      warningVisibleRef.current = false;
+      setShowWarning(false);
+    } catch (error) {
+      console.error('Failed to validate the current session:', error);
+      clearLocalSession();
+      redirectToExpiredLogin();
+    }
+  }, [clearLocalSession, redirectToExpiredLogin]);
+
   useEffect(() => {
     if (!isAuthenticated) {
+      warningVisibleRef.current = false;
+      logoutInProgressRef.current = false;
       setShowWarning(false);
       return;
     }
 
-    timerIntervalRef.current = setInterval(() => {
+    const existingSession = readBrowserSession();
+    const initialSession = existingSession ?? startBrowserSession();
+    lastActivityWriteRef.current = initialSession.lastActivityAt;
+    logoutInProgressRef.current = false;
+
+    const recordActivity = () => {
+      if (warningVisibleRef.current || logoutInProgressRef.current) return;
+
       const now = Date.now();
-      const elapsed = now - lastActiveTimeRef.current;
-      const warningThreshold = IDLE_TIMEOUT - WARNING_BEFORE;
+      if (now - lastActivityWriteRef.current < ACTIVITY_WRITE_THROTTLE_MS) {
+        return;
+      }
 
-      if (elapsed >= IDLE_TIMEOUT) {
-        // Log out immediately
-        handleLogout();
-      } else if (elapsed >= warningThreshold && !showWarning) {
-        // Show warning modal
+      lastActivityWriteRef.current = now;
+      touchBrowserSession(now);
+    };
+
+    const checkSession = () => {
+      if (logoutInProgressRef.current) return;
+
+      const session = readBrowserSession();
+      if (!session) {
+        clearLocalSession();
+        redirectToExpiredLogin();
+        return;
+      }
+
+      const now = Date.now();
+      const idleExpiresAt = session.lastActivityAt + idleTimeoutMs;
+      const effectiveExpiresAt = Math.min(idleExpiresAt, session.expiresAt);
+      const remainingMs = effectiveExpiresAt - now;
+
+      if (remainingMs <= 0) {
+        void handleLogout();
+        return;
+      }
+
+      if (remainingMs <= SESSION_CONFIG.warningBeforeMs) {
+        warningVisibleRef.current = true;
         setShowWarning(true);
-        // Calculate remaining seconds exactly
-        const remainingSeconds = Math.max(0, Math.ceil((IDLE_TIMEOUT - elapsed) / 1000));
-        setCountdown(remainingSeconds);
+        setCountdown(Math.max(1, Math.ceil(remainingMs / 1000)));
+      } else if (warningVisibleRef.current) {
+        // Activity in another tab can also dismiss this warning.
+        warningVisibleRef.current = false;
+        setShowWarning(false);
       }
-    }, 1000);
-
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     };
-  }, [isAuthenticated, IDLE_TIMEOUT, showWarning]);
 
-  // Countdown timer (runs when warning modal is active)
-  useEffect(() => {
-    if (showWarning) {
-      countdownIntervalRef.current = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(countdownIntervalRef.current!);
-            handleLogout();
-            return 0;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkSession();
+      }
+    };
+
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'auth-storage') {
+        let authenticatedInStorage = false;
+
+        if (event.newValue) {
+          try {
+            authenticatedInStorage =
+              JSON.parse(event.newValue)?.state?.isAuthenticated === true;
+          } catch {
+            authenticatedInStorage = false;
           }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (countdownIntervalRef.current) {
-        clearInterval(countdownIntervalRef.current);
+        }
+
+        if (!authenticatedInStorage) {
+          // A different tab logged out. Force a reload so Zustand rehydrates
+          // from the shared, cleared localStorage state without write loops.
+          window.location.replace('/auth/login?reason=session_expired');
+        }
+        return;
       }
-    }
+
+      if (
+        event.key &&
+        Object.values(SESSION_STORAGE_KEYS).includes(
+          event.key as (typeof SESSION_STORAGE_KEYS)[keyof typeof SESSION_STORAGE_KEYS],
+        )
+      ) {
+        if (!event.newValue) {
+          window.location.replace('/auth/login?reason=session_expired');
+          return;
+        }
+        checkSession();
+      }
+    };
+
+    const activityEvents: Array<keyof WindowEventMap> = [
+      'mousemove',
+      'mousedown',
+      'keydown',
+      'scroll',
+      'touchstart',
+    ];
+
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, recordActivity, { passive: true });
+    });
+    window.addEventListener('storage', handleStorageChange);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    const checker = window.setInterval(checkSession, 1_000);
+    checkSession();
 
     return () => {
-      if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+      window.clearInterval(checker);
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, recordActivity);
+      });
+      window.removeEventListener('storage', handleStorageChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [showWarning]);
+  }, [
+    clearLocalSession,
+    handleLogout,
+    idleTimeoutMs,
+    isAuthenticated,
+    redirectToExpiredLogin,
+  ]);
 
   const formatCountdown = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -146,7 +222,6 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({ children }
       <AnimatePresence>
         {showWarning && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -155,50 +230,46 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({ children }
               onClick={handleStayLoggedIn}
             />
 
-            {/* Modal Container */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border/80 bg-card/90 p-6 shadow-2xl backdrop-blur-xl"
             >
-              <div className="flex flex-col items-center text-center space-y-4">
-                {/* Warning icon with pulsing animation */}
+              <div className="flex flex-col items-center space-y-4 text-center">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-yellow-500/20 animate-ping" />
-                  <div className="relative h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center border border-yellow-500/30 text-yellow-500">
+                  <div className="absolute inset-0 animate-ping rounded-full bg-yellow-500/20" />
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-full border border-yellow-500/30 bg-yellow-500/10 text-yellow-500">
                     <ShieldAlert className="h-6 w-6" />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <h3 className="text-xl font-bold tracking-tight text-foreground">
-                    Apakah Anda masih di sini? 🤔
+                    Apakah Anda masih di sini?
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Anda sudah tidak aktif untuk beberapa waktu. Untuk alasan keamanan, Anda akan keluar secara otomatis dalam:
+                    Untuk keamanan akun, sesi Anda akan berakhir otomatis dalam:
                   </p>
                 </div>
 
-                {/* Big Countdown Timer */}
-                <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-yellow-500 font-mono font-bold text-2xl">
+                <div className="flex items-center gap-2 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-4 py-2 font-mono text-2xl font-bold text-yellow-500">
                   <Clock className="h-5 w-5 animate-pulse" />
                   {formatCountdown(countdown)}
                 </div>
 
                 {isExamPage && (
-                  <p className="text-xs text-muted-foreground/80 italic">
-                    * Waktu idle diperpanjang selama sesi ujian aktif untuk menghindari pemutusan hubungan yang tidak disengaja.
+                  <p className="text-xs italic text-muted-foreground/80">
+                    Waktu idle diperpanjang selama sesi ujian aktif.
                   </p>
                 )}
 
-                {/* Actions */}
-                <div className="flex flex-col sm:flex-row gap-2 w-full pt-4">
+                <div className="flex w-full flex-col gap-2 pt-4 sm:flex-row">
                   <AnimatedButton
                     type="button"
                     variant="default"
                     onClick={handleStayLoggedIn}
-                    className="flex-1 order-1 sm:order-2"
+                    className="order-1 flex-1 sm:order-2"
                   >
                     Tetap Masuk
                   </AnimatedButton>
@@ -206,7 +277,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({ children }
                     type="button"
                     variant="outline"
                     onClick={handleLogout}
-                    className="flex-1 border-border/80 hover:bg-destructive/10 hover:text-destructive order-2 sm:order-1 gap-2"
+                    className="order-2 flex-1 gap-2 border-border/80 hover:bg-destructive/10 hover:text-destructive sm:order-1"
                   >
                     <LogOut className="h-4 w-4" /> Keluar
                   </AnimatedButton>

@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Http\Middleware\HandleCors;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -28,6 +30,20 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (QueryException $exception, Request $request) {
+            $isConnectionError = str_contains(
+                $exception->getMessage(),
+                'SQLSTATE[08'
+            );
+
+            if ($isConnectionError && $request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Layanan database sedang tidak tersedia. Silakan coba lagi.',
+                ], 503);
+            }
+
+            return null;
+        });
     })
     ->create();

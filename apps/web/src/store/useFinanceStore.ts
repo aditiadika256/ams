@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { api } from '@/lib/api';
+import { api, apiClient } from '@/lib/api';
 
 export interface Transaction {
   id: number;
@@ -55,6 +55,7 @@ interface FinanceState {
   fetchInvoices: (params?: any) => Promise<void>;
   createInvoice: (data: any) => Promise<void>;
   updateInvoice: (id: number, data: any) => Promise<void>;
+  deleteInvoice: (id: number) => Promise<void>;
 }
 
 export const useFinanceStore = create<FinanceState>((set) => ({
@@ -107,7 +108,7 @@ export const useFinanceStore = create<FinanceState>((set) => ({
   deleteTransaction: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      await api.delete(`/finance/transactions/${id}`);
+      await apiClient.finance.transactions.remove(id);
       await useFinanceStore.getState().fetchTransactions();
       await useFinanceStore.getState().fetchStats();
     } catch (error: any) {
@@ -156,6 +157,19 @@ export const useFinanceStore = create<FinanceState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await api.put(`/finance/invoices/${id}`, data);
+      await useFinanceStore.getState().fetchInvoices();
+    } catch (error: any) {
+      set({ error: error.message });
+      throw error;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  deleteInvoice: async (id) => {
+    set({ isLoading: true, error: null });
+    try {
+      await apiClient.finance.invoices.remove(id);
       await useFinanceStore.getState().fetchInvoices();
     } catch (error: any) {
       set({ error: error.message });

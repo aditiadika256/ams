@@ -4,7 +4,8 @@
 
 ### Get All Palettes
 ```
-GET /api/v1/theme/palettes
+GET /api/v1/admin/theme/palettes
+Authorization: Bearer {token}
 ```
 Returns all color palettes.
 
@@ -16,7 +17,8 @@ Returns the currently active/default palette.
 
 ### Create Palette
 ```
-POST /api/v1/theme/palettes
+POST /api/v1/admin/theme/palettes
+Authorization: Bearer {token}
 Content-Type: application/json
 
 {
@@ -45,7 +47,8 @@ Content-Type: application/json
 
 ### Update Palette
 ```
-PUT /api/v1/theme/palettes/{id}
+PUT /api/v1/admin/theme/palettes/{id}
+Authorization: Bearer {token}
 Content-Type: application/json
 
 {
@@ -54,16 +57,37 @@ Content-Type: application/json
 }
 ```
 
+`{id}` must be the numeric ID returned by the list endpoint. The frontend must
+use `PUT` only when an existing palette ID is present; creation always uses
+`POST`. An unknown ID returns `404` and never creates a replacement record.
+
 ### Set Default Palette
 ```
-POST /api/v1/theme/palettes/{id}/default
+POST /api/v1/admin/theme/palettes/{id}/default
+Authorization: Bearer {token}
 ```
 Sets the specified palette as the active default.
 
 ### Delete Palette
 ```
-DELETE /api/v1/theme/palettes/{id}
+DELETE /api/v1/admin/theme/palettes/{id}
+Authorization: Bearer {token}
 ```
+
+## Automatic Font Contrast
+
+The web client calculates foreground colors using the WCAG relative luminance
+formula. A configured foreground is retained when its contrast ratio is at
+least `4.5:1`; otherwise the client selects black or white, whichever has the
+higher contrast ratio.
+
+This applies to:
+
+- application background and foreground;
+- card and card foreground;
+- popover and popover foreground;
+- primary, secondary, destructive, muted, and accent component foregrounds;
+- both light-mode and dark-mode palettes.
 
 ## Database Schema (Laravel)
 

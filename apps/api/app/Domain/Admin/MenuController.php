@@ -190,6 +190,8 @@ class MenuController extends Controller
 
     protected function flushCaches(): void
     {
+        Cache::forget('menus:tree');
+
         foreach (['users:topbar', 'users:bottomnavigation', 'admin:sidebar', 'admin:header'] as $suffix) {
             Cache::forget("menus:{$suffix}");
         }
