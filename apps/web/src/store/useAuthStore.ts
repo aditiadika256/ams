@@ -2,6 +2,20 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { User, LoginCredentials, RegisterData } from '../types/auth';
 import { apiClient } from '../lib/api';
+import {
+  clearBrowserSession,
+  readBrowserSession,
+  startBrowserSession,
+} from '../lib/session';
+
+function clearStoredAuth(): void {
+  if (typeof window === 'undefined') return;
+
+  localStorage.removeItem('auth-storage');
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  clearBrowserSession();
+}
 
 interface AuthState {
   user: User | null;
@@ -13,8 +27,9 @@ interface AuthState {
   // Actions
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
-  handleGoogleCallback: (token: string) => Promise<void>;
+  handleGoogleCallback: (token: string, expiresAt?: string | null) => Promise<void>;
   logout: () => Promise<void>;
+  clearLocalSession: () => void;
   fetchUser: () => Promise<void>;
   clearError: () => void;
 
@@ -58,11 +73,12 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiClient.auth.login(credentials);
 
           if (response.success && response.data) {
-            const { user, token } = response.data;
+            const { user, token, expires_at: expiresAt } = response.data;
 
             // Store token in localStorage (will be handled by persist middleware)
             if (typeof window !== 'undefined') {
               localStorage.setItem('token', token);
+              startBrowserSession(expiresAt);
             }
 
             set({
@@ -104,10 +120,11 @@ export const useAuthStore = create<AuthState>()(
           const response = await apiClient.auth.register(data);
 
           if (response.success && response.data) {
-            const { user, token } = response.data;
+            const { user, token, expires_at: expiresAt } = response.data;
 
             if (typeof window !== 'undefined') {
               localStorage.setItem('token', token);
+              startBrowserSession(expiresAt);
             }
 
             set({
@@ -141,12 +158,13 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      handleGoogleCallback: async (token: string) => {
+      handleGoogleCallback: async (token: string, expiresAt?: string | null) => {
         set({ isLoading: true, error: null });
         try {
           // Persist the token received from the OAuth redirect
           if (typeof window !== 'undefined') {
             localStorage.setItem('token', token);
+            startBrowserSession(expiresAt);
           }
           set({ token });
 
@@ -166,7 +184,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           // Clean up on failure
           if (typeof window !== 'undefined') {
-            localStorage.removeItem('token');
+            clearStoredAuth();
           }
 
           set({
@@ -192,11 +210,7 @@ export const useAuthStore = create<AuthState>()(
           console.error('Logout error:', error);
         } finally {
           // Clear state and localStorage
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('auth-storage');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-          }
+          clearStoredAuth();
 
           set({
             user: null,
@@ -208,10 +222,29 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      clearLocalSession: () => {
+        clearStoredAuth();
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
+      },
+
       fetchUser: async () => {
         const { token } = get();
 
         if (!token) {
+          clearStoredAuth();
+          set({ isAuthenticated: false, user: null });
+          return;
+        }
+
+        const browserSession = readBrowserSession() ?? startBrowserSession();
+        if (Date.now() >= browserSession.expiresAt) {
+          clearStoredAuth();
           set({ isAuthenticated: false, user: null });
           return;
         }
@@ -231,9 +264,7 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (error: any) {
           // If fetch fails, clear auth state
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('token');
-          }
+          clearStoredAuth();
 
           set({
             user: null,

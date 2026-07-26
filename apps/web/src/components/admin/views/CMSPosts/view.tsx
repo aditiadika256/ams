@@ -11,13 +11,15 @@ import { motion } from 'framer-motion';
 import { CMSPostForm } from './form';
 import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { apiClient } from '@/lib/api';
 
-const postsData = [
-  { id: 1, title: 'Getting Started with Arkanin', author: 'Admin', status: 'Published', date: '2023-12-01' },
-  { id: 2, title: 'New Features in v2.0', author: 'Admin', status: 'Draft', date: '2023-12-05' },
-  { id: 3, title: 'Best Practices for Learning', author: 'Editor', status: 'Published', date: '2023-12-10' },
-  { id: 4, title: 'Community Guidelines', author: 'Admin', status: 'Published', date: '2023-12-15' },
-];
+type PostListItem = {
+  id: number;
+  title: string;
+  author: string;
+  status: string;
+  date: string;
+};
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -45,7 +47,7 @@ export default function CMSPostsView() {
   const [view, setView] = useState<'list' | 'editor'>('list');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [posts, setPosts] = useState(postsData);
+  const [posts, setPosts] = useState<PostListItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [page, setPage] = useState(1);
   const perPage = 5;
@@ -61,6 +63,26 @@ export default function CMSPostsView() {
 
   const paginatedPosts = filteredPosts.slice((page - 1) * perPage, page * perPage);
 
+  const loadPosts = async () => {
+    try {
+      const response = await apiClient.cms.posts.list({ limit: 100 });
+      const records = response.data?.data ?? [];
+      setPosts(records.map((post: any) => ({
+        id: post.id,
+        title: post.title,
+        author: post.author?.name ?? 'Admin',
+        status: post.status.charAt(0).toUpperCase() + post.status.slice(1),
+        date: post.created_at,
+      })));
+    } catch (error) {
+      console.error('Failed to load posts:', error);
+    }
+  };
+
+  React.useEffect(() => {
+    void loadPosts();
+  }, []);
+
   const handleEdit = (id: number | null) => {
     setEditingId(id);
     setView('editor');
@@ -75,6 +97,18 @@ export default function CMSPostsView() {
       setPosts(prev => [...prev, { id: newId, title: data.title, author: 'Admin', status: data.status, date: today }]);
     }
     setView('list');
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus post ini?')) return;
+
+    try {
+      await apiClient.cms.posts.remove(id);
+      setPosts((currentPosts) => currentPosts.filter((post) => post.id !== id));
+    } catch (error: any) {
+      console.error('Failed to delete post:', error);
+      alert(error.message || 'Gagal menghapus post');
+    }
   };
 
   if (view === 'editor') {
@@ -183,7 +217,7 @@ export default function CMSPostsView() {
                             <Button variant="ghost" size="icon" onClick={() => handleEdit(post.id)} className="hover:bg-primary/20 hover:text-primary">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20">
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(post.id)} className="text-destructive hover:text-destructive-foreground hover:bg-destructive/20">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -210,7 +244,7 @@ export default function CMSPostsView() {
                           <Button variant="ghost" size="icon" onClick={() => handleEdit(post.id)} className="h-8 w-8 hover:bg-primary/20 hover:text-primary">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive-foreground hover:bg-destructive/20">
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(post.id)} className="h-8 w-8 text-destructive hover:text-destructive-foreground hover:bg-destructive/20">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

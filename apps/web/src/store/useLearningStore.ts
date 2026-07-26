@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import axios from '@/lib/api';
+import { api, apiClient } from '@/lib/api';
 
 export interface Mentor {
   id: number;
@@ -95,7 +95,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   fetchMentors: async () => {
     set({ isLoading: true, error: null });
     try {
-      const response = await axios.get('/learning/mentors');
+      const response = await api.get('/learning/mentors');
       set({ mentors: response.data.data });
     } catch (error: any) {
       set({ error: error.message });
@@ -107,7 +107,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   createMentor: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      await axios.post('/learning/mentors', data);
+      await api.post('/learning/mentors', data);
       await get().fetchMentors();
     } catch (error: any) {
       set({ error: error.message });
@@ -120,7 +120,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   updateMentor: async (id, data) => {
     set({ isLoading: true, error: null });
     try {
-      await axios.put(`/learning/mentors/${id}`, data);
+      await api.put(`/learning/mentors/${id}`, data);
       await get().fetchMentors();
     } catch (error: any) {
       set({ error: error.message });
@@ -133,7 +133,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   deleteMentor: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      await axios.delete(`/learning/mentors/${id}`);
+      await apiClient.learning.mentors.remove(id);
       await get().fetchMentors();
     } catch (error: any) {
       set({ error: error.message });
@@ -148,7 +148,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   fetchMentorSchedules: async (mentorId, params = {}) => {
     try {
-      const response = await axios.get(`/learning/mentors/${mentorId}/schedules`, { params });
+      const response = await api.get(`/learning/mentors/${mentorId}/schedules`, { params });
       set({ mentorSchedules: response.data });
       return response.data;
     } catch (error: any) {
@@ -159,7 +159,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   fetchStudentSchedules: async () => {
     try {
-      const response = await axios.get('/learning/schedules');
+      const response = await api.get('/learning/schedules');
       set({ studentSchedules: response.data });
       return response.data;
     } catch (error: any) {
@@ -170,7 +170,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   addSchedule: async (mentorId, data) => {
     try {
-      await axios.post(`/learning/mentors/${mentorId}/schedules`, data);
+      await api.post(`/learning/mentors/${mentorId}/schedules`, data);
       await get().fetchMentorSchedules(mentorId);
     } catch (error: any) {
       throw error;
@@ -179,7 +179,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   updateSchedule: async (mentorId, scheduleId, data) => {
     try {
-      await axios.put(`/learning/mentors/${mentorId}/schedules/${scheduleId}`, data);
+      await api.put(`/learning/mentors/${mentorId}/schedules/${scheduleId}`, data);
       await get().fetchMentorSchedules(mentorId);
     } catch (error: any) {
       throw error;
@@ -188,7 +188,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   deleteSchedule: async (mentorId, scheduleId) => {
     try {
-      await axios.delete(`/learning/mentors/${mentorId}/schedules/${scheduleId}`);
+      await apiClient.learning.schedules.remove(mentorId, scheduleId);
       await get().fetchMentorSchedules(mentorId);
     } catch (error: any) {
       throw error;
@@ -197,7 +197,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   fetchCurriculum: async (programId) => {
     try {
-      const response = await axios.get(`/learning/programs/${programId}/curriculum`);
+      const response = await api.get(`/learning/programs/${programId}/curriculum`);
       return response.data;
     } catch (error: any) {
       console.error(error);
@@ -207,7 +207,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   createModule: async (programId, data) => {
     try {
-      await axios.post(`/learning/programs/${programId}/modules`, data);
+      await api.post(`/learning/programs/${programId}/modules`, data);
     } catch (error: any) {
       throw error;
     }
@@ -215,7 +215,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   updateModule: async (moduleId, data) => {
     try {
-      await axios.put(`/learning/modules/${moduleId}`, data);
+      await api.put(`/learning/modules/${moduleId}`, data);
     } catch (error: any) {
       throw error;
     }
@@ -223,7 +223,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   deleteModule: async (moduleId) => {
     try {
-      await axios.delete(`/learning/modules/${moduleId}`);
+      await apiClient.learning.curriculum.modules.remove(moduleId);
     } catch (error: any) {
       throw error;
     }
@@ -231,7 +231,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   createLesson: async (moduleId, data) => {
     try {
-      await axios.post(`/learning/modules/${moduleId}/lessons`, data);
+      await api.post(`/learning/modules/${moduleId}/lessons`, data);
     } catch (error: any) {
       throw error;
     }
@@ -239,7 +239,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   updateLesson: async (lessonId, data) => {
     try {
-      await axios.put(`/learning/lessons/${lessonId}`, data);
+      await api.put(`/learning/lessons/${lessonId}`, data);
     } catch (error: any) {
       throw error;
     }
@@ -247,7 +247,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   deleteLesson: async (lessonId) => {
     try {
-      await axios.delete(`/learning/lessons/${lessonId}`);
+      await apiClient.learning.curriculum.lessons.remove(lessonId);
     } catch (error: any) {
       throw error;
     }

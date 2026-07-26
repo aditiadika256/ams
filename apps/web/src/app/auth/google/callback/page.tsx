@@ -41,6 +41,7 @@ function GoogleCallbackInner() {
     hasProcessed.current = true;
 
     const token = searchParams.get('token');
+    const expiresAt = searchParams.get('expires_at');
     const error = searchParams.get('error');
 
     if (error) {
@@ -56,7 +57,7 @@ function GoogleCallbackInner() {
     }
 
     // Store the token and fetch the user
-    handleGoogleCallback(token)
+    handleGoogleCallback(token, expiresAt)
       .then(() => setStatus('success'))
       .catch((err: any) => {
         setStatus('error');

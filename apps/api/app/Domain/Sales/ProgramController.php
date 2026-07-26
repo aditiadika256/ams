@@ -11,6 +11,7 @@ use App\Models\Program;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -73,9 +74,10 @@ class ProgramController extends Controller
 
         // Use a simpler cache key for the common active-only query
         $isSimpleActiveQuery = count($filters) === 1 && isset($filters['active']) && $filters['active'];
+        $cacheVersion = Cache::get('programs:cache_version', 'initial');
         $cacheKey = $isSimpleActiveQuery
-            ? sprintf('programs:active:page:%d:per:%d', $page, $perPage)
-            : sprintf('programs:index:%s:page:%d:per:%d', md5(json_encode($filters)), $page, $perPage);
+            ? sprintf('programs:%s:active:page:%d:per:%d', $cacheVersion, $page, $perPage)
+            : sprintf('programs:%s:index:%s:page:%d:per:%d', $cacheVersion, md5(json_encode($filters)), $page, $perPage);
 
         $data = Cache::remember($cacheKey, 300, function () use ($query, $perPage) {
             $programs = $query->paginate($perPage);
@@ -141,6 +143,7 @@ class ProgramController extends Controller
         }
 
         $program = Program::create($data);
+        $this->invalidateIndexCache();
 
         return $this->createdResponse(
             new ProgramResource($program),
@@ -177,6 +180,7 @@ class ProgramController extends Controller
     public function update(ProgramUpdateRequest $request, Program $program): JsonResponse
     {
         $program->update($request->validated());
+        $this->invalidateIndexCache();
 
         return $this->successResponse(
             new ProgramResource($program),
@@ -200,8 +204,21 @@ class ProgramController extends Controller
     )]
     public function destroy(Program $program): JsonResponse
     {
+        if ($program->orderItems()->exists()) {
+            return $this->errorResponse(
+                'Program tidak dapat dihapus karena sudah digunakan dalam order.',
+                422
+            );
+        }
+
         $program->delete();
+        $this->invalidateIndexCache();
 
         return $this->noContentResponse();
+    }
+
+    private function invalidateIndexCache(): void
+    {
+        Cache::forever('programs:cache_version', Str::uuid()->toString());
     }
 }

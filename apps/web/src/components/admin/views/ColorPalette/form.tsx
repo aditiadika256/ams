@@ -6,10 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { ColorPaletteFormData, DarkColorOverrides } from '@/types/theme';
-
-interface EditingPalette extends ColorPaletteFormData {
-  id?: string;
-}
+import { getAccessibleTextColor } from '@/lib/theme-utils';
 
 const COLOR_FIELDS = [
   { key: 'primary', label: 'Primary' },
@@ -34,9 +31,9 @@ const COLOR_FIELDS = [
 ];
 
 interface ColorPaletteFormProps {
-  editingId: string | null;
-  formData: EditingPalette;
-  setFormData: React.Dispatch<React.SetStateAction<EditingPalette>>;
+  editingId: number | null;
+  formData: ColorPaletteFormData;
+  setFormData: React.Dispatch<React.SetStateAction<ColorPaletteFormData>>;
   showDarkColors: boolean;
   setShowDarkColors: (show: boolean) => void;
   darkFormData: DarkColorOverrides;
@@ -102,30 +99,46 @@ export function ColorPaletteForm({
           <Sun className="h-4 w-4 text-amber-500" />
           <h4 className="text-base font-semibold text-foreground">Light Mode Colors</h4>
         </div>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Font foreground is checked against WCAG AA contrast and automatically corrected when needed.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {COLOR_FIELDS.map((field) => (
-            <div key={field.key} className="space-y-2">
-              <Label htmlFor={field.key} className="text-sm font-medium">
-                {field.label}
-              </Label>
-              <div className="flex items-center gap-2">
-                <input
-                  id={field.key}
-                  type="color"
-                  value={(formData as Record<string, any>)[field.key] || '#000000'}
-                  onChange={(e) => handleColorChange(field.key, e.target.value)}
-                  className="w-12 h-10 rounded-md cursor-pointer border border-border/20"
-                />
-                <Input
-                  type="text"
-                  value={(formData as Record<string, any>)[field.key] || ''}
-                  onChange={(e) => handleColorChange(field.key, e.target.value)}
-                  className="flex-1 font-mono text-sm"
-                  placeholder="#000000"
-                />
+          {COLOR_FIELDS.map((field) => {
+            const color = (formData as Record<string, any>)[field.key] || '#000000';
+            return (
+              <div key={field.key} className="space-y-2">
+                <Label htmlFor={field.key} className="text-sm font-medium">
+                  {field.label}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id={field.key}
+                    type="color"
+                    value={color}
+                    onChange={(e) => handleColorChange(field.key, e.target.value)}
+                    className="w-12 h-10 rounded-md cursor-pointer border border-border/20"
+                  />
+                  <Input
+                    type="text"
+                    value={(formData as Record<string, any>)[field.key] || ''}
+                    onChange={(e) => handleColorChange(field.key, e.target.value)}
+                    className="flex-1 font-mono text-sm"
+                    placeholder="#000000"
+                  />
+                  <div
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border/20 text-xs font-bold"
+                    style={{
+                      backgroundColor: color,
+                      color: getAccessibleTextColor(color),
+                    }}
+                    title="Automatic contrasting font preview"
+                  >
+                    Aa
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -184,29 +197,44 @@ export function ColorPaletteForm({
                   </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {COLOR_FIELDS.map((field) => (
-                    <div key={`dark-${field.key}`} className="space-y-2">
-                      <Label htmlFor={`dark-${field.key}`} className="text-sm font-medium">
-                        {field.label}
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          id={`dark-${field.key}`}
-                          type="color"
-                          value={(darkFormData as Record<string, any>)[field.key] || (formData as Record<string, any>)[field.key] || '#000000'}
-                          onChange={(e) => handleDarkColorChange(field.key, e.target.value)}
-                          className="w-12 h-10 rounded-md cursor-pointer border border-border/20"
-                        />
-                        <Input
-                          type="text"
-                          value={(darkFormData as Record<string, any>)[field.key] || ''}
-                          onChange={(e) => handleDarkColorChange(field.key, e.target.value)}
-                          className="flex-1 font-mono text-sm"
-                          placeholder={`Auto (from light)`}
-                        />
+                  {COLOR_FIELDS.map((field) => {
+                    const color = (darkFormData as Record<string, any>)[field.key]
+                      || (formData as Record<string, any>)[field.key]
+                      || '#000000';
+                    return (
+                      <div key={`dark-${field.key}`} className="space-y-2">
+                        <Label htmlFor={`dark-${field.key}`} className="text-sm font-medium">
+                          {field.label}
+                        </Label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            id={`dark-${field.key}`}
+                            type="color"
+                            value={color}
+                            onChange={(e) => handleDarkColorChange(field.key, e.target.value)}
+                            className="w-12 h-10 rounded-md cursor-pointer border border-border/20"
+                          />
+                          <Input
+                            type="text"
+                            value={(darkFormData as Record<string, any>)[field.key] || ''}
+                            onChange={(e) => handleDarkColorChange(field.key, e.target.value)}
+                            className="flex-1 font-mono text-sm"
+                            placeholder={`Auto (from light)`}
+                          />
+                          <div
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border/20 text-xs font-bold"
+                            style={{
+                              backgroundColor: color,
+                              color: getAccessibleTextColor(color),
+                            }}
+                            title="Automatic contrasting font preview"
+                          >
+                            Aa
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </motion.div>

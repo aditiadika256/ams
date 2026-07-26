@@ -125,13 +125,13 @@ export const useSalesStore = create<SalesState>((set, get) => ({
   deleteProgram: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await apiClient.sales.deleteProgram(id);
-      if (response.success) {
-        set({ _programsFetchedAt: null }); // Force refetch
-        await get().fetchPrograms({ force: true });
-      } else {
-        throw new Error(response.message || 'Failed to delete program');
-      }
+      await apiClient.sales.deleteProgram(id);
+      set((state) => ({
+        programs: state.programs.filter((program) => program.id !== id),
+        currentProgram: state.currentProgram?.id === id ? null : state.currentProgram,
+        _programsFetchedAt: null,
+      }));
+      await get().fetchPrograms({ force: true });
     } catch (error: any) {
       set({ isLoading: false, error: error.message || 'Failed to delete program' });
       throw error;

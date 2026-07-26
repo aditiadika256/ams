@@ -13,6 +13,10 @@ import { Menu } from '@/types/system';
 import { motion } from 'framer-motion';
 import { MenuForm } from './form';
 
+function getErrorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -48,6 +52,7 @@ export default function MenuManagementView() {
     order: 0,
   });
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const loadMenus = async () => {
@@ -55,8 +60,9 @@ export default function MenuManagementView() {
     try {
       const res = await apiClient.admin.menus.list();
       setMenus(res.data || []);
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
+      window.alert(getErrorMessage(error, 'Gagal memuat daftar menu.'));
     } finally {
       setLoading(false);
     }
@@ -86,8 +92,9 @@ export default function MenuManagementView() {
       }
       resetForm();
       await loadMenus();
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
+      window.alert(getErrorMessage(error, 'Gagal menyimpan menu.'));
     }
   };
 
@@ -106,12 +113,18 @@ export default function MenuManagementView() {
   };
 
   const removeMenu = async (id: number) => {
+    if (deletingId !== null) return;
     if (!confirm('Hapus menu ini? Submenu akan ikut terhapus.')) return;
+
+    setDeletingId(id);
     try {
       await apiClient.admin.menus.remove(id);
       await loadMenus();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error(error);
+      window.alert(getErrorMessage(error, 'Gagal menghapus menu.'));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -192,7 +205,7 @@ export default function MenuManagementView() {
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => removeMenu(m.id)} className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20">
+                          <Button variant="destructive" size="sm" onClick={() => removeMenu(m.id)} disabled={deletingId !== null} className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20">
                             <Trash2 className="h-4 w-4 mr-1" />
                             Hapus
                           </Button>
@@ -222,7 +235,7 @@ export default function MenuManagementView() {
                                   <Edit className="h-3 w-3 mr-1" />
                                   Edit
                                 </Button>
-                                <Button variant="destructive" size="sm" onClick={() => removeMenu(c.id)} className="h-8 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20">
+                                <Button variant="destructive" size="sm" onClick={() => removeMenu(c.id)} disabled={deletingId !== null} className="h-8 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20">
                                   <Trash2 className="h-3 w-3 mr-1" />
                                   Hapus
                                 </Button>

@@ -1,4 +1,3 @@
-version: "3.8"
 services:
   postgres:
     image: postgres:15
@@ -11,6 +10,12 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edutech_user -d edutech"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
 
   redis:
     image: redis:7
@@ -53,7 +58,9 @@ services:
       DB_DATABASE: edutech
       DB_USERNAME: edutech_user
       DB_PASSWORD: secretpassword
-      REDIS_HOST: redis
+      CACHE_STORE: database
+      SESSION_DRIVER: database
+      SANCTUM_EXPIRATION: 240
       APP_ENV: production
       APP_DEBUG: false
       DEBUGBAR_ENABLED: false
@@ -61,8 +68,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
 
   web:
     image: node:20

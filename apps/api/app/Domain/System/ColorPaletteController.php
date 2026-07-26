@@ -236,7 +236,7 @@ class ColorPaletteController extends Controller
      *     @OA\Response(response=422, description="Validation error")
      * )
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(Request $request, int $id): JsonResponse
     {
         try {
             $palette = ColorPalette::findOrFail($id);
@@ -262,6 +262,26 @@ class ColorPaletteController extends Controller
                 'chartThree' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
                 'chartFour' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
                 'chartFive' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors' => 'sometimes|nullable|array',
+                'darkColors.primary' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.secondary' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.destructive' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.muted' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.accent' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.foreground' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.background' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.card' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.cardForeground' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.popover' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.popoverForeground' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.border' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.input' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.ring' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartOne' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartTwo' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartThree' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartFour' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
+                'darkColors.chartFive' => 'sometimes|regex:/^#(?:[0-9a-fA-F]{3}){1,2}$/',
             ]);
 
             // Convert camelCase to snake_case
@@ -285,8 +305,13 @@ class ColorPaletteController extends Controller
                 }
             }
 
-            $palette->update($data);
-            return response()->json($palette->toFrontend());
+            // findOrFail() guarantees this is an existing persisted model.
+            // fill()+saveOrFail() makes the update-only intent explicit and
+            // cannot silently fall back to creating a new palette.
+            $palette->fill($data);
+            $palette->saveOrFail();
+
+            return response()->json($palette->refresh()->toFrontend());
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json(['error' => 'Palette not found'], 404);
         } catch (ValidationException $e) {

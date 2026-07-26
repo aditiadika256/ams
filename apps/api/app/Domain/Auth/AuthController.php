@@ -62,6 +62,7 @@ class AuthController extends Controller
                                     ]
                                 ),
                                 new OA\Property(property: 'token', type: 'string', example: '1|abc123...'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', example: '2026-07-27T00:00:00+00:00'),
                             ]
                         ),
                     ]
@@ -82,14 +83,14 @@ class AuthController extends Controller
             // Assign default role
             $user->assignRole('student');
 
-            $token = $user->createToken('api-token')->plainTextToken;
+            $issuedToken = $this->issueToken($user);
 
             // Load roles for resource
             $user->load(['roles.permissions']);
 
             return $this->createdResponse([
                 'user' => new UserResource($user),
-                'token' => $token,
+                ...$issuedToken,
             ], 'Registration successful');
         });
     }
@@ -135,6 +136,7 @@ class AuthController extends Controller
                                     ]
                                 ),
                                 new OA\Property(property: 'token', type: 'string', example: '1|abc123...'),
+                                new OA\Property(property: 'expires_at', type: 'string', format: 'date-time', example: '2026-07-27T00:00:00+00:00'),
                             ]
                         ),
                     ]
@@ -151,14 +153,15 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
-        $token = $user->createToken('api-token')->plainTextToken;
+        /** @var User $user */
+        $issuedToken = $this->issueToken($user);
 
         // Load user roles and permissions for resource
         $user->load(['roles.permissions']);
 
         return $this->successResponse([
             'user' => new UserResource($user),
-            'token' => $token,
+            ...$issuedToken,
         ], 'Login successful');
     }
 
@@ -262,7 +265,7 @@ class AuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->stateless()->user();
 
-            $token = DB::transaction(function () use ($googleUser) {
+            $issuedToken = DB::transaction(function () use ($googleUser) {
                 $user = User::updateOrCreate(
                     ['email' => $googleUser->getEmail()],
                     [
@@ -278,11 +281,11 @@ class AuthController extends Controller
                     $user->assignRole('student');
                 }
 
-                return $user->createToken('api-token')->plainTextToken;
+                return $this->issueToken($user);
             });
 
             return redirect()->to(
-                $frontendUrl . '/auth/google/callback?' . http_build_query(['token' => $token])
+                $frontendUrl . '/auth/google/callback?' . http_build_query($issuedToken)
             );
         } catch (\Exception $e) {
             return redirect()->to(
@@ -321,5 +324,23 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
         return $this->successResponse(null, 'Logout successful');
     }
-}
 
+    /**
+     * Issue a database-backed Sanctum token with an explicit expiration.
+     *
+     * @return array{token: string, expires_at: ?string}
+     */
+    private function issueToken(User $user): array
+    {
+        $expirationMinutes = (int) config('sanctum.expiration', 240);
+        $expiresAt = $expirationMinutes > 0
+            ? now()->addMinutes($expirationMinutes)
+            : null;
+        $token = $user->createToken('api-token', ['*'], $expiresAt);
+
+        return [
+            'token' => $token->plainTextToken,
+            'expires_at' => $expiresAt?->toIso8601String(),
+        ];
+    }
+}
