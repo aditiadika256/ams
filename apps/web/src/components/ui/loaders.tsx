@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, UploadCloud, DownloadCloud, CheckCircle2, AlertCircle, LucideProps } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -49,21 +50,22 @@ export const PageLoader = ({ message = "Memuat..." }: PageLoaderProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <div className="flex flex-col items-center gap-4">
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 0, 270, 270, 0],
-            borderRadius: ["20%", "20%", "50%", "50%", "20%"],
-          }}
-          transition={{
-            duration: 2,
-            ease: "easeInOut",
-            times: [0, 0.2, 0.5, 0.8, 1],
-            repeat: Infinity,
-            repeatDelay: 1
-          }}
-          className="h-16 w-16 bg-primary"
-        />
+        <div className="relative flex h-24 w-24 items-center justify-center">
+          <motion.div
+            aria-hidden="true"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 rounded-full border-4 border-primary/20 border-t-primary"
+          />
+          <Image
+            src="/logo/arkanin-logo.png"
+            alt="Arkanin"
+            width={72}
+            height={72}
+            priority
+            className="relative z-10 rounded-full"
+          />
+        </div>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
