@@ -27,6 +27,11 @@ const FALLBACK_NAV = [
   { name: 'Tentang', href: '/about' },
 ];
 
+const AUTHENTICATED_ONLY_PATHS = ['/exams'];
+
+const requiresAuthentication = (href: string) =>
+  AUTHENTICATED_ONLY_PATHS.some((path) => href === path || href.startsWith(`${path}/`));
+
 const TopBar = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -83,6 +88,9 @@ const TopBar = () => {
       .map(m => ({ name: m.name, href: m.url }));
     
     const baseNav = topLevel.length > 0 ? topLevel : FALLBACK_NAV;
+    const visibleNav = isAuthenticated
+      ? baseNav
+      : baseNav.filter((link) => !requiresAuthentication(link.href));
 
     if (isAuthenticated) {
       const isAdmin = user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang', 'direktur'].includes(role));
@@ -91,14 +99,14 @@ const TopBar = () => {
         href: isAdmin ? '/admin' : '/dashboard'
       };
       
-      const hasDashboard = baseNav.some(link => link.href === '/dashboard' || link.href === '/admin');
+      const hasDashboard = visibleNav.some(link => link.href === '/dashboard' || link.href === '/admin');
       if (!hasDashboard) {
-        const result = [...baseNav];
+        const result = [...visibleNav];
         result.splice(1, 0, dashboardLink);
         return result;
       }
     }
-    return baseNav;
+    return visibleNav;
   }, [topbarMenus, isAuthenticated, user]);
 
   return (
