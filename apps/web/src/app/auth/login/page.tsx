@@ -20,6 +20,8 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import { Spinner } from '@/components/ui/loaders';
 import { motion } from 'framer-motion';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 const loginSchema = z.object({
   email: z.string().email('Email tidak valid').min(1, 'Email wajib diisi'),
@@ -88,10 +90,8 @@ export default function LoginPage() {
       throw new Error('Gagal mendapatkan URL Google');
     } catch (err: any) {
       setIsGoogleLoading(false);
-      // Show error via the same error banner used for login
-      useAuthStore.setState({
-        error: err?.message || 'Gagal menghubungi Google. Silahkan coba lagi.',
-      });
+      const message = getErrorMessage(err, 'Gagal menghubungi Google. Silakan coba lagi.');
+      alertActions.error('Login Google gagal', message);
     }
   };
 

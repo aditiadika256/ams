@@ -8,15 +8,29 @@ import { Mentor } from '@/store/useLearningStore';
 
 interface MentorFormProps {
   initialData?: Mentor | null;
-  onSubmit: (data: any) => Promise<void>;
+  onSubmit: (data: MentorFormData) => Promise<void>;
   onCancel: () => void;
   isLoading: boolean;
 }
 
+interface MentorCandidate {
+  id: number;
+  name: string;
+  email: string;
+  roles: Array<{ id: number; name: string }>;
+}
+
+interface MentorFormData {
+  user_id?: number;
+  specialization: string;
+  experience_years: number;
+  bio: string;
+  is_active: boolean;
+}
+
 export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: MentorFormProps) {
-  const [users, setUsers] = useState<{ id: number; name: string; email: string }[]>([]);
+  const [users, setUsers] = useState<MentorCandidate[]>([]);
   const [selectedUserId, setSelectedUserId] = useState(initialData?.user_id?.toString() || '');
-  const [name, setName] = useState(initialData?.user?.name || '');
   const [email, setEmail] = useState(initialData?.user?.email || '');
   const [specialization, setSpecialization] = useState(initialData?.specialization || '');
   const [experienceYears, setExperienceYears] = useState(initialData?.experience_years ?? 0);
@@ -25,24 +39,24 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
 
   useEffect(() => {
+    if (initialData) {
+      setIsLoadingUsers(false);
+      return;
+    }
+
     let active = true;
 
     const loadUsers = async () => {
       try {
         setIsLoadingUsers(true);
-        const response = await apiClient.admin.users.list({ limit: 10, page: 1, fields: 'id,name,email' });
+        const response = await apiClient.learning.mentors.candidates();
         if (!active) return;
 
         if (!response.success) {
           return;
         }
 
-        const responseData = response.data;
-        const usersData = Array.isArray(responseData)
-          ? responseData
-          : Array.isArray(responseData?.data)
-          ? responseData.data
-          : [];
+        const usersData = Array.isArray(response.data) ? response.data : [];
 
         setUsers(usersData);
       } catch (error) {
@@ -59,7 +73,7 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
     return () => {
       active = false;
     };
-  }, []);
+  }, [initialData]);
 
   useEffect(() => {
     if (!selectedUserId || users.length === 0) {
@@ -68,7 +82,6 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
 
     const user = users.find((item) => item.id.toString() === selectedUserId);
     if (user) {
-      setName(user.name);
       setEmail(user.email);
     }
   }, [selectedUserId, users]);
@@ -76,18 +89,15 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload: any = {
+    const payload: MentorFormData = {
       specialization,
       experience_years: Number(experienceYears),
       bio,
       is_active: isActive,
     };
 
-    if (selectedUserId) {
+    if (!initialData && selectedUserId) {
       payload.user_id = Number(selectedUserId);
-    } else {
-      payload.name = name;
-      payload.email = email;
     }
 
     onSubmit(payload);
@@ -97,28 +107,38 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
     <form onSubmit={handleSubmit} className="space-y-4 py-4">
       <div className="space-y-2">
         <Label htmlFor="mentor-name">Nama Lengkap</Label>
-        <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-          <SelectTrigger id="mentor-name" className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
-            <SelectValue placeholder={isLoadingUsers ? 'Loading users...' : 'Pilih user'} />
-          </SelectTrigger>
-          <SelectContent className="border-slate-200 dark:border-white/10">
-            {isLoadingUsers ? (
-              <SelectItem value="loading" disabled className="cursor-not-allowed opacity-50">
-                Memuat user...
-              </SelectItem>
-            ) : users.length === 0 ? (
-              <SelectItem value="none" disabled className="cursor-default opacity-50">
-                Tidak ada user tersedia
-              </SelectItem>
-            ) : (
-              users.map((user) => (
-                <SelectItem key={user.id} value={user.id.toString()}>
-                  {user.name}
+        {initialData ? (
+          <Input
+            id="mentor-name"
+            value={initialData.user?.name || ''}
+            readOnly
+            className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+          />
+        ) : (
+          <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={isLoadingUsers}>
+            <SelectTrigger id="mentor-name" className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
+              <SelectValue placeholder={isLoadingUsers ? 'Loading users...' : 'Pilih user'} />
+            </SelectTrigger>
+            <SelectContent className="border-slate-200 dark:border-white/10">
+              {isLoadingUsers ? (
+                <SelectItem value="loading" disabled className="cursor-not-allowed opacity-50">
+                  Memuat user...
                 </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
+              ) : users.length === 0 ? (
+                <SelectItem value="none" disabled className="cursor-default opacity-50">
+                  Tidak ada user tersedia
+                </SelectItem>
+              ) : (
+                users.map((user) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.name} — {user.email}
+                    {user.roles.length > 0 ? ` (${user.roles.map((role) => role.name).join(', ')})` : ''}
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -127,10 +147,9 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
           id="mentor-email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="mentor@arkanin.id"
-          readOnly={Boolean(selectedUserId)}
+          readOnly
           className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
         />
       </div>
@@ -186,7 +205,11 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
         <Button type="button" variant="outline" onClick={onCancel} className="border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5">
           Batal
         </Button>
-        <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button
+          type="submit"
+          disabled={isLoading || isLoadingUsers || (!initialData && !selectedUserId)}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
           {isLoading ? 'Menyimpan...' : 'Simpan Mentor'}
         </Button>
       </div>

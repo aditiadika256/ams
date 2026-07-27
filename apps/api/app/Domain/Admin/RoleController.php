@@ -4,6 +4,7 @@ namespace App\Domain\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
 
@@ -24,9 +25,25 @@ class RoleController extends Controller
      *     @OA\Response(response=200, description="List of roles")
      * )
      */
-    public function index()
+    public function index(Request $request)
     {
-        $roles = Role::with('permissions')->get();
+        $validated = $request->validate([
+            'guard_name' => [
+                'sometimes',
+                'string',
+                Rule::in(array_keys(config('auth.guards'))),
+            ],
+        ]);
+
+        $roles = Role::query()
+            ->with('permissions')
+            ->when(
+                $validated['guard_name'] ?? null,
+                fn ($query, $guardName) => $query->where('guard_name', $guardName)
+            )
+            ->orderBy('name')
+            ->get();
+
         return $this->successResponse($roles, 'Roles retrieved successfully');
     }
 

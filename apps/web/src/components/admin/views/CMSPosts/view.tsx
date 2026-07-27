@@ -12,10 +12,14 @@ import { CMSPostForm } from './form';
 import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 import { apiClient } from '@/lib/api';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 type PostListItem = {
   id: number;
   title: string;
+  slug: string;
+  content: string;
   author: string;
   status: string;
   date: string;
@@ -70,6 +74,8 @@ export default function CMSPostsView() {
       setPosts(records.map((post: any) => ({
         id: post.id,
         title: post.title,
+        slug: post.slug ?? '',
+        content: post.content ?? '',
         author: post.author?.name ?? 'Admin',
         status: post.status.charAt(0).toUpperCase() + post.status.slice(1),
         date: post.created_at,
@@ -88,26 +94,52 @@ export default function CMSPostsView() {
     setView('editor');
   };
 
-  const handleSave = (data: { title: string; slug: string; content: string; status: string }) => {
-    if (editingId) {
-      setPosts(prev => prev.map(p => p.id === editingId ? { ...p, title: data.title, status: data.status } : p));
-    } else {
-      const newId = posts.length > 0 ? Math.max(...posts.map(p => p.id)) + 1 : 1;
-      const today = new Date().toISOString().split('T')[0];
-      setPosts(prev => [...prev, { id: newId, title: data.title, author: 'Admin', status: data.status, date: today }]);
+  const handleSave = async (data: { title: string; content: string; status: string }) => {
+    const payload = {
+      title: data.title,
+      content: data.content,
+      status: data.status.toLowerCase(),
+    };
+
+    try {
+      if (editingId) {
+        await apiClient.cms.posts.update(editingId, payload);
+        alertActions.success(
+          'Post berhasil diperbarui',
+          `${data.title} disimpan dengan status ${data.status}.`
+        );
+      } else {
+        await apiClient.cms.posts.create(payload);
+        alertActions.success(
+          data.status === 'Published' ? 'Post berhasil dipublikasikan' : 'Draft berhasil disimpan',
+          `${data.title} disimpan dengan status ${data.status}.`
+        );
+      }
+
+      await loadPosts();
+      setView('list');
+    } catch (error) {
+      alertActions.error(
+        'Gagal menyimpan post',
+        getErrorMessage(error, `${data.title} gagal disimpan.`)
+      );
     }
-    setView('list');
   };
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus post ini?')) return;
 
+    const postTitle = posts.find((post) => post.id === id)?.title || `Post #${id}`;
     try {
       await apiClient.cms.posts.remove(id);
       setPosts((currentPosts) => currentPosts.filter((post) => post.id !== id));
+      alertActions.success('Post berhasil dihapus', `${postTitle} telah dihapus.`);
     } catch (error: any) {
       console.error('Failed to delete post:', error);
-      alert(error.message || 'Gagal menghapus post');
+      alertActions.error(
+        'Gagal menghapus post',
+        getErrorMessage(error, `${postTitle} gagal dihapus.`)
+      );
     }
   };
 
@@ -121,6 +153,7 @@ export default function CMSPostsView() {
       >
         <CMSPostForm 
           editingId={editingId}
+          initialData={editingId ? posts.find((post) => post.id === editingId) : undefined}
           onCancel={() => setView('list')}
           onSave={handleSave}
         />

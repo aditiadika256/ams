@@ -7,15 +7,15 @@ import { GlassCard, GlassCardContent, GlassCardHeader, GlassCardTitle } from '@/
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Menu as MenuIcon, Plus, Edit, Trash2 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { Menu } from '@/types/system';
 import { motion } from 'framer-motion';
 import { MenuForm } from './form';
-
-function getErrorMessage(error: unknown, fallback: string): string {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
+import { useMenuStore } from '@/store/useMenuStore';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -54,17 +54,25 @@ export default function MenuManagementView() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const latestMenusRequestId = React.useRef(0);
 
   const loadMenus = async () => {
+    const requestId = ++latestMenusRequestId.current;
     setLoading(true);
+    setLoadError(null);
     try {
       const res = await apiClient.admin.menus.list();
+      if (requestId !== latestMenusRequestId.current) return;
       setMenus(res.data || []);
     } catch (error) {
+      if (requestId !== latestMenusRequestId.current) return;
       console.error(error);
-      window.alert(getErrorMessage(error, 'Gagal memuat daftar menu.'));
+      setLoadError(getErrorMessage(error, 'Daftar menu gagal dimuat.'));
     } finally {
-      setLoading(false);
+      if (requestId === latestMenusRequestId.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -84,17 +92,31 @@ export default function MenuManagementView() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const menuName = form.name || (editingId ? `Menu #${editingId}` : 'Menu baru');
     try {
       if (editingId) {
-        await apiClient.admin.menus.update(editingId, form);
+        const response = await apiClient.admin.menus.update(editingId, form);
+        if (response.data) {
+          setMenus((current) =>
+            current.map((menu) => menu.id === editingId ? response.data as Menu : menu)
+          );
+        }
+        alertActions.success('Menu berhasil diperbarui', `${menuName} berhasil disimpan.`);
       } else {
-        await apiClient.admin.menus.create(form);
+        const response = await apiClient.admin.menus.create(form);
+        if (response.data) {
+          setMenus((current) => [...current, response.data as Menu]);
+        }
+        alertActions.success('Menu berhasil ditambahkan', `${menuName} berhasil dibuat.`);
       }
       resetForm();
-      await loadMenus();
+      await Promise.all([
+        loadMenus(),
+        useMenuStore.getState().refreshCachedMenus(),
+      ]);
     } catch (error) {
       console.error(error);
-      window.alert(getErrorMessage(error, 'Gagal menyimpan menu.'));
+      alertActions.error('Gagal menyimpan menu', getErrorMessage(error, `${menuName} gagal disimpan.`));
     }
   };
 
@@ -117,12 +139,18 @@ export default function MenuManagementView() {
     if (!confirm('Hapus menu ini? Submenu akan ikut terhapus.')) return;
 
     setDeletingId(id);
+    const menuName = menus.find((menu) => menu.id === id)?.name || `Menu #${id}`;
     try {
       await apiClient.admin.menus.remove(id);
-      await loadMenus();
+      setMenus((current) => current.filter((menu) => menu.id !== id && menu.parent_id !== id));
+      await Promise.all([
+        loadMenus(),
+        useMenuStore.getState().refreshCachedMenus(),
+      ]);
+      alertActions.success('Menu berhasil dihapus', `${menuName} beserta submenu terkait telah dihapus.`);
     } catch (error) {
       console.error(error);
-      window.alert(getErrorMessage(error, 'Gagal menghapus menu.'));
+      alertActions.error('Gagal menghapus menu', getErrorMessage(error, `${menuName} gagal dihapus.`));
     } finally {
       setDeletingId(null);
     }
@@ -164,6 +192,12 @@ export default function MenuManagementView() {
           </DialogContent>
         </Dialog>
       </div>
+      {loadError && (
+        <Alert variant="destructive">
+          <AlertTitle>Gagal memuat menu</AlertTitle>
+          <AlertDescription>{loadError}</AlertDescription>
+        </Alert>
+      )}
 
       <motion.div variants={itemVariants}>
         <GlassCard>

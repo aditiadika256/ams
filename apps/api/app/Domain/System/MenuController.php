@@ -27,8 +27,9 @@ class MenuController extends Controller
     {
         $layout = $request->query('layout');
         $section = $request->query('section');
+        $cacheVersion = Cache::get('menus:cache_version', 'initial');
         if ($layout && $section) {
-            $key = "menus:{$layout}:{$section}";
+            $key = "menus:{$cacheVersion}:{$layout}:{$section}";
             $menus = Cache::remember($key, 3600, function () use ($layout, $section) {
                 return Menu::query()
                     ->where('layout', $layout)
@@ -38,13 +39,13 @@ class MenuController extends Controller
                     ->get();
             });
             return $this->successResponse(MenuResource::collection($menus), 'Menus filtered retrieved successfully')
-                ->header('Cache-Control', 'public, max-age=300');
+                ->header('Cache-Control', 'public, max-age=0, no-cache, must-revalidate');
         }
 
-        $roots = Cache::remember('menus:tree', 3600, function () {
+        $roots = Cache::remember("menus:{$cacheVersion}:tree", 3600, function () {
             return Menu::with('children.children')->whereNull('parent_id')->orderBy('order')->get();
         });
         return $this->successResponse(MenuResource::collection($roots), 'Menu tree retrieved successfully')
-            ->header('Cache-Control', 'public, max-age=300');
+            ->header('Cache-Control', 'public, max-age=0, no-cache, must-revalidate');
     }
 }

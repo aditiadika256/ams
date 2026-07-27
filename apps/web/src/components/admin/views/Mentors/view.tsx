@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLearningStore } from '@/store/useLearningStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 import { PaginationControls } from '@/components/ui/pagination-controls';
 
@@ -51,6 +52,7 @@ import { MentorForm } from './form';
 
 export default function MentorsView() {
   const { mentors, fetchMentors, createMentor, updateMentor, deleteMentor, isLoading, error } = useLearningStore();
+  const canManageMentors = useAuthStore((state) => state.hasPermission('manage_learning_content'));
   const [searchQuery, setSearchQuery] = React.useState('');
   const [viewMode, setViewMode] = React.useState<ViewMode>('list');
   const [page, setPage] = React.useState(1);
@@ -125,8 +127,12 @@ export default function MentorsView() {
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Mentors</h2>
           <p className="text-muted-foreground">Manage mentor profiles, schedules, and assignments.</p>
         </div>
-        <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0">
-          <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Add New Mentor</span></Button>
+        {canManageMentors && (
+          <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0">
+            <Plus className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Add New Mentor</span>
+          </Button>
+        )}
       </motion.div>
 
       {error && (
@@ -217,18 +223,24 @@ export default function MentorsView() {
                                    <MoreHorizontal className="h-4 w-4" />
                                  </Button>
                                </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
+                               <DropdownMenuContent align="end">
                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                 <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="focus:bg-white/10">
-                                   <Edit className="mr-2 h-4 w-4" /> Edit Profile
-                                 </DropdownMenuItem>
-                                 <DropdownMenuItem className="focus:bg-white/10">
+                                 {canManageMentors && (
+                                   <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="cursor-pointer">
+                                     <Edit className="mr-2 h-4 w-4" /> Edit Profile
+                                   </DropdownMenuItem>
+                                 )}
+                                 <DropdownMenuItem className="cursor-pointer">
                                     <Clock className="mr-2 h-4 w-4" /> Manage Schedule
                                  </DropdownMenuItem>
-                                 <DropdownMenuSeparator className="bg-white/10" />
-                                 <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20">
-                                   <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
-                                 </DropdownMenuItem>
+                                 {canManageMentors && (
+                                   <>
+                                     <DropdownMenuSeparator className="bg-white/10" />
+                                     <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive cursor-pointer">
+                                       <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
+                                     </DropdownMenuItem>
+                                   </>
+                                 )}
                                </DropdownMenuContent>
                              </DropdownMenu>
                            </td>
@@ -264,16 +276,22 @@ export default function MentorsView() {
                              </DropdownMenuTrigger>
                              <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                               <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="focus:bg-white/10">
-                                 <Edit className="mr-2 h-4 w-4" /> Edit Profile
-                               </DropdownMenuItem>
+                               {canManageMentors && (
+                                 <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="focus:bg-white/10">
+                                   <Edit className="mr-2 h-4 w-4" /> Edit Profile
+                                 </DropdownMenuItem>
+                               )}
                                <DropdownMenuItem className="focus:bg-white/10">
                                   <Clock className="mr-2 h-4 w-4" /> Manage Schedule
                                </DropdownMenuItem>
-                               <DropdownMenuSeparator className="bg-white/10" />
-                               <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20">
-                                 <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
-                               </DropdownMenuItem>
+                               {canManageMentors && (
+                                 <>
+                                   <DropdownMenuSeparator className="bg-white/10" />
+                                   <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20">
+                                     <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
+                                   </DropdownMenuItem>
+                                 </>
+                               )}
                              </DropdownMenuContent>
                            </DropdownMenu>
                          </div>

@@ -12,6 +12,8 @@ import { Shield, Lock, Plus, Save, RotateCcw, CheckCircle2 } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { RoleForm } from './form';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 type Role = {
   id: number;
@@ -132,19 +134,38 @@ export default function RolesPermissionsView() {
       };
       await apiClient.admin.roles.update(selectedRole.id, payload);
       await loadData();
+      alertActions.success(
+        'Permission berhasil diperbarui',
+        `Hak akses role ${selectedRole.name} berhasil disimpan.`
+      );
+    } catch (error) {
+      alertActions.error(
+        'Gagal memperbarui permission',
+        getErrorMessage(error, `Hak akses role ${selectedRole.name} gagal disimpan.`)
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const createRole = async () => {
-    if (!newRoleName.trim()) return;
+    if (!newRoleName.trim()) {
+      alertActions.error('Nama role diperlukan', 'Masukkan nama role sebelum menyimpan.');
+      return;
+    }
+    const roleName = newRoleName.trim();
     setIsLoading(true);
     try {
-      await apiClient.admin.roles.create({ name: newRoleName.trim() });
+      await apiClient.admin.roles.create({ name: roleName });
       setNewRoleName('');
       setIsAddRoleOpen(false);
       await loadData();
+      alertActions.success('Role berhasil ditambahkan', `Role ${roleName} berhasil dibuat.`);
+    } catch (error) {
+      alertActions.error(
+        'Gagal menambahkan role',
+        getErrorMessage(error, `Role ${roleName} gagal dibuat.`)
+      );
     } finally {
       setIsLoading(false);
     }

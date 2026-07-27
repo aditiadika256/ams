@@ -51,8 +51,9 @@ function GoogleCallbackInner() {
     }
 
     if (!token) {
+      const message = 'Token tidak ditemukan. Silakan coba login kembali.';
       setStatus('error');
-      setErrorMessage('Token tidak ditemukan. Silahkan coba login kembali.');
+      setErrorMessage(message);
       return;
     }
 

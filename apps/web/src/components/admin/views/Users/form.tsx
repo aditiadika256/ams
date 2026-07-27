@@ -18,14 +18,23 @@ interface UserFormProps {
   isLoading: boolean;
 }
 
+interface RoleOption {
+  id: number;
+  name: string;
+  guard_name: string;
+}
+
 export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFormProps) {
   const [name, setName] = useState(initialData?.name || '');
   const [email, setEmail] = useState(initialData?.email || '');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState(initialData?.roles && initialData.roles.length > 0 ? initialData.roles[0].name : '');
+  const initialRole =
+    initialData?.roles?.find((item: RoleOption) => item.guard_name === 'web') ??
+    initialData?.roles?.[0];
+  const [role, setRole] = useState(initialRole?.name || '');
   const [branchId, setBranchId] = useState<string>(initialData?.branch?.id?.toString() || 'none');
 
-  const [roles, setRoles] = useState<any[]>([]);
+  const [roles, setRoles] = useState<RoleOption[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
 
@@ -34,12 +43,19 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
     const loadMetadata = async () => {
       try {
         const [rolesRes, branchesRes] = await Promise.all([
-          apiClient.admin.roles.list(),
+          apiClient.admin.roles.list({ guard_name: 'web' }),
           apiClient.admin.branches.list()
         ]);
         if (active) {
           if (rolesRes.success && rolesRes.data) {
-            setRoles(rolesRes.data);
+            const uniqueRoles = Array.from(
+              new Map(
+                (rolesRes.data as RoleOption[])
+                  .filter((item) => item.guard_name === 'web')
+                  .map((item) => [item.name, item])
+              ).values()
+            );
+            setRoles(uniqueRoles);
           }
           if (branchesRes.success && branchesRes.data) {
             setBranches(branchesRes.data);
@@ -131,7 +147,7 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
             </SelectTrigger>
             <SelectContent className="border-slate-200 dark:border-white/10">
               {roles.map((r) => (
-                <SelectItem key={r.id} value={r.name}>
+                <SelectItem key={`${r.guard_name}:${r.name}`} value={r.name}>
                   {r.name.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
                 </SelectItem>
               ))}
