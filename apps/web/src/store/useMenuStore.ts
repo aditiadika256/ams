@@ -15,10 +15,12 @@ interface MenuState {
     loading: Record<string, boolean>;
     // In-flight dedup: promises keyed by cache key
     _inflight: Record<string, Promise<Menu[]>>;
+    _generation: Record<string, number>;
 
     getMenus: (layout: string, section: string) => Menu[];
     isLoading: (layout: string, section: string) => boolean;
-    fetchMenus: (layout: string, section: string) => Promise<void>;
+    fetchMenus: (layout: string, section: string, options?: { force?: boolean }) => Promise<void>;
+    refreshCachedMenus: () => Promise<void>;
 }
 
 function cacheKey(layout: string, section: string) {
@@ -29,6 +31,7 @@ export const useMenuStore = create<MenuState>((set, get) => ({
     cache: {},
     loading: {},
     _inflight: {},
+    _generation: {},
 
     getMenus: (layout, section) => {
         const key = cacheKey(layout, section);
@@ -40,28 +43,37 @@ export const useMenuStore = create<MenuState>((set, get) => ({
         return get().loading[key] ?? false;
     },
 
-    fetchMenus: async (layout, section) => {
+    fetchMenus: async (layout, section, options) => {
         const key = cacheKey(layout, section);
         const state = get();
+        const force = options?.force === true;
 
         // Skip if data is fresh
         const cached = state.cache[key];
-        if (cached && Date.now() - cached.fetchedAt < STALE_TIME) {
+        if (!force && cached && Date.now() - cached.fetchedAt < STALE_TIME) {
             return;
         }
 
         // Deduplicate in-flight requests — return existing promise
-        if (key in state._inflight) {
+        if (!force && key in state._inflight) {
             await state._inflight[key];
             return;
         }
 
-        set((s) => ({ loading: { ...s.loading, [key]: true } }));
+        const generation = (state._generation[key] ?? 0) + 1;
+        set((s) => ({
+            loading: { ...s.loading, [key]: true },
+            _generation: { ...s._generation, [key]: generation },
+        }));
 
         const promise = apiClient.menus
             .get({ layout: layout as any, section: section as any })
             .then((res) => {
                 const menus = (res.data || []) as Menu[];
+                if (get()._generation[key] !== generation) {
+                    return menus;
+                }
+
                 set((s) => ({
                     cache: {
                         ...s.cache,
@@ -72,10 +84,16 @@ export const useMenuStore = create<MenuState>((set, get) => ({
                 return menus;
             })
             .catch(() => {
-                set((s) => ({ loading: { ...s.loading, [key]: false } }));
+                if (get()._generation[key] === generation) {
+                    set((s) => ({ loading: { ...s.loading, [key]: false } }));
+                }
                 return [] as Menu[];
             })
             .finally(() => {
+                if (get()._generation[key] !== generation) {
+                    return;
+                }
+
                 // Remove in-flight entry
                 set((s) => {
                     const { [key]: _, ...rest } = s._inflight;
@@ -87,5 +105,21 @@ export const useMenuStore = create<MenuState>((set, get) => ({
         set((s) => ({ _inflight: { ...s._inflight, [key]: promise } }));
 
         await promise;
+    },
+
+    refreshCachedMenus: async () => {
+        const state = get();
+        const keys = Array.from(new Set([
+            ...Object.keys(state.cache),
+            ...Object.keys(state._inflight),
+        ]));
+        await Promise.all(
+            keys.map((key) => {
+                const separatorIndex = key.indexOf(':');
+                const layout = key.slice(0, separatorIndex);
+                const section = key.slice(separatorIndex + 1);
+                return get().fetchMenus(layout, section, { force: true });
+            })
+        );
     },
 }));

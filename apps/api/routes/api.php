@@ -88,7 +88,13 @@ Route::prefix('v1')->group(function () {
     // Learning
     Route::prefix('learning')->middleware(['auth:sanctum', 'permission:view_dashboard_learning|manage_learning_content'])->group(function () {
         // Mentors
-        Route::apiResource('mentors', \App\Domain\Learning\MentorController::class);
+        Route::get('mentor-candidates', [\App\Domain\Learning\MentorController::class, 'candidates'])
+            ->middleware('permission:manage_learning_content');
+        Route::apiResource('mentors', \App\Domain\Learning\MentorController::class)
+            ->only(['index', 'show']);
+        Route::apiResource('mentors', \App\Domain\Learning\MentorController::class)
+            ->only(['store', 'update', 'destroy'])
+            ->middleware('permission:manage_learning_content');
         
         // Schedules
         Route::get('schedules', [\App\Domain\Learning\ScheduleController::class, 'studentSchedules']);

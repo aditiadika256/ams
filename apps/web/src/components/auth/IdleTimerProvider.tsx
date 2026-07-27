@@ -59,7 +59,7 @@ export const IdleTimerProvider: React.FC<IdleTimerProviderProps> = ({
     warningVisibleRef.current = false;
     setShowWarning(false);
 
-    await logout();
+    await logout({ silent: true });
     redirectToExpiredLogin();
   }, [logout, redirectToExpiredLogin]);
 

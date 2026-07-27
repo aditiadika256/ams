@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -106,7 +105,10 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|exists:roles,name',
+            'role' => [
+                'required',
+                Rule::exists('roles', 'name')->where('guard_name', 'web'),
+            ],
             'branch_id' => 'nullable|exists:branches,id',
         ]);
 
@@ -182,7 +184,10 @@ class UserController extends Controller
             'name' => 'sometimes|string|max:255',
             'email' => ['sometimes', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8',
-            'role' => 'nullable|exists:roles,name',
+            'role' => [
+                'nullable',
+                Rule::exists('roles', 'name')->where('guard_name', 'web'),
+            ],
             'branch_id' => 'nullable|exists:branches,id',
         ]);
 

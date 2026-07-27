@@ -8,9 +8,23 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Role;
 
 class MentorController extends Controller
 {
+    public function candidates()
+    {
+        $users = User::query()
+            ->select(['id', 'name', 'email'])
+            ->with('roles:id,name')
+            ->whereNotIn('id', Mentor::query()->select('user_id'))
+            ->orderBy('name')
+            ->get();
+
+        return $this->successResponse($users, 'Mentor candidates retrieved successfully');
+    }
+
     /**
      * @OA\Get(
      *     path="/api/v1/learning/mentors",
@@ -33,9 +47,11 @@ class MentorController extends Controller
         $filters = [
             'specialization' => $request->get('specialization'),
         ];
+        $cacheVersion = (int) Cache::get('mentors:index:version', 1);
 
         $cacheKey = sprintf(
-            'mentors:index:%s:page:%d:per:%d',
+            'mentors:index:v%d:%s:page:%d:per:%d',
+            $cacheVersion,
             md5(json_encode($filters)),
             $page,
             $perPage
@@ -65,7 +81,7 @@ class MentorController extends Controller
 
         return response()
             ->json($payload)
-            ->header('Cache-Control', 'public, max-age=60');
+            ->header('Cache-Control', 'private, no-cache');
     }
 
     /**
@@ -88,17 +104,37 @@ class MentorController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id|unique:mentors,user_id',
-            'specialization' => 'required|string',
-            'bio' => 'nullable|string',
-            'experience_years' => 'integer|min:0',
-            'social_links' => 'nullable|array',
+        $validated = $request->validate([
+            'user_id' => ['required', 'exists:users,id', 'unique:mentors,user_id'],
+            'specialization' => ['required', 'string'],
+            'bio' => ['nullable', 'string'],
+            'experience_years' => ['sometimes', 'integer', 'min:0'],
+            'social_links' => ['nullable', 'array'],
+            'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $mentor = Mentor::create($request->all());
+        $mentor = DB::transaction(function () use ($validated) {
+            $user = User::query()
+                ->whereKey($validated['user_id'])
+                ->lockForUpdate()
+                ->firstOrFail();
 
-        return response()->json($mentor, 201);
+            if (Mentor::query()->where('user_id', $validated['user_id'])->exists()) {
+                throw ValidationException::withMessages([
+                    'user_id' => 'User ini sudah memiliki profil mentor.',
+                ]);
+            }
+
+            $mentor = Mentor::create($validated);
+            $mentorRole = Role::findByName('mentor_harian', 'web');
+
+            $user->syncRoles([$mentorRole]);
+
+            return $mentor;
+        });
+        $this->invalidateIndexCache();
+
+        return response()->json($mentor->load('user.roles'), 201);
     }
 
     /**
@@ -124,17 +160,18 @@ class MentorController extends Controller
      */
     public function update(Request $request, Mentor $mentor)
     {
-        $request->validate([
-            'specialization' => 'string',
-            'bio' => 'nullable|string',
-            'experience_years' => 'integer|min:0',
-            'social_links' => 'nullable|array',
-            'is_active' => 'boolean',
+        $validated = $request->validate([
+            'specialization' => ['sometimes', 'string'],
+            'bio' => ['nullable', 'string'],
+            'experience_years' => ['sometimes', 'integer', 'min:0'],
+            'social_links' => ['nullable', 'array'],
+            'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $mentor->update($request->all());
+        $mentor->update($validated);
+        $this->invalidateIndexCache();
 
-        return response()->json($mentor);
+        return response()->json($mentor->load('user.roles'));
     }
 
     /**
@@ -148,6 +185,14 @@ class MentorController extends Controller
     public function destroy(Mentor $mentor)
     {
         $mentor->delete();
+        $this->invalidateIndexCache();
+
         return response()->json(['message' => 'Mentor deleted successfully']);
+    }
+
+    private function invalidateIndexCache(): void
+    {
+        Cache::add('mentors:index:version', 1);
+        Cache::increment('mentors:index:version');
     }
 }

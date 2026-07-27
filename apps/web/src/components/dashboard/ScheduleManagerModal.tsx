@@ -99,7 +99,6 @@ export function ScheduleManagerModal({ isOpen, onClose, mentorId, existingSchedu
             onClose();
         } catch (error) {
             console.error('Failed to save schedule', error);
-            alert('Failed to save schedule. Check console.');
         } finally {
             setIsSubmitting(false);
         }

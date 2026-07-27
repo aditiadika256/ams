@@ -28,10 +28,12 @@ export const api: AxiosInstance = axios.create({
 // ---- GET request deduplication ----
 // Shares a single in-flight promise for identical concurrent GET requests
 const inflightGets = new Map<string, Promise<any>>();
+const MUTATION_METHODS = new Set(['post', 'put', 'patch', 'delete']);
+let dataRevision = 0;
 
 function buildDedupeKey(url: string, params?: any): string {
   const p = params ? JSON.stringify(params) : '';
-  return `${url}?${p}`;
+  return `${dataRevision}:${url}?${p}`;
 }
 
 /**
@@ -56,6 +58,13 @@ export function deduplicatedGet<T>(url: string, config?: { params?: any }): Prom
 // Request interceptor - Add token to headers
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
+    if (config.method?.toLowerCase() === 'get' && dataRevision > 0) {
+      config.params = {
+        ...(config.params || {}),
+        __data_revision: dataRevision,
+      };
+    }
+
     // Get token from localStorage
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('token');
@@ -73,6 +82,11 @@ api.interceptors.request.use(
 // Response interceptor - Handle errors and token expiration
 api.interceptors.response.use(
   (response) => {
+    const method = response.config.method?.toLowerCase();
+    if (method && MUTATION_METHODS.has(method)) {
+      dataRevision += 1;
+    }
+
     return response;
   },
   (error: AxiosError<ApiErrorResponse>) => {
@@ -212,8 +226,10 @@ export const apiClient = {
       return response.data;
     },
 
-    getOrder: async (id: number | string) => {
-      const response = await api.get<ApiResponse<Order>>(`/orders/${id}`);
+    getOrder: async (id: number | string, options?: { fresh?: boolean }) => {
+      const response = await api.get<ApiResponse<Order>>(`/orders/${id}`, {
+        params: options?.fresh ? { __fresh: Date.now() } : undefined,
+      });
       return response.data;
     },
 
@@ -287,6 +303,14 @@ export const apiClient = {
         const response = await api.get<ApiResponse<any>>('/cms/posts', { params });
         return response.data;
       },
+      create: async (payload: { title: string; content: string; status: string }) => {
+        const response = await api.post<ApiResponse<any>>('/cms/posts', payload);
+        return response.data;
+      },
+      update: async (id: number, payload: { title: string; content: string; status: string }) => {
+        const response = await api.put<ApiResponse<any>>(`/cms/posts/${id}`, payload);
+        return response.data;
+      },
       remove: async (id: number) => {
         const response = await api.delete<ApiResponse<null>>(`/cms/posts/${id}`);
         return response.data;
@@ -303,6 +327,15 @@ export const apiClient = {
   // Learning endpoints
   learning: {
     mentors: {
+      candidates: async () => {
+        const response = await api.get<ApiResponse<Array<{
+          id: number;
+          name: string;
+          email: string;
+          roles: Array<{ id: number; name: string }>;
+        }>>>('/learning/mentor-candidates');
+        return response.data;
+      },
       remove: async (id: number) => {
         const response = await api.delete(`/learning/mentors/${id}`);
         return response.data;
@@ -425,8 +458,8 @@ export const apiClient = {
       },
     },
     roles: {
-      list: async () => {
-        const response = await api.get<ApiResponse<any[]>>('/admin/roles');
+      list: async (params?: { guard_name?: 'web' | 'sanctum' }) => {
+        const response = await api.get<ApiResponse<any[]>>('/admin/roles', { params });
         return response.data;
       },
       create: async (payload: { name: string; permissions?: string[] }) => {

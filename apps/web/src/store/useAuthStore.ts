@@ -7,6 +7,8 @@ import {
   readBrowserSession,
   startBrowserSession,
 } from '../lib/session';
+import { alertActions } from './useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 function clearStoredAuth(): void {
   if (typeof window === 'undefined') return;
@@ -28,7 +30,7 @@ interface AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   handleGoogleCallback: (token: string, expiresAt?: string | null) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: (options?: { silent?: boolean }) => Promise<void>;
   clearLocalSession: () => void;
   fetchUser: () => Promise<void>;
   clearError: () => void;
@@ -88,28 +90,26 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
             });
+            alertActions.success(
+              'Login berhasil',
+              `Selamat datang kembali, ${user.name}.`
+            );
           } else {
             throw new Error(response.message || 'Login failed');
           }
         } catch (error: any) {
           // Handle validation errors (object) vs regular errors (string)
-          let errorMessage = 'Login failed. Please check your credentials.';
-
-          if (error?.message) {
-            errorMessage = error.message;
-          } else if (typeof error === 'object' && error !== null) {
-            // Handle validation errors object
-            const firstError = Object.values(error)[0];
-            if (Array.isArray(firstError) && firstError.length > 0) {
-              errorMessage = firstError[0] as string;
-            }
-          }
+          const errorMessage = getErrorMessage(
+            error,
+            'Login gagal. Periksa kembali email dan password Anda.'
+          );
 
           set({
             isLoading: false,
-            error: errorMessage,
+            error: null,
             isAuthenticated: false,
           });
+          alertActions.error('Login gagal', errorMessage);
           throw error;
         }
       },
@@ -134,26 +134,25 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
             });
+            alertActions.success(
+              'Registrasi berhasil',
+              `Akun ${user.name} berhasil dibuat.`
+            );
           } else {
             throw new Error(response.message || 'Registration failed');
           }
         } catch (error: any) {
-          let errorMessage = 'Registration failed. Please check your data.';
-
-          if (error?.message) {
-            errorMessage = error.message;
-          } else if (typeof error === 'object' && error !== null) {
-            const firstError = Object.values(error)[0];
-            if (Array.isArray(firstError) && firstError.length > 0) {
-              errorMessage = firstError[0] as string;
-            }
-          }
+          const errorMessage = getErrorMessage(
+            error,
+            'Registrasi gagal. Periksa kembali data akun Anda.'
+          );
 
           set({
             isLoading: false,
-            error: errorMessage,
+            error: null,
             isAuthenticated: false,
           });
+          alertActions.error('Registrasi gagal', errorMessage);
           throw error;
         }
       },
@@ -178,6 +177,10 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
             });
+            alertActions.success(
+              'Login Google berhasil',
+              `Selamat datang, ${response.data.name}.`
+            );
           } else {
             throw new Error('Failed to fetch user profile');
           }
@@ -192,14 +195,19 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             isAuthenticated: false,
             isLoading: false,
-            error: error?.message || 'Google authentication failed',
+            error: null,
           });
+          alertActions.error(
+            'Login Google gagal',
+            getErrorMessage(error, 'Autentikasi Google gagal diselesaikan.')
+          );
           throw error;
         }
       },
 
-      logout: async () => {
+      logout: async (options) => {
         set({ isLoading: true });
+        let logoutError: unknown = null;
         try {
           // Call logout API if token exists
           if (get().token) {
@@ -208,6 +216,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           // Even if API call fails, clear local state
           console.error('Logout error:', error);
+          logoutError = error;
         } finally {
           // Clear state and localStorage
           clearStoredAuth();
@@ -219,6 +228,17 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
             error: null,
           });
+
+          if (!options?.silent) {
+            if (logoutError) {
+              alertActions.error(
+                'Logout tidak tersinkronisasi',
+                getErrorMessage(logoutError, 'Sesi lokal telah ditutup, tetapi server tidak merespons.')
+              );
+            } else {
+              alertActions.success('Logout berhasil', 'Sesi Anda telah berakhir dengan aman.');
+            }
+          }
         }
       },
 

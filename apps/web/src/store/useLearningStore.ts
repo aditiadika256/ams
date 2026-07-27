@@ -1,5 +1,10 @@
 import { create } from 'zustand';
 import { api, apiClient } from '@/lib/api';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
+
+let latestMentorsRequestId = 0;
+let latestMentorSchedulesRequestId = 0;
 
 export interface Mentor {
   id: number;
@@ -80,11 +85,11 @@ interface LearningState {
   fetchCurriculum: (programId: number) => Promise<ProgramModule[]>;
   createModule: (programId: number, data: any) => Promise<void>;
   updateModule: (moduleId: number, data: any) => Promise<void>;
-  deleteModule: (moduleId: number) => Promise<void>;
+  deleteModule: (moduleId: number, moduleTitle?: string) => Promise<void>;
 
   createLesson: (moduleId: number, data: any) => Promise<void>;
   updateLesson: (lessonId: number, data: any) => Promise<void>;
-  deleteLesson: (lessonId: number) => Promise<void>;
+  deleteLesson: (lessonId: number, lessonTitle?: string) => Promise<void>;
 }
 
 export const useLearningStore = create<LearningState>((set, get) => ({
@@ -93,24 +98,45 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   error: null,
 
   fetchMentors: async () => {
+    const requestId = ++latestMentorsRequestId;
     set({ isLoading: true, error: null });
     try {
       const response = await api.get('/learning/mentors');
-      set({ mentors: response.data.data });
+      if (requestId === latestMentorsRequestId) {
+        set({ mentors: response.data.data });
+      }
     } catch (error: any) {
-      set({ error: error.message });
+      if (requestId === latestMentorsRequestId) {
+        set({ error: error.message });
+      }
     } finally {
-      set({ isLoading: false });
+      if (requestId === latestMentorsRequestId) {
+        set({ isLoading: false });
+      }
     }
   },
 
   createMentor: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      await api.post('/learning/mentors', data);
+      const response = await api.post('/learning/mentors', data);
+      if (response.data) {
+        set((state) => ({
+          mentors: [
+            response.data,
+            ...state.mentors.filter((mentor) => mentor.id !== response.data.id),
+          ],
+        }));
+      }
       await get().fetchMentors();
+      alertActions.success(
+        'Mentor berhasil ditambahkan',
+        `${response.data?.user?.name || `User #${data.user_id}`} sekarang terdaftar sebagai mentor.`
+      );
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Mentor gagal ditambahkan.');
+      set({ error: null });
+      alertActions.error('Gagal menambahkan mentor', message);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -119,11 +145,22 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   updateMentor: async (id, data) => {
     set({ isLoading: true, error: null });
+    const mentorName = get().mentors.find((mentor) => mentor.id === id)?.user?.name || `Mentor #${id}`;
     try {
-      await api.put(`/learning/mentors/${id}`, data);
+      const response = await api.put(`/learning/mentors/${id}`, data);
+      if (response.data) {
+        set((state) => ({
+          mentors: state.mentors.map((mentor) =>
+            mentor.id === id ? response.data : mentor
+          ),
+        }));
+      }
       await get().fetchMentors();
+      alertActions.success('Mentor berhasil diperbarui', `Profil ${mentorName} berhasil disimpan.`);
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Profil mentor gagal diperbarui.');
+      set({ error: null });
+      alertActions.error('Gagal memperbarui mentor', message);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -132,11 +169,18 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   deleteMentor: async (id) => {
     set({ isLoading: true, error: null });
+    const mentorName = get().mentors.find((mentor) => mentor.id === id)?.user?.name || `Mentor #${id}`;
     try {
       await apiClient.learning.mentors.remove(id);
+      set((state) => ({
+        mentors: state.mentors.filter((mentor) => mentor.id !== id),
+      }));
       await get().fetchMentors();
+      alertActions.success('Mentor berhasil dihapus', `${mentorName} tidak lagi terdaftar sebagai mentor.`);
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Mentor gagal dihapus.');
+      set({ error: null });
+      alertActions.error('Gagal menghapus mentor', message);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -147,9 +191,12 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   studentSchedules: [],
 
   fetchMentorSchedules: async (mentorId, params = {}) => {
+    const requestId = ++latestMentorSchedulesRequestId;
     try {
       const response = await api.get(`/learning/mentors/${mentorId}/schedules`, { params });
-      set({ mentorSchedules: response.data });
+      if (requestId === latestMentorSchedulesRequestId) {
+        set({ mentorSchedules: response.data });
+      }
       return response.data;
     } catch (error: any) {
       console.error(error);
@@ -170,27 +217,72 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   addSchedule: async (mentorId, data) => {
     try {
-      await api.post(`/learning/mentors/${mentorId}/schedules`, data);
+      const response = await api.post(`/learning/mentors/${mentorId}/schedules`, data);
+      if (response.data) {
+        const created = response.data as MentorSchedule;
+        set((state) => ({
+          mentorSchedules: [
+            created,
+            ...state.mentorSchedules.filter((schedule) => schedule.id !== created.id),
+          ],
+        }));
+      }
       await get().fetchMentorSchedules(mentorId);
+      alertActions.success(
+        'Jadwal berhasil ditambahkan',
+        `${data.title || data.subject || 'Jadwal mentoring'} berhasil dibuat.`
+      );
     } catch (error: any) {
+      alertActions.error(
+        'Gagal menambahkan jadwal',
+        getErrorMessage(error, 'Jadwal mentoring gagal dibuat.')
+      );
       throw error;
     }
   },
 
   updateSchedule: async (mentorId, scheduleId, data) => {
     try {
-      await api.put(`/learning/mentors/${mentorId}/schedules/${scheduleId}`, data);
+      const response = await api.put(`/learning/mentors/${mentorId}/schedules/${scheduleId}`, data);
+      if (response.data) {
+        const updated = response.data as MentorSchedule;
+        set((state) => ({
+          mentorSchedules: state.mentorSchedules.map((schedule) =>
+            schedule.id === scheduleId ? updated : schedule
+          ),
+        }));
+      }
       await get().fetchMentorSchedules(mentorId);
+      alertActions.success(
+        'Jadwal berhasil diperbarui',
+        `${data.title || data.subject || `Jadwal #${scheduleId}`} berhasil disimpan.`
+      );
     } catch (error: any) {
+      alertActions.error(
+        'Gagal memperbarui jadwal',
+        getErrorMessage(error, 'Perubahan jadwal gagal disimpan.')
+      );
       throw error;
     }
   },
 
   deleteSchedule: async (mentorId, scheduleId) => {
+    const schedule = get().mentorSchedules.find((item) => item.id === scheduleId);
     try {
       await apiClient.learning.schedules.remove(mentorId, scheduleId);
+      set((state) => ({
+        mentorSchedules: state.mentorSchedules.filter((item) => item.id !== scheduleId),
+      }));
       await get().fetchMentorSchedules(mentorId);
+      alertActions.success(
+        'Jadwal berhasil dihapus',
+        `${schedule?.title || schedule?.subject || `Jadwal #${scheduleId}`} telah dihapus.`
+      );
     } catch (error: any) {
+      alertActions.error(
+        'Gagal menghapus jadwal',
+        getErrorMessage(error, 'Jadwal mentoring gagal dihapus.')
+      );
       throw error;
     }
   },
@@ -208,7 +300,12 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   createModule: async (programId, data) => {
     try {
       await api.post(`/learning/programs/${programId}/modules`, data);
+      alertActions.success(
+        'Modul berhasil ditambahkan',
+        `${data.title || 'Modul baru'} berhasil ditambahkan ke kurikulum.`
+      );
     } catch (error: any) {
+      alertActions.error('Gagal menambahkan modul', getErrorMessage(error, 'Modul gagal dibuat.'));
       throw error;
     }
   },
@@ -216,15 +313,25 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   updateModule: async (moduleId, data) => {
     try {
       await api.put(`/learning/modules/${moduleId}`, data);
+      alertActions.success(
+        'Modul berhasil diperbarui',
+        `${data.title || `Modul #${moduleId}`} berhasil disimpan.`
+      );
     } catch (error: any) {
+      alertActions.error('Gagal memperbarui modul', getErrorMessage(error, 'Modul gagal diperbarui.'));
       throw error;
     }
   },
 
-  deleteModule: async (moduleId) => {
+  deleteModule: async (moduleId, moduleTitle) => {
     try {
       await apiClient.learning.curriculum.modules.remove(moduleId);
+      alertActions.success(
+        'Modul berhasil dihapus',
+        `${moduleTitle || `Modul #${moduleId}`} telah dihapus dari kurikulum.`
+      );
     } catch (error: any) {
+      alertActions.error('Gagal menghapus modul', getErrorMessage(error, 'Modul gagal dihapus.'));
       throw error;
     }
   },
@@ -232,7 +339,12 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   createLesson: async (moduleId, data) => {
     try {
       await api.post(`/learning/modules/${moduleId}/lessons`, data);
+      alertActions.success(
+        'Materi berhasil ditambahkan',
+        `${data.title || 'Materi baru'} berhasil ditambahkan ke modul.`
+      );
     } catch (error: any) {
+      alertActions.error('Gagal menambahkan materi', getErrorMessage(error, 'Materi gagal dibuat.'));
       throw error;
     }
   },
@@ -240,15 +352,25 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   updateLesson: async (lessonId, data) => {
     try {
       await api.put(`/learning/lessons/${lessonId}`, data);
+      alertActions.success(
+        'Materi berhasil diperbarui',
+        `${data.title || `Materi #${lessonId}`} berhasil disimpan.`
+      );
     } catch (error: any) {
+      alertActions.error('Gagal memperbarui materi', getErrorMessage(error, 'Materi gagal diperbarui.'));
       throw error;
     }
   },
 
-  deleteLesson: async (lessonId) => {
+  deleteLesson: async (lessonId, lessonTitle) => {
     try {
       await apiClient.learning.curriculum.lessons.remove(lessonId);
+      alertActions.success(
+        'Materi berhasil dihapus',
+        `${lessonTitle || `Materi #${lessonId}`} telah dihapus dari modul.`
+      );
     } catch (error: any) {
+      alertActions.error('Gagal menghapus materi', getErrorMessage(error, 'Materi gagal dihapus.'));
       throw error;
     }
   },

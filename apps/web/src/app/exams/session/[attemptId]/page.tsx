@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import { Spinner, PageLoader } from '@/components/ui/loaders';
 import { AlertTriangle, ChevronLeft, ChevronRight, Clock, Flag } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 export default function ExamSessionPage({ params }: { params: Promise<{ attemptId: string }> }) {
   const { attemptId: attemptIdStr } = use(params);
@@ -128,12 +130,19 @@ export default function ExamSessionPage({ params }: { params: Promise<{ attemptI
     try {
       const res = await apiClient.cbt.submitExam(attemptId);
       if (res.success) {
+        alertActions.success(
+          'Ujian berhasil dikumpulkan',
+          `Jawaban untuk attempt #${attemptId} berhasil dikirim.`
+        );
         router.push(`/exams/result/${attemptId}`);
       } else {
-        alert(res.message || 'Gagal mengirim jawaban');
+        alertActions.error('Gagal mengumpulkan ujian', res.message || 'Jawaban ujian gagal dikirim.');
       }
     } catch (err: any) {
-      alert(err.message || 'Terjadi kesalahan saat mengirim jawaban');
+      alertActions.error(
+        'Gagal mengumpulkan ujian',
+        getErrorMessage(err, 'Terjadi kesalahan saat mengirim jawaban.')
+      );
     } finally {
       setIsSubmitting(false);
     }

@@ -87,7 +87,7 @@ class ProgramController extends Controller
         return $this->successResponse(
             $data,
             'Programs retrieved successfully'
-        )->header('Cache-Control', 'public, max-age=300');
+        )->header('Cache-Control', 'public, max-age=0, no-cache, must-revalidate');
     }
 
     #[OA\Get(
