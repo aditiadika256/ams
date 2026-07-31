@@ -1,9 +1,17 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { ApiResponse, User, RegisterData } from '../types/auth';
-import { Program, Order, CreateOrderPayload } from '../types/sales';
+import { Program, Order, CreateOrderPayload, ProgramMutationPayload } from '../types/sales';
 import { ExamSession, Question, ExamResult } from '../types/cbt';
 import { Menu } from '../types/system';
 import { ColorPalette, ColorPaletteFormData } from '../types/theme';
+import {
+  LaravelPaginator,
+  ProgramLookupData,
+  ProgramMasterCreatePayload,
+  ProgramMasterQuery,
+  ProgramMasterRecord,
+  ProgramMasterUpdatePayload,
+} from '../types/program-master';
 import { clearBrowserSession } from './session';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -53,6 +61,34 @@ export function deduplicatedGet<T>(url: string, config?: { params?: any }): Prom
 
   inflightGets.set(key, promise);
   return promise;
+}
+
+function createProgramMasterClient(path: string) {
+  return {
+    list: async (params?: ProgramMasterQuery) => {
+      const response = await deduplicatedGet<
+        ApiResponse<LaravelPaginator<ProgramMasterRecord>>
+      >(
+        path,
+        { params }
+      );
+      return response.data;
+    },
+    create: async (payload: ProgramMasterCreatePayload) => {
+      const response = await api.post<ApiResponse<ProgramMasterRecord>>(path, payload);
+      return response.data;
+    },
+    update: async (id: number, payload: ProgramMasterUpdatePayload) => {
+      const response = await api.put<ApiResponse<ProgramMasterRecord>>(
+        `${path}/${id}`,
+        payload
+      );
+      return response.data;
+    },
+    remove: async (id: number) => {
+      await api.delete(`${path}/${id}`);
+    },
+  };
 }
 
 // Request interceptor - Add token to headers
@@ -207,12 +243,12 @@ export const apiClient = {
       return response.data;
     },
 
-    createProgram: async (payload: any) => {
+    createProgram: async (payload: ProgramMutationPayload) => {
       const response = await api.post<ApiResponse<Program>>('/programs', payload);
       return response.data;
     },
 
-    updateProgram: async (id: number | string, payload: any) => {
+    updateProgram: async (id: number | string, payload: ProgramMutationPayload) => {
       const response = await api.put<ApiResponse<Program>>(`/programs/${id}`, payload);
       return response.data;
     },
@@ -235,6 +271,15 @@ export const apiClient = {
 
     createOrder: async (payload: CreateOrderPayload) => {
       const response = await api.post<ApiResponse<Order>>('/orders', payload);
+      return response.data;
+    },
+  },
+
+  programLookups: {
+    get: async () => {
+      const response = await deduplicatedGet<ApiResponse<ProgramLookupData>>(
+        '/program-lookups'
+      );
       return response.data;
     },
   },
@@ -411,6 +456,8 @@ export const apiClient = {
 
   // Admin endpoints
   admin: {
+    programLevels: createProgramMasterClient('/admin/master/program-levels'),
+    programTypes: createProgramMasterClient('/admin/master/program-types'),
     branches: {
       list: async () => {
         const response = await api.get<ApiResponse<any[]>>('/admin/branches');

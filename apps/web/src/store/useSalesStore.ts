@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Program, Order, CreateOrderPayload } from '../types/sales';
+import { Program, Order, CreateOrderPayload, ProgramMutationPayload } from '../types/sales';
 import { apiClient } from '../lib/api';
 import { alertActions } from './useAlertStore';
 import { getErrorMessage } from '@/lib/get-error-message';
@@ -24,8 +24,8 @@ interface SalesState {
   // Actions
   fetchPrograms: (params?: any, options?: { force?: boolean }) => Promise<void>;
   fetchProgram: (id: number | string) => Promise<void>;
-  createProgram: (payload: any) => Promise<void>;
-  updateProgram: (id: number | string, payload: any) => Promise<void>;
+  createProgram: (payload: ProgramMutationPayload) => Promise<void>;
+  updateProgram: (id: number | string, payload: ProgramMutationPayload) => Promise<void>;
   deleteProgram: (id: number | string) => Promise<void>;
   fetchOrders: (params?: any) => Promise<void>;
   fetchOrder: (

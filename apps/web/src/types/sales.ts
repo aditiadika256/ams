@@ -1,12 +1,34 @@
+export interface ProgramLookupRelation {
+  id: number;
+  code: string;
+  name: string;
+  row_status: -1 | 0 | 1;
+  sort_order: number;
+}
+
 export interface Program {
   id: number;
   name: string;
-  level: 'sd' | 'smp' | 'sma' | 'cpns' | 'umum';
-  type: 'tryout' | 'bimbel' | 'bootcamp';
+  /** @deprecated Use program_level/program_level_id for new code. */
+  level: string;
+  /** @deprecated Use program_type/program_type_id for new code. */
+  type: string;
+  program_level_id: number | null;
+  program_type_id: number | null;
+  program_level?: ProgramLookupRelation | null;
+  program_type?: ProgramLookupRelation | null;
   price: number;
   active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProgramMutationPayload {
+  name: string;
+  program_level_id: number;
+  program_type_id: number;
+  price: number;
+  active: boolean;
 }
 
 export interface OrderItem {
