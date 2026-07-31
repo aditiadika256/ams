@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CreditCard, CheckCircle2, XCircle, Clock, PlayCircle, BookOpen, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Spinner, PageLoader } from '@/components/ui/loaders';
+import { alertActions } from '@/store/useAlertStore';
 
 declare global {
   interface Window {
@@ -23,12 +24,20 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   const { currentOrder, fetchOrder, isLoading } = useSalesStore();
   const { id } = React.use(params);
   const [snapLoaded, setSnapLoaded] = useState(false);
+  const reconciliationGeneration = React.useRef(0);
 
   useEffect(() => {
+    const generation = ++reconciliationGeneration.current;
     if (id) {
       console.log('[OrderDetailPage] Fetching order:', id);
       fetchOrder(id);
     }
+
+    return () => {
+      if (reconciliationGeneration.current === generation) {
+        reconciliationGeneration.current += 1;
+      }
+    };
   }, [id]);  // Only id - not fetchOrder function!
 
   // Load Snap JS
@@ -47,29 +56,95 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     }
   }, []);
 
+  const reconcilePaymentStatus = async (
+    expectedStatus: 'paid' | 'pending',
+    generation: number
+  ) => {
+    if (generation !== reconciliationGeneration.current) return;
+
+    useSalesStore.setState((state) => ({
+      currentOrder: state.currentOrder && String(state.currentOrder.id) === String(id)
+        ? { ...state.currentOrder, status: expectedStatus }
+        : state.currentOrder,
+    }));
+
+    for (const delayMs of [0, 750, 1500]) {
+      if (generation !== reconciliationGeneration.current) return;
+
+      if (delayMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
+      if (generation !== reconciliationGeneration.current) return;
+
+      const isSynced = await fetchOrder(id, {
+        force: true,
+        expectedStatus,
+      });
+      if (generation !== reconciliationGeneration.current) return;
+      if (isSynced) return;
+    }
+
+    if (generation !== reconciliationGeneration.current) return;
+    alertActions.error(
+      'Status pembayaran belum tersinkronisasi',
+      `Pembayaran pesanan #${id} diterima, tetapi status terbaru belum tersedia. Silakan muat ulang beberapa saat lagi.`
+    );
+  };
+
   const handlePayment = () => {
+    if (isLoading || !currentOrder || String(currentOrder.id) !== String(id)) {
+      alertActions.error(
+        'Data pesanan belum siap',
+        'Tunggu hingga detail pesanan terbaru selesai dimuat.'
+      );
+      return;
+    }
+
+    const paymentGeneration = reconciliationGeneration.current;
     if (currentOrder?.snap_token && window.snap) {
       window.snap.pay(currentOrder.snap_token, {
-        onSuccess: function (result: any) {
+        onSuccess: async function (result: any) {
+          if (paymentGeneration !== reconciliationGeneration.current) return;
           console.log('Payment success', result);
-          fetchOrder(id); // Refresh order status
+          alertActions.success(
+            'Pembayaran berhasil',
+            `Pembayaran pesanan #${id} telah diterima.`
+          );
+          await reconcilePaymentStatus('paid', paymentGeneration);
         },
-        onPending: function (result: any) {
+        onPending: async function (result: any) {
+          if (paymentGeneration !== reconciliationGeneration.current) return;
           console.log('Payment pending', result);
-          fetchOrder(id);
+          alertActions.success(
+            'Pembayaran sedang diproses',
+            `Pembayaran pesanan #${id} menunggu konfirmasi.`
+          );
+          await reconcilePaymentStatus('pending', paymentGeneration);
         },
-        onError: function (result: any) {
+        onError: async function (result: any) {
+          if (paymentGeneration !== reconciliationGeneration.current) return;
           console.log('Payment error', result);
-          fetchOrder(id);
+          alertActions.error(
+            'Pembayaran gagal',
+            result?.status_message || `Pembayaran pesanan #${id} tidak dapat diproses.`
+          );
+          await fetchOrder(id, { force: true });
         },
         onClose: function () {
+          if (paymentGeneration !== reconciliationGeneration.current) return;
           console.log('Customer closed the popup without finishing the payment');
+          alertActions.error(
+            'Pembayaran belum selesai',
+            `Jendela pembayaran pesanan #${id} ditutup sebelum transaksi selesai.`
+          );
         }
       });
     }
   };
 
-  if (isLoading && !currentOrder) {
+  const hasCurrentOrder = currentOrder && String(currentOrder.id) === String(id);
+
+  if (isLoading && !hasCurrentOrder) {
     return (
       <div className="container flex h-[80vh] items-center justify-center">
         <Spinner size="lg" />
@@ -77,7 +152,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
     );
   }
 
-  if (!currentOrder) {
+  if (!hasCurrentOrder) {
     return (
       <div className="container py-24 text-center">
         <h2 className="text-2xl font-bold mb-4">Order tidak ditemukan</h2>
@@ -195,9 +270,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <Button 
                   className="w-full h-14 text-lg font-bold rounded-xl shadow-lg shadow-primary/20" 
                   onClick={handlePayment}
-                  disabled={!snapLoaded}
+                  disabled={!snapLoaded || isLoading}
                 >
-                  {!snapLoaded ? (
+                  {!snapLoaded || isLoading ? (
                     <>
                       <Spinner size="sm" variant="white" className="mr-2" />
                       Memuat Pembayaran...

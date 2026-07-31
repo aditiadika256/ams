@@ -20,6 +20,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import { ModuleForm, LessonForm } from './form';
+import { alertActions } from '@/store/useAlertStore';
 
 interface CurriculumBuilderViewProps {
   data?: {
@@ -60,32 +61,42 @@ export default function CurriculumBuilderView({ data }: CurriculumBuilderViewPro
   const [isAddLessonOpen, setIsAddLessonOpen] = useState(false);
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
   const [newTitle, setNewTitle] = useState('');
+  const latestCurriculumRequestId = React.useRef(0);
 
   const programId = data?.programId;
   const programName = data?.programName || 'Program';
 
   const loadCurriculum = async () => {
     if (!programId) return;
+    const requestId = ++latestCurriculumRequestId.current;
     setIsLoading(true);
     const result = await fetchCurriculum(programId);
-    setModules(result);
-    setIsLoading(false);
+    if (requestId === latestCurriculumRequestId.current) {
+      setModules(result);
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadCurriculum();
+    void loadCurriculum();
   }, [programId]);
 
   const handleAddModule = async () => {
-    if (!programId || !newTitle) return;
+    if (!programId || !newTitle.trim()) {
+      alertActions.error('Judul modul diperlukan', 'Masukkan judul modul sebelum menyimpan.');
+      return;
+    }
     await createModule(programId, { title: newTitle, order: modules.length + 1, is_published: true });
     setNewTitle('');
     setIsAddModuleOpen(false);
-    loadCurriculum();
+    await loadCurriculum();
   };
 
   const handleAddLesson = async () => {
-    if (!selectedModuleId || !newTitle) return;
+    if (!selectedModuleId || !newTitle.trim()) {
+      alertActions.error('Judul materi diperlukan', 'Pilih modul dan masukkan judul materi sebelum menyimpan.');
+      return;
+    }
     
     // Calculate new order
     const currentModule = modules.find(m => m.id === selectedModuleId);
@@ -99,20 +110,24 @@ export default function CurriculumBuilderView({ data }: CurriculumBuilderViewPro
     });
     setNewTitle('');
     setIsAddLessonOpen(false);
-    loadCurriculum();
+    await loadCurriculum();
   };
 
   const handleDeleteModule = async (id: number) => {
     if (confirm('Are you sure you want to delete this module?')) {
-      await deleteModule(id);
-      loadCurriculum();
+      const moduleTitle = modules.find((module) => module.id === id)?.title;
+      await deleteModule(id, moduleTitle);
+      await loadCurriculum();
     }
   };
 
   const handleDeleteLesson = async (id: number) => {
     if (confirm('Are you sure you want to delete this lesson?')) {
-      await deleteLesson(id);
-      loadCurriculum();
+      const lessonTitle = modules
+        .flatMap((module) => module.lessons || [])
+        .find((lesson) => lesson.id === id)?.title;
+      await deleteLesson(id, lessonTitle);
+      await loadCurriculum();
     }
   };
 

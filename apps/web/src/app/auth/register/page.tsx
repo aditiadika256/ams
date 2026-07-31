@@ -14,6 +14,8 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft } from 'lucide-react';
 import { Spinner } from '@/components/ui/loaders';
 import { AnimatedButton } from '@/components/ui/animated-button';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 const registerSchema = z
   .object({
@@ -71,9 +73,8 @@ export default function RegisterPage() {
       throw new Error('Gagal mendapatkan URL Google');
     } catch (err: any) {
       setIsGoogleLoading(false);
-      useAuthStore.setState({
-        error: err?.message || 'Gagal menghubungi Google. Silahkan coba lagi.',
-      });
+      const message = getErrorMessage(err, 'Gagal menghubungi Google. Silakan coba lagi.');
+      alertActions.error('Registrasi Google gagal', message);
     }
   };
 

@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 // Types based on backend data
 interface Role {
@@ -87,8 +89,10 @@ export default function UsersView() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [perPage, setPerPage] = useState(15);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const latestUsersRequestId = React.useRef(0);
 
   const fetchUsers = async (currentPage = 1, searchQuery = '') => {
+    const requestId = ++latestUsersRequestId.current;
     try {
       setIsLoading(true);
       setError(null);
@@ -96,6 +100,7 @@ export default function UsersView() {
         page: currentPage, 
         search: searchQuery 
       });
+      if (requestId !== latestUsersRequestId.current) return;
       
       const paginatedData = response.data;
       if (paginatedData && Array.isArray(paginatedData.data)) {
@@ -107,10 +112,13 @@ export default function UsersView() {
         setUsers(Array.isArray(response.data) ? response.data : []);
       }
     } catch (err: any) {
+      if (requestId !== latestUsersRequestId.current) return;
       console.error('Failed to fetch users:', err);
       setError(err.message || 'Failed to fetch users');
     } finally {
-      setIsLoading(false);
+      if (requestId === latestUsersRequestId.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -141,16 +149,36 @@ export default function UsersView() {
     try {
       setIsSaving(true);
       if (selectedUser) {
-        await apiClient.admin.users.update(selectedUser.id, data);
+        const response = await apiClient.admin.users.update(selectedUser.id, data);
+        if (response.data) {
+          setUsers((current) =>
+            current.map((user) => user.id === selectedUser.id ? response.data : user)
+          );
+        }
+        alertActions.success(
+          'User berhasil diperbarui',
+          `${data.name || selectedUser.name} berhasil disimpan.`
+        );
       } else {
-        await apiClient.admin.users.create(data);
+        const response = await apiClient.admin.users.create(data);
+        if (response.data) {
+          setUsers((current) => [response.data, ...current].slice(0, perPage));
+          setTotalUsers((total) => total + 1);
+        }
+        alertActions.success(
+          'User berhasil ditambahkan',
+          `${data.name || data.email || 'User baru'} berhasil dibuat.`
+        );
       }
       setIsModalOpen(false);
       setSelectedUser(null);
-      fetchUsers(page, search);
+      await fetchUsers(page, search);
     } catch (err: any) {
       console.error(err);
-      alert(err.message || 'Gagal menyimpan user');
+      alertActions.error(
+        'Gagal menyimpan user',
+        getErrorMessage(err, 'Data user gagal disimpan.')
+      );
     } finally {
       setIsSaving(false);
     }
@@ -158,12 +186,19 @@ export default function UsersView() {
 
   const handleDelete = async (id: number) => {
     if (confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+      const userName = users.find((user) => user.id === id)?.name || `User #${id}`;
       try {
         await apiClient.admin.users.remove(id);
-        fetchUsers(page, search);
+        setUsers((current) => current.filter((user) => user.id !== id));
+        setTotalUsers((total) => Math.max(0, total - 1));
+        await fetchUsers(page, search);
+        alertActions.success('User berhasil dihapus', `${userName} telah dihapus.`);
       } catch (err: any) {
         console.error(err);
-        alert(err.message || 'Gagal menghapus user');
+        alertActions.error(
+          'Gagal menghapus user',
+          getErrorMessage(err, `${userName} gagal dihapus.`)
+        );
       }
     }
   };

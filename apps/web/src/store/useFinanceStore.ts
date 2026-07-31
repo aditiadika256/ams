@@ -1,5 +1,11 @@
 import { create } from 'zustand';
 import { api, apiClient } from '@/lib/api';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
+
+let latestTransactionsRequestId = 0;
+let latestInvoicesRequestId = 0;
+let latestStatsRequestId = 0;
 
 export interface Transaction {
   id: number;
@@ -66,25 +72,47 @@ export const useFinanceStore = create<FinanceState>((set) => ({
   error: null,
 
   fetchTransactions: async (params) => {
+    const requestId = ++latestTransactionsRequestId;
     set({ isLoading: true, error: null });
     try {
       const response = await api.get('/finance/transactions', { params });
-      set({ transactions: response.data.data });
+      if (requestId === latestTransactionsRequestId) {
+        set({ transactions: response.data.data });
+      }
     } catch (error: any) {
-      set({ error: error.message });
+      if (requestId === latestTransactionsRequestId) {
+        set({ error: error.message });
+      }
     } finally {
-      set({ isLoading: false });
+      if (requestId === latestTransactionsRequestId) {
+        set({ isLoading: false });
+      }
     }
   },
 
   createTransaction: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      await api.post('/finance/transactions', data);
+      const response = await api.post('/finance/transactions', data);
+      if (response.data) {
+        const created = response.data as Transaction;
+        set((state) => ({
+          transactions: [
+            created,
+            ...state.transactions.filter((item) => item.id !== created.id),
+          ],
+        }));
+      }
       await useFinanceStore.getState().fetchTransactions();
       await useFinanceStore.getState().fetchStats();
+      alertActions.success(
+        'Transaksi berhasil ditambahkan',
+        `${data.description || data.category || 'Transaksi baru'} berhasil dicatat.`
+      );
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Transaksi gagal dicatat.');
+      set({ error: null });
+      alertActions.error('Gagal menambahkan transaksi', message);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -93,12 +121,24 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
   updateTransaction: async (id, data) => {
     set({ isLoading: true, error: null });
+    const reference = useFinanceStore.getState().transactions.find((item) => item.id === id)?.reference_number || `Transaksi #${id}`;
     try {
-      await api.put(`/finance/transactions/${id}`, data);
+      const response = await api.put(`/finance/transactions/${id}`, data);
+      if (response.data) {
+        const updated = response.data as Transaction;
+        set((state) => ({
+          transactions: state.transactions.map((item) =>
+            item.id === id ? updated : item
+          ),
+        }));
+      }
       await useFinanceStore.getState().fetchTransactions();
       await useFinanceStore.getState().fetchStats();
+      alertActions.success('Transaksi berhasil diperbarui', `${reference} berhasil disimpan.`);
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Transaksi gagal diperbarui.');
+      set({ error: null });
+      alertActions.error('Gagal memperbarui transaksi', message);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -107,12 +147,19 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
   deleteTransaction: async (id) => {
     set({ isLoading: true, error: null });
+    const reference = useFinanceStore.getState().transactions.find((item) => item.id === id)?.reference_number || `Transaksi #${id}`;
     try {
       await apiClient.finance.transactions.remove(id);
+      set((state) => ({
+        transactions: state.transactions.filter((item) => item.id !== id),
+      }));
       await useFinanceStore.getState().fetchTransactions();
       await useFinanceStore.getState().fetchStats();
+      alertActions.success('Transaksi berhasil dihapus', `${reference} telah dihapus.`);
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Transaksi gagal dihapus.');
+      set({ error: null });
+      alertActions.error('Gagal menghapus transaksi', message);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -120,33 +167,58 @@ export const useFinanceStore = create<FinanceState>((set) => ({
   },
 
   fetchStats: async () => {
+    const requestId = ++latestStatsRequestId;
     try {
       const response = await api.get('/finance/transactions/stats/summary');
-      set({ stats: response.data });
+      if (requestId === latestStatsRequestId) {
+        set({ stats: response.data });
+      }
     } catch (error) {
       console.error('Failed to fetch stats', error);
     }
   },
 
   fetchInvoices: async (params) => {
+    const requestId = ++latestInvoicesRequestId;
     set({ isLoading: true, error: null });
     try {
       const response = await api.get('/finance/invoices', { params });
-      set({ invoices: response.data.data });
+      if (requestId === latestInvoicesRequestId) {
+        set({ invoices: response.data.data });
+      }
     } catch (error: any) {
-      set({ error: error.message });
+      if (requestId === latestInvoicesRequestId) {
+        set({ error: error.message });
+      }
     } finally {
-      set({ isLoading: false });
+      if (requestId === latestInvoicesRequestId) {
+        set({ isLoading: false });
+      }
     }
   },
 
   createInvoice: async (data) => {
     set({ isLoading: true, error: null });
     try {
-      await api.post('/finance/invoices', data);
+      const response = await api.post('/finance/invoices', data);
+      if (response.data) {
+        const created = response.data as Invoice;
+        set((state) => ({
+          invoices: [
+            created,
+            ...state.invoices.filter((item) => item.id !== created.id),
+          ],
+        }));
+      }
       await useFinanceStore.getState().fetchInvoices();
+      alertActions.success(
+        'Invoice berhasil dibuat',
+        `${data.invoice_number || 'Invoice baru'} berhasil ditambahkan.`
+      );
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Invoice gagal dibuat.');
+      set({ error: null });
+      alertActions.error('Gagal membuat invoice', message);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -155,11 +227,23 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
   updateInvoice: async (id, data) => {
     set({ isLoading: true, error: null });
+    const invoiceNumber = useFinanceStore.getState().invoices.find((item) => item.id === id)?.invoice_number || `Invoice #${id}`;
     try {
-      await api.put(`/finance/invoices/${id}`, data);
+      const response = await api.put(`/finance/invoices/${id}`, data);
+      if (response.data) {
+        const updated = response.data as Invoice;
+        set((state) => ({
+          invoices: state.invoices.map((item) =>
+            item.id === id ? updated : item
+          ),
+        }));
+      }
       await useFinanceStore.getState().fetchInvoices();
+      alertActions.success('Invoice berhasil diperbarui', `${invoiceNumber} berhasil disimpan.`);
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Invoice gagal diperbarui.');
+      set({ error: null });
+      alertActions.error('Gagal memperbarui invoice', message);
       throw error;
     } finally {
       set({ isLoading: false });
@@ -168,11 +252,18 @@ export const useFinanceStore = create<FinanceState>((set) => ({
 
   deleteInvoice: async (id) => {
     set({ isLoading: true, error: null });
+    const invoiceNumber = useFinanceStore.getState().invoices.find((item) => item.id === id)?.invoice_number || `Invoice #${id}`;
     try {
       await apiClient.finance.invoices.remove(id);
+      set((state) => ({
+        invoices: state.invoices.filter((item) => item.id !== id),
+      }));
       await useFinanceStore.getState().fetchInvoices();
+      alertActions.success('Invoice berhasil dihapus', `${invoiceNumber} telah dihapus.`);
     } catch (error: any) {
-      set({ error: error.message });
+      const message = getErrorMessage(error, 'Invoice gagal dihapus.');
+      set({ error: null });
+      alertActions.error('Gagal menghapus invoice', message);
       throw error;
     } finally {
       set({ isLoading: false });

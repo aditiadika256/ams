@@ -20,19 +20,35 @@ const itemVariants = {
 
 interface CMSPostFormProps {
   editingId: number | null;
+  initialData?: {
+    title: string;
+    slug: string;
+    content: string;
+    status: string;
+  };
   onCancel: () => void;
-  onSave: (data: { title: string; slug: string; content: string; status: string }) => void;
+  onSave: (data: { title: string; content: string; status: string }) => void | Promise<void>;
 }
 
-export function CMSPostForm({ editingId, onCancel, onSave }: CMSPostFormProps) {
-  const [title, setTitle] = useState(editingId ? "Getting Started with Arkanin" : "");
-  const [slug, setSlug] = useState(editingId ? "getting-started-with-arkanin" : "");
-  const [content, setContent] = useState("");
-  const [status, setStatus] = useState("Draft");
+export function CMSPostForm({ editingId, initialData, onCancel, onSave }: CMSPostFormProps) {
+  const [title, setTitle] = useState(initialData?.title ?? '');
+  const [content, setContent] = useState(initialData?.content ?? '');
+  const [status, setStatus] = useState(initialData?.status ?? 'Draft');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ title, slug, content, status });
+    if (isSaving) return;
+
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const nextStatus = submitter?.value || status;
+    setStatus(nextStatus);
+    setIsSaving(true);
+    try {
+      await onSave({ title, content, status: nextStatus });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -49,16 +65,20 @@ export function CMSPostForm({ editingId, onCancel, onSave }: CMSPostFormProps) {
         </div>
         <div className="flex gap-2">
           <Button 
-            type="button" 
+            type="submit"
+            name="status"
+            value="Draft"
+            disabled={isSaving}
             variant="outline" 
-            onClick={() => { setStatus("Draft"); onSave({ title, slug, content, status: "Draft" }); }}
             className="bg-transparent border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5"
           >
             Save Draft
           </Button>
           <Button 
             type="submit" 
-            onClick={() => setStatus("Published")}
+            name="status"
+            value="Published"
+            disabled={isSaving}
             className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 border-0"
           >
             <Save className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Publish</span>
@@ -83,12 +103,13 @@ export function CMSPostForm({ editingId, onCancel, onSave }: CMSPostFormProps) {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Slug</label>
                 <Input 
-                  placeholder="getting-started-with-arkanin" 
-                  value={slug} 
-                  onChange={(e) => setSlug(e.target.value)}
-                  required
+                  value={initialData?.slug || 'Dibuat otomatis setelah post disimpan'}
+                  disabled
                   className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10" 
                 />
+                <p className="text-xs text-muted-foreground">
+                  Slug dibuat otomatis dari judul untuk menjaga URL tetap konsisten.
+                </p>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Content</label>

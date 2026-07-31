@@ -8,6 +8,7 @@ use App\Models\Menu;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -34,8 +35,9 @@ class MenuController extends Controller
     {
         $layout = $request->query('layout');
         $section = $request->query('section');
+        $cacheVersion = Cache::get('menus:cache_version', 'initial');
         if ($layout && $section) {
-            $key = "menus:{$layout}:{$section}";
+            $key = "menus:{$cacheVersion}:{$layout}:{$section}";
             $menus = Cache::remember($key, 3600, function () use ($layout, $section) {
                 return Menu::query()
                     ->where('layout', $layout)
@@ -49,7 +51,7 @@ class MenuController extends Controller
         }
 
         return $this->successResponse(MenuResource::collection($menus), 'Menus retrieved successfully')
-            ->header('Cache-Control', 'private, max-age=300');
+            ->header('Cache-Control', 'private, no-store, no-cache, must-revalidate');
     }
 
     #[OA\Post(
@@ -190,6 +192,7 @@ class MenuController extends Controller
 
     protected function flushCaches(): void
     {
+        Cache::forever('menus:cache_version', Str::uuid()->toString());
         Cache::forget('menus:tree');
 
         foreach (['users:topbar', 'users:bottomnavigation', 'admin:sidebar', 'admin:header'] as $suffix) {

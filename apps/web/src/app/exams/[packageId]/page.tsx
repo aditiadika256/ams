@@ -8,6 +8,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle, Clock, Info } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { Spinner, PageLoader } from '@/components/ui/loaders';
+import { alertActions } from '@/store/useAlertStore';
+import { getErrorMessage } from '@/lib/get-error-message';
 
 interface ExamPackage {
   id: number;
@@ -52,12 +54,20 @@ export default function ExamStartPage({ params }: { params: Promise<{ packageId:
       const res = await apiClient.cbt.startExam(parseInt(packageId));
       if (res.success && res.data) {
         const { attempt_id } = res.data;
+        alertActions.success(
+          'Ujian berhasil dimulai',
+          `${examPackage?.name || `Paket ujian #${packageId}`} telah dimulai.`
+        );
         router.push(`/exams/session/${attempt_id}`);
       } else {
-        setError(res.message || 'Gagal memulai ujian');
+        const message = res.message || 'Gagal memulai ujian';
+        setError(message);
+        alertActions.error('Gagal memulai ujian', message);
       }
     } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan saat memulai ujian');
+      const message = getErrorMessage(err, 'Terjadi kesalahan saat memulai ujian.');
+      setError(message);
+      alertActions.error('Gagal memulai ujian', message);
     } finally {
       setIsLoading(false);
     }
