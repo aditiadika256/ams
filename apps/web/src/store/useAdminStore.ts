@@ -28,6 +28,7 @@ interface AdminStore {
   tabs: AdminTab[];
   activeTabId: string | null;
   sidebarOpen: boolean;
+  sidebarMobileOpen: boolean;
   
   // Actions
   addTab: (tab: Omit<AdminTab, 'id'>) => void;
@@ -35,6 +36,7 @@ interface AdminStore {
   setActiveTab: (id: string) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
+  setSidebarMobileOpen: (open: boolean) => void;
   resetTabs: () => void;
 }
 
@@ -46,6 +48,7 @@ export const useAdminStore = create<AdminStore>()(
       ],
       activeTabId: 'dashboard-default',
       sidebarOpen: true,
+      sidebarMobileOpen: false,
 
       addTab: (newTab) => {
         const { tabs } = get();
@@ -91,8 +94,15 @@ export const useAdminStore = create<AdminStore>()(
 
       setActiveTab: (id) => set({ activeTabId: id }),
       
-      toggleSidebar: () => set(state => ({ sidebarOpen: !state.sidebarOpen })),
+      toggleSidebar: () => set((state) => {
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+        return isMobile
+          ? { sidebarMobileOpen: !state.sidebarMobileOpen }
+          : { sidebarOpen: !state.sidebarOpen };
+      }),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
+      setSidebarMobileOpen: (open) => set({ sidebarMobileOpen: open }),
       
       resetTabs: () => set({ 
         tabs: [{ id: 'dashboard-default', title: 'Dashboard', view: 'dashboard', icon: 'LayoutDashboard' }], 
@@ -101,7 +111,11 @@ export const useAdminStore = create<AdminStore>()(
     }),
     {
       name: 'admin-store',
-      // We can blacklist data if it's too large
+      partialize: (state) => ({
+        tabs: state.tabs,
+        activeTabId: state.activeTabId,
+        sidebarOpen: state.sidebarOpen,
+      }),
     }
   )
 );
