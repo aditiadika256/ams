@@ -8,10 +8,13 @@ use App\Http\Requests\Sales\ProgramStoreRequest;
 use App\Http\Requests\Sales\ProgramUpdateRequest;
 use App\Http\Resources\ProgramResource;
 use App\Models\Program;
+use App\Models\ProgramLevel;
+use App\Models\ProgramType;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -20,13 +23,33 @@ use OpenApi\Attributes as OA;
 )]
 class ProgramController extends Controller
 {
+    private const PROGRAM_COLUMNS = [
+        'id',
+        'name',
+        'program_level_id',
+        'program_type_id',
+        'level',
+        'type',
+        'price',
+        'active',
+        'created_at',
+        'updated_at',
+    ];
+
+    private const LOOKUP_RELATIONS = [
+        'programLevel:id,code,name,row_status,sort_order',
+        'programType:id,code,name,row_status,sort_order',
+    ];
+
     #[OA\Get(
         path: '/api/v1/programs',
         summary: 'List programs',
         tags: ['Programs'],
         parameters: [
-            new OA\QueryParameter(name: 'level', description: 'Filter level (sd|smp|sma|cpns)', required: false, schema: new OA\Schema(type: 'string')),
-            new OA\QueryParameter(name: 'type', description: 'Filter type (tryout|bimbel)', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'level', description: 'Filter by active program level code', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'type', description: 'Filter by active program type code', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\QueryParameter(name: 'program_level_id', description: 'Filter by active program level ID', required: false, schema: new OA\Schema(type: 'integer')),
+            new OA\QueryParameter(name: 'program_type_id', description: 'Filter by active program type ID', required: false, schema: new OA\Schema(type: 'integer')),
             new OA\QueryParameter(name: 'active', description: 'Filter active status (true|false)', required: false, schema: new OA\Schema(type: 'boolean')),
             new OA\QueryParameter(name: 'search', description: 'Search by name', required: false, schema: new OA\Schema(type: 'string')),
             new OA\QueryParameter(name: 'sort_by', description: 'Sort column (name|price|created_at)', required: false, schema: new OA\Schema(type: 'string')),
@@ -42,7 +65,9 @@ class ProgramController extends Controller
     {
         $filters = $request->validated();
 
-        $query = Program::query();
+        $query = Program::query()
+            ->select(self::PROGRAM_COLUMNS)
+            ->with(self::LOOKUP_RELATIONS);
 
         if (isset($filters['level'])) {
             $query->where('level', $filters['level']);
@@ -50,6 +75,14 @@ class ProgramController extends Controller
 
         if (isset($filters['type'])) {
             $query->where('type', $filters['type']);
+        }
+
+        if (isset($filters['program_level_id'])) {
+            $query->where('program_level_id', $filters['program_level_id']);
+        }
+
+        if (isset($filters['program_type_id'])) {
+            $query->where('program_type_id', $filters['program_type_id']);
         }
 
         if (array_key_exists('active', $filters)) {
@@ -105,7 +138,7 @@ class ProgramController extends Controller
     public function show(Program $program): JsonResponse
     {
         return $this->successResponse(
-            new ProgramResource($program),
+            new ProgramResource($program->load(self::LOOKUP_RELATIONS)),
             'Program retrieved successfully'
         );
     }
@@ -118,11 +151,11 @@ class ProgramController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['name', 'level', 'type', 'price'],
+                required: ['name', 'program_level_id', 'program_type_id', 'price'],
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Paket Tryout CPNS'),
-                    new OA\Property(property: 'level', type: 'string', example: 'cpns'),
-                    new OA\Property(property: 'type', type: 'string', example: 'tryout'),
+                    new OA\Property(property: 'program_level_id', type: 'integer', example: 4),
+                    new OA\Property(property: 'program_type_id', type: 'integer', example: 1),
                     new OA\Property(property: 'price', type: 'integer', example: 250000),
                     new OA\Property(property: 'active', type: 'boolean', example: true),
                 ]
@@ -136,17 +169,19 @@ class ProgramController extends Controller
     )]
     public function store(ProgramStoreRequest $request): JsonResponse
     {
-        $data = $request->validated();
+        $program = DB::transaction(function () use ($request): Program {
+            $data = $this->synchronizeLookupCodes($request->validated());
 
-        if (!array_key_exists('active', $data)) {
-            $data['active'] = true;
-        }
+            if (!array_key_exists('active', $data)) {
+                $data['active'] = true;
+            }
 
-        $program = Program::create($data);
+            return Program::query()->create($data);
+        });
         $this->invalidateIndexCache();
 
         return $this->createdResponse(
-            new ProgramResource($program),
+            new ProgramResource($program->load(self::LOOKUP_RELATIONS)),
             'Program created successfully'
         );
     }
@@ -164,8 +199,8 @@ class ProgramController extends Controller
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'Paket Tryout CPNS'),
-                    new OA\Property(property: 'level', type: 'string', example: 'cpns'),
-                    new OA\Property(property: 'type', type: 'string', example: 'tryout'),
+                    new OA\Property(property: 'program_level_id', type: 'integer', example: 4),
+                    new OA\Property(property: 'program_type_id', type: 'integer', example: 1),
                     new OA\Property(property: 'price', type: 'integer', example: 275000),
                     new OA\Property(property: 'active', type: 'boolean', example: true),
                 ]
@@ -179,11 +214,15 @@ class ProgramController extends Controller
     )]
     public function update(ProgramUpdateRequest $request, Program $program): JsonResponse
     {
-        $program->update($request->validated());
+        DB::transaction(function () use ($request, $program): void {
+            $program->update(
+                $this->synchronizeLookupCodes($request->validated())
+            );
+        });
         $this->invalidateIndexCache();
 
         return $this->successResponse(
-            new ProgramResource($program),
+            new ProgramResource($program->load(self::LOOKUP_RELATIONS)),
             'Program updated successfully'
         );
     }
@@ -220,5 +259,58 @@ class ProgramController extends Controller
     private function invalidateIndexCache(): void
     {
         Cache::forever('programs:cache_version', Str::uuid()->toString());
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    private function synchronizeLookupCodes(array $data): array
+    {
+        if (array_key_exists('program_level_id', $data)) {
+            $data['level'] = $this->resolveProgramLevel(
+                (int) $data['program_level_id']
+            )->code;
+        }
+
+        if (array_key_exists('program_type_id', $data)) {
+            $data['type'] = $this->resolveProgramType(
+                (int) $data['program_type_id']
+            )->code;
+        }
+
+        return $data;
+    }
+
+    private function resolveProgramLevel(int $id): ProgramLevel
+    {
+        $level = ProgramLevel::query()
+            ->active()
+            ->lockForUpdate()
+            ->find($id, ['id', 'code']);
+
+        if ($level === null) {
+            throw ValidationException::withMessages([
+                'program_level_id' => ['The selected program level is invalid or inactive.'],
+            ]);
+        }
+
+        return $level;
+    }
+
+    private function resolveProgramType(int $id): ProgramType
+    {
+        $type = ProgramType::query()
+            ->active()
+            ->lockForUpdate()
+            ->find($id, ['id', 'code']);
+
+        if ($type === null) {
+            throw ValidationException::withMessages([
+                'program_type_id' => ['The selected program type is invalid or inactive.'],
+            ]);
+        }
+
+        return $type;
     }
 }

@@ -19,11 +19,15 @@ Route::prefix('v1')->group(function () {
     Route::get('auth/google/callback', [\App\Domain\Auth\AuthController::class, 'googleCallback']);
 
     // Programs
+    Route::get('program-lookups', [\App\Domain\Sales\ProgramLookupController::class, 'index']);
     Route::get('programs', [\App\Domain\Sales\ProgramController::class, 'index']);
     Route::get('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'show']);
-    Route::post('programs', [\App\Domain\Sales\ProgramController::class, 'store'])->middleware('auth:sanctum');
-    Route::put('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'update'])->middleware('auth:sanctum');
-    Route::delete('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'destroy'])->middleware('auth:sanctum');
+    Route::post('programs', [\App\Domain\Sales\ProgramController::class, 'store'])
+        ->middleware(['auth:sanctum', 'permission:manage_programs']);
+    Route::put('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'update'])
+        ->middleware(['auth:sanctum', 'permission:manage_programs']);
+    Route::delete('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'destroy'])
+        ->middleware(['auth:sanctum', 'permission:manage_programs']);
 
     // Orders
     Route::get('orders', [\App\Domain\Sales\OrderController::class, 'index'])->middleware('auth:sanctum');
@@ -73,6 +77,16 @@ Route::prefix('v1')->group(function () {
 
         // Menu Management
         Route::apiResource('menus', \App\Domain\Admin\MenuController::class)->middleware('permission:manage_menus');
+
+        // Program Master Management
+        Route::apiResource(
+            'master/program-levels',
+            \App\Domain\Admin\ProgramLevelController::class
+        )->middleware('permission:manage_program_masters');
+        Route::apiResource(
+            'master/program-types',
+            \App\Domain\Admin\ProgramTypeController::class
+        )->middleware('permission:manage_program_masters');
 
         // Color Palette Management
         Route::prefix('theme')->middleware('permission:manage_global_settings')->group(function () {

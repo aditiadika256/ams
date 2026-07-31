@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     {
         // Seed roles and demo superadmin
         $this->call(RolesSeeder::class);
+        $this->call(ProgramMasterSeeder::class);
         $this->call(ProgramSeeder::class);
         $this->call(CbtSeeder::class);
         $this->call(ColorPaletteSeeder::class);

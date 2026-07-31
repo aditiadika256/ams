@@ -9,6 +9,8 @@ export type AdminViewKey =
   | 'cms-pages' 
   | 'mentors'
   | 'programs'
+  | 'program-levels'
+  | 'program-types'
   | 'curriculum-builder'
   | 'menus'
   | 'roles'

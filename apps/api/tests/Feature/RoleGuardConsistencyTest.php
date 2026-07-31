@@ -83,7 +83,7 @@ class RoleGuardConsistencyTest extends TestCase
             'guard_name' => 'sanctum',
         ]);
         $user = User::factory()->create();
-        $user->assignRole('student');
+        $user->assignRole(Role::findByName('student', 'web'));
 
         $this->putJson("/api/v1/admin/users/{$user->id}", [
             'role' => 'sanctum_update_only',

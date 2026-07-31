@@ -3,12 +3,17 @@
 namespace Database\Seeders;
 
 use App\Models\Program;
+use App\Models\ProgramLevel;
+use App\Models\ProgramType;
 use Illuminate\Database\Seeder;
 
 class ProgramSeeder extends Seeder
 {
     public function run(): void
     {
+        $programLevels = ProgramLevel::query()->pluck('id', 'code');
+        $programTypes = ProgramType::query()->pluck('id', 'code');
+
         $programs = [
             [
                 'name' => 'Paket SKD CPNS 2025',
@@ -41,7 +46,14 @@ class ProgramSeeder extends Seeder
         ];
 
         foreach ($programs as $program) {
-            Program::create($program);
+            Program::query()->firstOrCreate(
+                ['name' => $program['name']],
+                [
+                    ...$program,
+                    'program_level_id' => $programLevels->get($program['level']),
+                    'program_type_id' => $programTypes->get($program['type']),
+                ]
+            );
         }
     }
 }

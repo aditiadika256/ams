@@ -9,6 +9,10 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CheckCircle2, Clock, Signal, Award, BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { PageLoader } from '@/components/ui/loaders';
+import {
+  getProgramLevelLabel,
+  getProgramTypeLabel,
+} from '@/lib/program-labels';
 
 export default function ProgramDetailPage() {
   const router = useRouter();
@@ -42,6 +46,9 @@ export default function ProgramDetailPage() {
     );
   }
 
+  const levelLabel = getProgramLevelLabel(currentProgram);
+  const typeLabel = getProgramTypeLabel(currentProgram);
+
   return (
     <div className="min-h-screen pb-20">
       {/* Header / Hero */}
@@ -60,10 +67,10 @@ export default function ProgramDetailPage() {
              <div className="flex-1 space-y-4">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary" className="uppercase font-semibold">
-                    {currentProgram.level}
+                    {levelLabel}
                   </Badge>
-                  <Badge className={`capitalize ${currentProgram.type === 'bootcamp' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
-                    {currentProgram.type}
+                  <Badge className="bg-primary text-primary-foreground">
+                    {typeLabel}
                   </Badge>
                 </div>
                 <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
@@ -80,7 +87,7 @@ export default function ProgramDetailPage() {
                    </div>
                    <div className="flex items-center gap-2">
                       <Signal className="h-5 w-5 text-primary" />
-                      <span>{currentProgram.level} Level</span>
+                      <span>{levelLabel} Level</span>
                    </div>
                    <div className="flex items-center gap-2">
                       <Award className="h-5 w-5 text-primary" />

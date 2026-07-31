@@ -8,6 +8,10 @@ import { AnimatedButton } from '@/components/ui/animated-button';
 import { Badge } from '@/components/ui/badge';
 import { Program } from '@/types/sales';
 import { BookOpen, Clock, Signal } from 'lucide-react';
+import {
+  getProgramLevelLabel,
+  getProgramTypeLabel,
+} from '@/lib/program-labels';
 
 interface ProgramCardProps {
   program: Program;
@@ -16,6 +20,9 @@ interface ProgramCardProps {
 }
 
 const ProgramCard: React.FC<ProgramCardProps> = ({ program, index = 0, layout = 'grid' }) => {
+  const levelLabel = getProgramLevelLabel(program);
+  const typeLabel = getProgramTypeLabel(program);
+
   if (layout === 'list') {
     return (
       <motion.div
@@ -32,12 +39,12 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index = 0, layout = 
             </div>
             <div className="absolute top-2 left-2 flex gap-1">
               <Badge variant="secondary" className="bg-secondary text-[10px] font-semibold shadow-sm text-secondary-foreground border-secondary py-0 h-5">
-                {program.level}
+                {levelLabel}
               </Badge>
             </div>
             <div className="absolute top-2 right-2">
-              <Badge className={`text-[10px] capitalize shadow-sm border-0 py-0 h-5 ${program.type === 'bootcamp' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
-                {program.type}
+              <Badge className="h-5 border-0 bg-primary py-0 text-[10px] text-primary-foreground shadow-sm">
+                {typeLabel}
               </Badge>
             </div>
           </div>
@@ -58,7 +65,7 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index = 0, layout = 
               </div>
               <div className="flex items-center gap-1">
                 <Signal className="h-3.5 w-3.5" />
-                <span>{program.level}</span>
+                <span>{levelLabel}</span>
               </div>
             </div>
           </div>
@@ -94,12 +101,12 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index = 0, layout = 
           </div>
           <div className="absolute top-3 left-3 flex gap-2">
             <Badge variant="secondary" className="bg-secondary text-xs font-semibold shadow-sm text-secondary-foreground border-secondary">
-              {program.level}
+              {levelLabel}
             </Badge>
           </div>
           <div className="absolute top-3 right-3">
-             <Badge className={`text-xs capitalize shadow-sm border-0 ${program.type === 'bootcamp' ? 'bg-blue-600' : 'bg-emerald-600'}`}>
-              {program.type}
+             <Badge className="border-0 bg-primary text-xs text-primary-foreground shadow-sm">
+              {typeLabel}
             </Badge>
           </div>
         </GlassCardHeader>
@@ -118,7 +125,7 @@ const ProgramCard: React.FC<ProgramCardProps> = ({ program, index = 0, layout = 
              </div>
              <div className="flex items-center gap-1">
                <Signal className="h-3.5 w-3.5" />
-               <span>{program.level}</span>
+               <span>{levelLabel}</span>
              </div>
           </div>
         </GlassCardContent>

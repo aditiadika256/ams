@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSalesStore } from '@/store/useSalesStore';
 import ProgramCard from '@/components/programs/ProgramCard';
 import { ProgramCardSkeleton } from '@/components/programs/ProgramCardSkeleton';
@@ -10,6 +10,11 @@ import { GlassCard } from '@/components/ui/glass-card';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import {
+  getProgramLevelLabel,
+  getProgramTypeCode,
+  getProgramTypeLabel,
+} from '@/lib/program-labels';
 
 export default function ProgramsPage() {
   const { programs, fetchPrograms, isLoading } = useSalesStore();
@@ -27,14 +32,32 @@ export default function ProgramsPage() {
     fetchPrograms({ active: true });
   }, []);  // Empty deps - run only once
 
-  // Filter programs locally for now
-  const filteredPrograms = programs.filter(program => {
-    const matchesSearch = program.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = selectedType ? program.type === selectedType : true;
+  const typeOptions = useMemo(() => {
+    const options = new Map<string, string>();
+
+    programs.forEach((program) => {
+      const code = getProgramTypeCode(program);
+
+      if (code && !options.has(code)) {
+        options.set(code, getProgramTypeLabel(program));
+      }
+    });
+
+    return Array.from(options, ([code, label]) => ({ code, label }));
+  }, [programs]);
+
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase('id-ID');
+  const filteredPrograms = programs.filter((program) => {
+    const matchesSearch = !normalizedSearch || [
+      program.name,
+      getProgramLevelLabel(program),
+      getProgramTypeLabel(program),
+    ].some((value) => value.toLocaleLowerCase('id-ID').includes(normalizedSearch));
+    const matchesType = selectedType
+      ? getProgramTypeCode(program) === selectedType
+      : true;
     return matchesSearch && matchesType;
   });
-
-  const types = ['bootcamp', 'course'];
 
   useEffect(() => {
     setPage(1);
@@ -46,7 +69,7 @@ export default function ProgramsPage() {
     <div className="container py-8 md:py-12 mx-auto">
       <div className="flex flex-col gap-6 mb-12">
         <div className="text-center max-w-2xl mx-auto space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight bg-linear-to-r from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">
              Jelajahi Program Belajar
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -76,15 +99,15 @@ export default function ProgramsPage() {
                 >
                   Semua
                 </AnimatedButton>
-                {types.map(type => (
+                {typeOptions.map(({ code, label }) => (
                   <AnimatedButton
-                    key={type}
-                    variant={selectedType === type ? "default" : "glass"}
+                    key={code}
+                    variant={selectedType === code ? "default" : "glass"}
                     size="sm"
-                    onClick={() => setSelectedType(type)}
-                    className="rounded-full capitalize"
+                    onClick={() => setSelectedType(code)}
+                    className="rounded-full"
                   >
-                    {type}
+                    {label}
                   </AnimatedButton>
                 ))}
               </div>

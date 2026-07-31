@@ -11,6 +11,7 @@ class Menu extends Model
     protected $table = 'menus';
 
     protected $fillable = [
+        'seed_key',
         'name',
         'icon',
         'url',

@@ -19,6 +19,11 @@ import { useSalesStore } from '@/store/useSalesStore';
 import { useAdminStore } from '@/store/useAdminStore';
 import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import {
+  getProgramLevelLabel,
+  getProgramTypeLabel,
+} from '@/lib/program-labels';
+import type { Program, ProgramMutationPayload } from '@/types/sales';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -61,7 +66,7 @@ export default function ProgramsView() {
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [selectedProgram, setSelectedProgram] = React.useState<any>(null);
+  const [selectedProgram, setSelectedProgram] = React.useState<Program | null>(null);
 
   useEffect(() => {
     if (fetchedRef.current) return;
@@ -70,10 +75,18 @@ export default function ProgramsView() {
     fetchPrograms({});
   }, []);  // Empty deps - run only once
 
-  const filteredPrograms = programs.filter(program => 
-    program.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    program.type.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase('id-ID');
+  const filteredPrograms = programs.filter((program) => {
+    if (!normalizedSearch) {
+      return true;
+    }
+
+    return [
+      program.name,
+      getProgramLevelLabel(program),
+      getProgramTypeLabel(program),
+    ].some((value) => value.toLocaleLowerCase('id-ID').includes(normalizedSearch));
+  });
 
   React.useEffect(() => {
     setPage(1);
@@ -86,12 +99,12 @@ export default function ProgramsView() {
     setIsModalOpen(true);
   };
 
-  const handleOpenEdit = (program: any) => {
+  const handleOpenEdit = (program: Program) => {
     setSelectedProgram(program);
     setIsModalOpen(true);
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: ProgramMutationPayload) => {
     try {
       if (selectedProgram) {
         await updateProgram(selectedProgram.id, data);
@@ -196,10 +209,12 @@ export default function ProgramsView() {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <Badge variant="outline" className="border-white/20 bg-white/5">{program.level}</Badge>
+                            <Badge variant="outline" className="border-white/20 bg-white/5">
+                              {getProgramLevelLabel(program)}
+                            </Badge>
                           </td>
                           <td className="px-4 py-3">
-                            <span className="capitalize">{program.type}</span>
+                            <span>{getProgramTypeLabel(program)}</span>
                           </td>
                           <td className="px-4 py-3 font-medium">
                             {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(program.price)}
@@ -280,8 +295,12 @@ export default function ProgramsView() {
                         </div>
                         <h3 className="font-semibold text-lg mb-1 line-clamp-1">{program.name}</h3>
                         <div className="flex gap-2 mb-4">
-                          <Badge variant="outline" className="border-white/20 bg-white/5 text-xs">{program.level}</Badge>
-                          <span className="text-xs text-muted-foreground capitalize flex items-center">{program.type}</span>
+                          <Badge variant="outline" className="border-white/20 bg-white/5 text-xs">
+                            {getProgramLevelLabel(program)}
+                          </Badge>
+                          <span className="flex items-center text-xs text-muted-foreground">
+                            {getProgramTypeLabel(program)}
+                          </span>
                         </div>
                         <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/5">
                           <div className="font-medium text-sm">
