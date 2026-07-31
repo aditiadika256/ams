@@ -37,6 +37,10 @@ class RolesSeeder extends Seeder
             'manage_global_settings',
             // Menu Management
             'manage_menus',
+
+            // Program Management
+            'manage_programs',
+            'manage_program_masters',
             
             // User Management
             'manage_users_global', // Create, read, update, delete, assign roles globally

@@ -14,6 +14,8 @@ import FinanceView from '../views/finance/view';
 import CMSPostsView from '../views/CMSPosts/view';
 import MentorsView from '../views/Mentors/view';
 import ProgramsView from '../views/Programs/view';
+import ProgramLevelsView from '../views/ProgramLevels/view';
+import ProgramTypesView from '../views/ProgramTypes/view';
 import CurriculumBuilderView from '../views/CurriculumBuilder/view';
 import RolesPermissionsView from '../views/RolesPermissions/view';
 import MenuManagementView from '../views/MenuManagement/view';
@@ -26,6 +28,8 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'cms-posts': CMSPostsView,
   'mentors': MentorsView,
   'programs': ProgramsView,
+  'program-levels': ProgramLevelsView,
+  'program-types': ProgramTypesView,
   'curriculum-builder': CurriculumBuilderView,
   'menus': MenuManagementView,
   'colorpalette': ColorPaletteView,// With hyphen
@@ -42,6 +46,8 @@ const ViewPermissions: Record<string, string[]> = {
   'cms-posts': ['manage_global_settings'],
   'mentors': ['manage_students', 'view_dashboard_learning'],
   'programs': ['manage_learning_content', 'view_dashboard_learning'],
+  'program-levels': ['manage_program_masters'],
+  'program-types': ['manage_program_masters'],
   'curriculum-builder': ['manage_learning_content'],
   'menus': ['manage_menus'],
   'colorpalette': ['manage_global_settings'],
@@ -52,7 +58,7 @@ const ViewPermissions: Record<string, string[]> = {
 
 export default function AdminLayout() {
   const { sidebarOpen, tabs, activeTabId } = useAdminStore();
-  const { hasPermission, hasRole } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   
   // Find the active tab definition
   const activeTab = tabs.find(t => t.id === activeTabId);
@@ -60,14 +66,19 @@ export default function AdminLayout() {
   const ActiveView = activeTab ? (ViewMap[activeTab.view] || ViewMap['dashboard']) : DashboardView;
 
   // Check permissions for active view
-  const isAllowed = React.useMemo(() => {
-    if (!activeTab) return true; // Default or empty state
-    if (hasRole(['superadmin','direktur'])) return true;
+  const isAllowed = (() => {
+    if (!activeTab) return true;
+    if (user?.roles?.some((role) => ['superadmin', 'direktur'].includes(role))) {
+      return true;
+    }
+
     const requiredPermissions = ViewPermissions[activeTab.view];
-    if (!requiredPermissions) return true; // No specific permissions required (safe default? or strict?)
-    // Let's assume strict: if view is in map, check it.
-    return hasPermission(requiredPermissions);
-  }, [activeTab]);  // Only activeTab - not the functions!
+    if (!requiredPermissions) return true;
+
+    return requiredPermissions.some((permission) =>
+      user?.permissions?.includes(permission)
+    );
+  })();
 
   return (
     <div className="min-h-screen bg-background">

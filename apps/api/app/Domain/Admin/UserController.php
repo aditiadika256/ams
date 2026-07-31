@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 /**
  * @OA\Tag(
@@ -120,7 +121,7 @@ class UserController extends Controller
         $validated['password'] = Hash::make($validated['password']);
         
         $user = User::create($validated);
-        $user->assignRole($validated['role']);
+        $user->assignRole(Role::findByName($validated['role'], 'web'));
 
         return $this->successResponse($user->load('roles', 'branch'), 'User created successfully', 201);
     }
@@ -205,7 +206,9 @@ class UserController extends Controller
         $user->update($validated);
 
         if (isset($validated['role'])) {
-            $user->syncRoles([$validated['role']]);
+            $user->syncRoles([
+                Role::findByName($validated['role'], 'web'),
+            ]);
         }
 
         return $this->successResponse($user->load('roles', 'branch'), 'User updated successfully');

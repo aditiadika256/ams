@@ -34,7 +34,12 @@ class CheckPermission
             }
         }
 
-        if (!$request->user()->hasAnyPermission($allPermissions)) {
+        $hasPermission = collect($allPermissions)->contains(
+            fn (string $permission): bool => $request->user()
+                ->checkPermissionTo($permission, 'web')
+        );
+
+        if (!$hasPermission) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized. Required permission: ' . implode(', ', $allPermissions),
@@ -44,4 +49,3 @@ class CheckPermission
         return $next($request);
     }
 }
-

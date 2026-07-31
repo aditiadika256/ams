@@ -12,6 +12,10 @@ import { ShieldCheck, ArrowRight, AlertCircle, CreditCard, Wallet, Lock } from '
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Label } from '@/components/ui/label';
 import { ProcessingLoader, Spinner, PageLoader } from '@/components/ui/loaders';
+import {
+  getProgramLevelLabel,
+  getProgramTypeLabel,
+} from '@/lib/program-labels';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -149,8 +153,8 @@ function CheckoutContent() {
               <div className="flex justify-between items-start mb-4">
                 <div className="space-y-1">
                   <h3 className="font-semibold text-base">{currentProgram.name}</h3>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {currentProgram.type} • {currentProgram.level}
+                  <p className="text-xs text-muted-foreground">
+                    {getProgramTypeLabel(currentProgram)} • {getProgramLevelLabel(currentProgram)}
                   </p>
                 </div>
                 <p className="font-semibold">

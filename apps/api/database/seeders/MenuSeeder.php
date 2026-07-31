@@ -2,58 +2,57 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Menu;
+use Illuminate\Database\QueryException;
+use Illuminate\Database\Seeder;
 
 class MenuSeeder extends Seeder
 {
     public function run(): void
     {
-        // Clear existing menus for a clean slate
-        Menu::query()->delete();
+        $this->createMenu('users.topbar.home', 'Beranda', 'Home', '/', 'users', 'topbar', null, 1);
+        $this->createMenu('users.topbar.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'topbar', null, 2);
+        $this->createMenu('users.topbar.exams', 'Ujian', 'FileText', '/exams', 'users', 'topbar', null, 3);
+        $this->createMenu('users.topbar.blog', 'Blog', 'FileText', '/blog', 'users', 'topbar', null, 4);
+        $this->createMenu('users.topbar.about', 'Tentang', 'Info', '/about', 'users', 'topbar', null, 5);
 
-        // Users - TopBar
-        $this->createMenu('Beranda', 'Home', '/', 'users', 'topbar', null, 1);
-        $this->createMenu('Program', 'LayoutGrid', '/programs', 'users', 'topbar', null, 2);
-        $this->createMenu('Ujian', 'FileText', '/exams', 'users', 'topbar', null, 3);
-        $this->createMenu('Blog', 'FileText', '/blog', 'users', 'topbar', null, 4);
-        $this->createMenu('Tentang', 'Info', '/about', 'users', 'topbar', null, 5);
+        $this->createMenu('users.bottom.home', 'Home', 'Home', '/', 'users', 'bottomnavigation', null, 1);
+        $this->createMenu('users.bottom.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'bottomnavigation', null, 2);
+        $this->createMenu('users.bottom.exams', 'Ujian', 'FileText', '/exams', 'users', 'bottomnavigation', null, 3);
+        $this->createMenu('users.bottom.orders', 'Order', 'ShoppingBag', '/orders', 'users', 'bottomnavigation', null, 4);
+        $this->createMenu('users.bottom.account', 'Akun', 'User', '/profile', 'users', 'bottomnavigation', null, 5);
 
-        // Users - BottomNavigation (common)
-        $this->createMenu('Home', 'Home', '/', 'users', 'bottomnavigation', null, 1);
-        $this->createMenu('Program', 'LayoutGrid', '/programs', 'users', 'bottomnavigation', null, 2);
-        $this->createMenu('Ujian', 'FileText', '/exams', 'users', 'bottomnavigation', null, 3);
-        $this->createMenu('Order', 'ShoppingBag', '/orders', 'users', 'bottomnavigation', null, 4);
-        $this->createMenu('Akun', 'User', '/profile', 'users', 'bottomnavigation', null, 5);
+        $this->createMenu('admin.sidebar.dashboard', 'Dashboard', 'LayoutDashboard', 'admin://view/dashboard', 'admin', 'sidebar', null, 1);
 
-        // Admin - Sidebar
-        $dashboard = $this->createMenu('Dashboard', 'LayoutDashboard', 'admin://view/dashboard', 'admin', 'sidebar', null, 1);
-        
-        $management = $this->createMenu('Management', 'Settings', 'admin://view/users', 'admin', 'sidebar', null, 2);
-        $users = $this->createMenu('Users', 'Users', 'admin://view/users', 'admin', 'sidebar', $management->id, 1);
-        $roles = $this->createMenu('Roles & Permissions', 'ShieldCheck', 'admin://view/roles', 'admin', 'sidebar', $management->id, 2);
-        $finance = $this->createMenu('Finance', 'PieChart', 'admin://view/finance', 'admin', 'sidebar', $management->id, 3);
+        $management = $this->createMenu('admin.sidebar.management', 'Management', 'Settings', 'admin://view/users', 'admin', 'sidebar', null, 2);
+        $this->createMenu('admin.sidebar.management.users', 'Users', 'Users', 'admin://view/users', 'admin', 'sidebar', $management->id, 1);
+        $this->createMenu('admin.sidebar.management.roles', 'Roles & Permissions', 'ShieldCheck', 'admin://view/roles', 'admin', 'sidebar', $management->id, 2);
+        $this->createMenu('admin.sidebar.management.finance', 'Finance', 'PieChart', 'admin://view/finance', 'admin', 'sidebar', $management->id, 3);
 
-        $education = $this->createMenu('Education', 'GraduationCap', 'admin://view/programs', 'admin', 'sidebar', null, 3);
-        $programs = $this->createMenu('Programs', 'BookOpen', 'admin://view/programs', 'admin', 'sidebar', $education->id, 1);
-        $mentors = $this->createMenu('Mentors', 'GraduationCap', 'admin://view/mentors', 'admin', 'sidebar', $education->id, 2);
-        $curriculum = $this->createMenu('Curriculum Builder', 'BookOpen', 'admin://view/curriculum-builder', 'admin', 'sidebar', $education->id, 3);
+        $education = $this->createMenu('admin.sidebar.education', 'Education', 'GraduationCap', 'admin://view/programs', 'admin', 'sidebar', null, 3);
+        $this->createMenu('admin.sidebar.education.programs', 'Programs', 'BookOpen', 'admin://view/programs', 'admin', 'sidebar', $education->id, 1);
+        $this->createMenu('admin.sidebar.education.mentors', 'Mentors', 'GraduationCap', 'admin://view/mentors', 'admin', 'sidebar', $education->id, 2);
+        $this->createMenu('admin.sidebar.education.curriculum', 'Curriculum Builder', 'BookOpen', 'admin://view/curriculum-builder', 'admin', 'sidebar', $education->id, 3);
 
-        $content = $this->createMenu('Content', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', null, 4);
-        $posts = $this->createMenu('Blog Posts', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', $content->id, 1);
-        $pages = $this->createMenu('Pages', 'FileText', 'admin://view/cms-pages', 'admin', 'sidebar', $content->id, 2);
+        $master = $this->createMenu('admin.sidebar.master', 'Master', 'Database', 'admin://view/program-levels', 'admin', 'sidebar', null, 4);
+        $this->createMenu('admin.sidebar.master.program-levels', 'Master Jenjang / Level', 'GraduationCap', 'admin://view/program-levels', 'admin', 'sidebar', $master->id, 1);
+        $this->createMenu('admin.sidebar.master.program-types', 'Master Tipe Program', 'BookOpen', 'admin://view/program-types', 'admin', 'sidebar', $master->id, 2);
 
-        $system = $this->createMenu('System', 'Settings', 'admin://view/settings', 'admin', 'sidebar', null, 5);
-        $settings = $this->createMenu('Settings', 'Settings', 'admin://view/settings', 'admin', 'sidebar', $system->id, 1);
-        $menuMgmt = $this->createMenu('Menu Management', 'Menu', 'admin://view/menus', 'admin', 'sidebar', $system->id, 2);
-        $colorPalette = $this->createMenu('Color Palette', 'Settings', 'admin://view/colorpalette', 'admin', 'sidebar', $system->id, 3);
+        $content = $this->createMenu('admin.sidebar.content', 'Content', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', null, 5);
+        $this->createMenu('admin.sidebar.content.posts', 'Blog Posts', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', $content->id, 1);
+        $this->createMenu('admin.sidebar.content.pages', 'Pages', 'FileText', 'admin://view/cms-pages', 'admin', 'sidebar', $content->id, 2);
 
-        // Admin - Header (simple shortcuts)
-        $this->createMenu('Dashboard', 'LayoutDashboard', 'admin://view/dashboard', 'admin', 'header', null, 1);
-        $this->createMenu('Settings', 'Settings', 'admin://view/settings', 'admin', 'header', null, 2);
+        $system = $this->createMenu('admin.sidebar.system', 'System', 'Settings', 'admin://view/settings', 'admin', 'sidebar', null, 6);
+        $this->createMenu('admin.sidebar.system.settings', 'Settings', 'Settings', 'admin://view/settings', 'admin', 'sidebar', $system->id, 1);
+        $this->createMenu('admin.sidebar.system.menus', 'Menu Management', 'Menu', 'admin://view/menus', 'admin', 'sidebar', $system->id, 2);
+        $this->createMenu('admin.sidebar.system.color-palette', 'Color Palette', 'Settings', 'admin://view/colorpalette', 'admin', 'sidebar', $system->id, 3);
+
+        $this->createMenu('admin.header.dashboard', 'Dashboard', 'LayoutDashboard', 'admin://view/dashboard', 'admin', 'header', null, 1);
+        $this->createMenu('admin.header.settings', 'Settings', 'Settings', 'admin://view/settings', 'admin', 'header', null, 2);
     }
 
     protected function createMenu(
+        string $seedKey,
         string $name,
         ?string $icon,
         string $url,
@@ -62,19 +61,59 @@ class MenuSeeder extends Seeder
         ?int $parentId,
         int $order
     ): Menu {
-        return Menu::firstOrCreate(
-            [
+        $this->adoptLegacyMenu($seedKey, $url, $layout, $section, $parentId);
+
+        Menu::query()->upsert(
+            [[
+                'seed_key' => $seedKey,
                 'name' => $name,
+                'icon' => $icon,
                 'url' => $url,
                 'layout' => $layout,
                 'section' => $section,
                 'parent_id' => $parentId,
-            ],
-            [
-                'icon' => $icon,
                 'order' => $order,
-            ]
+            ]],
+            ['seed_key'],
+            ['name', 'icon', 'url', 'layout', 'section', 'parent_id', 'order']
         );
+
+        return Menu::query()->where('seed_key', $seedKey)->firstOrFail();
+    }
+
+    private function adoptLegacyMenu(
+        string $seedKey,
+        string $url,
+        string $layout,
+        string $section,
+        ?int $parentId
+    ): void {
+        if (Menu::query()->where('seed_key', $seedKey)->exists()) {
+            return;
+        }
+
+        $legacyId = Menu::query()
+            ->whereNull('seed_key')
+            ->where('url', $url)
+            ->where('layout', $layout)
+            ->where('section', $section)
+            ->where('parent_id', $parentId)
+            ->oldest('id')
+            ->value('id');
+
+        if ($legacyId === null) {
+            return;
+        }
+
+        try {
+            Menu::query()
+                ->whereKey($legacyId)
+                ->whereNull('seed_key')
+                ->update(['seed_key' => $seedKey]);
+        } catch (QueryException $exception) {
+            if (!Menu::query()->where('seed_key', $seedKey)->exists()) {
+                throw $exception;
+            }
+        }
     }
 }
-

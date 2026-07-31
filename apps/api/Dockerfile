@@ -39,12 +39,9 @@ RUN mkdir -p storage/logs bootstrap/cache \
 
 EXPOSE 10000
 
+# Render Free has no shell or pre-deploy command. Migrations are therefore
+# checked on startup; Laravel only runs migration files not yet recorded in
+# the migrations table. Seeders remain an explicit bootstrap operation.
 CMD sh -c "\
-php artisan config:clear && \
-php artisan cache:clear && \
-php artisan migrate --force && \
-php artisan db:seed --force && \
-php artisan config:cache && \
-php artisan route:cache && \
-php artisan view:cache && \
-php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
+php artisan optimize && \
+exec php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"
