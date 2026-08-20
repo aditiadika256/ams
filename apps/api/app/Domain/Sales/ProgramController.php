@@ -17,7 +17,8 @@ class ProgramController extends Controller
         $programs = $this->catalog->paginate($request->validated());
         $data = ProgramResource::collection($programs)->response()->getData(true);
 
-        return $this->successResponse($data, 'Programs retrieved successfully');
+        return $this->successResponse($data, 'Programs retrieved successfully')
+            ->header('Cache-Control', 'public, max-age=0, no-cache, must-revalidate');
     }
 
     public function show(string $program): JsonResponse
