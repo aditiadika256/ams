@@ -11,12 +11,12 @@ class MenuSeeder extends Seeder
     public function run(): void
     {
         $this->createMenu('users.topbar.home', 'Beranda', 'Home', '/', 'users', 'topbar', null, 1);
-        $this->createMenu('users.topbar.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'topbar', null, 2);
-        $this->createMenu('users.topbar.exams', 'Ujian', 'FileText', '/exams', 'users', 'topbar', null, 3);
-        $this->createMenu('users.topbar.blog', 'Blog', 'FileText', '/blog', 'users', 'topbar', null, 4);
-        $this->createMenu('users.topbar.about', 'Tentang', 'Info', '/about', 'users', 'topbar', null, 5);
+        $this->createMenu('users.topbar.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'topbar', null, 2);
+        $this->createMenu('users.topbar.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'topbar', null, 3);
+        $this->createMenu('users.topbar.exams', 'Ujian', 'FileText', '/exams', 'users', 'topbar', null, 4);
+        $this->createMenu('users.topbar.blog', 'Blog', 'FileText', '/blog', 'users', 'topbar', null, 5);
 
-        $this->createMenu('users.bottom.home', 'Home', 'Home', '/', 'users', 'bottomnavigation', null, 1);
+        $this->createMenu('users.bottom.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'bottomnavigation', null, 1);
         $this->createMenu('users.bottom.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'bottomnavigation', null, 2);
         $this->createMenu('users.bottom.exams', 'Ujian', 'FileText', '/exams', 'users', 'bottomnavigation', null, 3);
         $this->createMenu('users.bottom.orders', 'Order', 'ShoppingBag', '/orders', 'users', 'bottomnavigation', null, 4);
@@ -31,12 +31,9 @@ class MenuSeeder extends Seeder
 
         $education = $this->createMenu('admin.sidebar.education', 'Education', 'GraduationCap', 'admin://view/programs', 'admin', 'sidebar', null, 3);
         $this->createMenu('admin.sidebar.education.programs', 'Programs', 'BookOpen', 'admin://view/programs', 'admin', 'sidebar', $education->id, 1);
-        $this->createMenu('admin.sidebar.education.mentors', 'Mentors', 'GraduationCap', 'admin://view/mentors', 'admin', 'sidebar', $education->id, 2);
-        $this->createMenu('admin.sidebar.education.curriculum', 'Curriculum Builder', 'BookOpen', 'admin://view/curriculum-builder', 'admin', 'sidebar', $education->id, 3);
-
-        $master = $this->createMenu('admin.sidebar.master', 'Master', 'Database', 'admin://view/program-levels', 'admin', 'sidebar', null, 4);
-        $this->createMenu('admin.sidebar.master.program-levels', 'Master Jenjang / Level', 'GraduationCap', 'admin://view/program-levels', 'admin', 'sidebar', $master->id, 1);
-        $this->createMenu('admin.sidebar.master.program-types', 'Master Tipe Program', 'BookOpen', 'admin://view/program-types', 'admin', 'sidebar', $master->id, 2);
+        $this->createMenu('admin.sidebar.education.tags', 'Tags', 'Tags', 'admin://view/tags', 'admin', 'sidebar', $education->id, 2);
+        $this->createMenu('admin.sidebar.education.mentors', 'Mentors', 'GraduationCap', 'admin://view/mentors', 'admin', 'sidebar', $education->id, 3);
+        $this->createMenu('admin.sidebar.education.curriculum', 'Curriculum Builder', 'BookOpen', 'admin://view/curriculum-builder', 'admin', 'sidebar', $education->id, 4);
 
         $content = $this->createMenu('admin.sidebar.content', 'Content', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', null, 5);
         $this->createMenu('admin.sidebar.content.posts', 'Blog Posts', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', $content->id, 1);
@@ -111,7 +108,7 @@ class MenuSeeder extends Seeder
                 ->whereNull('seed_key')
                 ->update(['seed_key' => $seedKey]);
         } catch (QueryException $exception) {
-            if (!Menu::query()->where('seed_key', $seedKey)->exists()) {
+            if (! Menu::query()->where('seed_key', $seedKey)->exists()) {
                 throw $exception;
             }
         }
