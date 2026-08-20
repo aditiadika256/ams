@@ -62,6 +62,24 @@ Route::prefix('v1')->group(function () {
         Route::get('component-definitions', [\App\Domain\Admin\ComponentDefinitionController::class, 'index']);
         Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
         Route::put('programs/{program}/relations', [\App\Domain\Admin\ProgramRelationController::class, 'update']);
+        Route::scopeBindings()->group(function () {
+            Route::get('programs/{program}/batches', [\App\Domain\Admin\ProgramBatchController::class, 'index']);
+            Route::post('programs/{program}/batches', [\App\Domain\Admin\ProgramBatchController::class, 'store']);
+            Route::get('programs/{program}/batches/{batch}', [\App\Domain\Admin\ProgramBatchController::class, 'show']);
+            Route::put('programs/{program}/batches/{batch}', [\App\Domain\Admin\ProgramBatchController::class, 'update']);
+            Route::delete('programs/{program}/batches/{batch}', [\App\Domain\Admin\ProgramBatchController::class, 'destroy']);
+            Route::post('programs/{program}/batches/{batch}/transition', [\App\Domain\Admin\ProgramBatchController::class, 'transition']);
+
+            Route::get('programs/{program}/batches/{batch}/sessions', [\App\Domain\Admin\ProgramSessionController::class, 'index']);
+            Route::post('programs/{program}/batches/{batch}/sessions', [\App\Domain\Admin\ProgramSessionController::class, 'store']);
+            Route::get('programs/{program}/batches/{batch}/sessions/{session}', [\App\Domain\Admin\ProgramSessionController::class, 'show']);
+            Route::put('programs/{program}/batches/{batch}/sessions/{session}', [\App\Domain\Admin\ProgramSessionController::class, 'update']);
+            Route::delete('programs/{program}/batches/{batch}/sessions/{session}', [\App\Domain\Admin\ProgramSessionController::class, 'destroy']);
+            Route::post('programs/{program}/batches/{batch}/sessions/{session}/transition', [\App\Domain\Admin\ProgramSessionController::class, 'transition']);
+
+            Route::post('programs/{program}/batches/{batch}/sessions/{session}/mentor-assignments', [\App\Domain\Admin\SessionMentorAssignmentController::class, 'store']);
+            Route::delete('programs/{program}/batches/{batch}/sessions/{session}/mentor-assignments/{mentorAssignment}', [\App\Domain\Admin\SessionMentorAssignmentController::class, 'destroy']);
+        });
         Route::post('programs/{program}/publish', [\App\Domain\Admin\ProgramController::class, 'publish']);
         Route::post('programs/{program}/unpublish', [\App\Domain\Admin\ProgramController::class, 'unpublish']);
         Route::post('programs/{program}/archive', [\App\Domain\Admin\ProgramController::class, 'archive']);

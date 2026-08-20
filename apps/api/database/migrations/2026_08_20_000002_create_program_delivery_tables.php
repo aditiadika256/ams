@@ -67,10 +67,15 @@ return new class extends Migration
             $table->foreignId('created_by')->nullable()->index()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->index()->constrained('users')->nullOnDelete();
             $table->timestamps();
-            $table->unique(['program_session_id', 'mentor_id', 'status'], 'session_mentor_status_unique');
             $table->index(['mentor_id', 'status']);
             $table->index(['program_session_id', 'status']);
         });
+
+        if (in_array(DB::getDriverName(), ['pgsql', 'sqlite'], true)) {
+            DB::statement(
+                "CREATE UNIQUE INDEX session_mentor_active_unique ON session_mentor_assignments (program_session_id, mentor_id) WHERE status = 'ACTIVE'"
+            );
+        }
 
         Schema::table('order_items', function (Blueprint $table) {
             $table->foreign('program_batch_id')
@@ -105,4 +110,3 @@ return new class extends Migration
         Schema::dropIfExists('program_batches');
     }
 };
-
