@@ -29,6 +29,13 @@ Route::prefix('v1')->group(function () {
     // Payments
     Route::post('payments/webhook', [\App\Domain\Sales\PaymentWebhookController::class, 'handle']);
 
+    // Access acquisition
+    Route::prefix('access')->middleware('auth:sanctum')->group(function () {
+        Route::post('free-enrollments', [\App\Domain\Access\FreeEnrollmentController::class, 'store']);
+        Route::post('redeem-voucher', [\App\Domain\Access\CodeRedemptionController::class, 'voucher']);
+        Route::post('redeem-enrollment-code', [\App\Domain\Access\CodeRedemptionController::class, 'enrollment']);
+    });
+
     // CBT
     Route::get('exams/packages', [\App\Domain\CBT\ExamController::class, 'index'])->middleware('auth:sanctum');
     Route::get('exams/packages/{id}', [\App\Domain\CBT\ExamController::class, 'show'])->middleware('auth:sanctum');
@@ -58,6 +65,12 @@ Route::prefix('v1')->group(function () {
 
     // Admin
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+        Route::post('program-accesses/grant', [\App\Domain\Admin\ProgramAccessController::class, 'grant']);
+        Route::post('program-accesses/{programAccess}/activate', [\App\Domain\Admin\ProgramAccessController::class, 'activate']);
+        Route::post('program-accesses/{programAccess}/suspend', [\App\Domain\Admin\ProgramAccessController::class, 'suspend']);
+        Route::post('program-accesses/{programAccess}/restore', [\App\Domain\Admin\ProgramAccessController::class, 'restore']);
+        Route::post('program-accesses/{programAccess}/revoke', [\App\Domain\Admin\ProgramAccessController::class, 'revoke']);
+        Route::post('program-accesses/{programAccess}/extend', [\App\Domain\Admin\ProgramAccessController::class, 'extend']);
         Route::apiResource('tags', \App\Domain\Admin\TagController::class);
         Route::get('component-definitions', [\App\Domain\Admin\ComponentDefinitionController::class, 'index']);
         Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
