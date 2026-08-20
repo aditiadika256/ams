@@ -58,6 +58,10 @@ Route::prefix('v1')->group(function () {
 
     // Admin
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+        Route::apiResource('tags', \App\Domain\Admin\TagController::class);
+        Route::get('component-definitions', [\App\Domain\Admin\ComponentDefinitionController::class, 'index']);
+        Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
+        Route::put('programs/{program}/relations', [\App\Domain\Admin\ProgramRelationController::class, 'update']);
         Route::post('programs/{program}/publish', [\App\Domain\Admin\ProgramController::class, 'publish']);
         Route::post('programs/{program}/unpublish', [\App\Domain\Admin\ProgramController::class, 'unpublish']);
         Route::post('programs/{program}/archive', [\App\Domain\Admin\ProgramController::class, 'archive']);
