@@ -34,6 +34,7 @@
 - Modify: `apps/api/database/migrations/2025_10_29_000001_create_programs_table.php`
 - Modify: `apps/api/database/migrations/2025_10_29_000002_create_orders_table.php`
 - Modify: `apps/api/database/migrations/2025_10_29_000003_create_order_items_table.php`
+- Modify: `apps/api/database/migrations/2025_12_20_155834_add_user_stamps_to_tables.php`
 - Delete: `apps/api/database/migrations/2026_07_31_000001_create_program_levels_table.php`
 - Delete: `apps/api/database/migrations/2026_07_31_000002_create_program_types_table.php`
 - Delete: `apps/api/database/migrations/2026_07_31_000003_add_program_lookup_ids_to_programs_table.php`
