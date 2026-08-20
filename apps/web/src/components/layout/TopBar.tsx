@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Bell, User, LogOut, Settings, UserCircle, Menu, X, ShoppingBag, LayoutDashboard } from 'lucide-react';
+import { Bell, User, LogOut, Settings, UserCircle, Menu, X, LayoutDashboard, PanelsTopLeft } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   DropdownMenu,
@@ -21,13 +21,12 @@ import { useMenuStore } from '@/store/useMenuStore';
 
 const FALLBACK_NAV = [
   { name: 'Beranda', href: '/' },
+  { name: 'Workspace', href: '/workspace' },
   { name: 'Program', href: '/programs' },
   { name: 'Ujian', href: '/exams' },
-  { name: 'Blog', href: '/blog' },
-  { name: 'Tentang', href: '/about' },
 ];
 
-const AUTHENTICATED_ONLY_PATHS = ['/exams'];
+const AUTHENTICATED_ONLY_PATHS = ['/workspace', '/exams'];
 
 const requiresAuthentication = (href: string) =>
   AUTHENTICATED_ONLY_PATHS.some((path) => href === path || href.startsWith(`${path}/`));
@@ -95,11 +94,11 @@ const TopBar = () => {
     if (isAuthenticated) {
       const isAdmin = user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang', 'direktur'].includes(role));
       const dashboardLink = {
-        name: isAdmin ? 'Admin Panel' : 'Dashboard',
-        href: isAdmin ? '/admin' : '/dashboard'
+        name: isAdmin ? 'Admin Panel' : 'Workspace',
+        href: isAdmin ? '/admin' : '/workspace'
       };
       
-      const hasDashboard = visibleNav.some(link => link.href === '/dashboard' || link.href === '/admin');
+      const hasDashboard = visibleNav.some(link => link.href === '/workspace' || link.href === '/admin');
       if (!hasDashboard) {
         const result = [...visibleNav];
         result.splice(1, 0, dashboardLink);
@@ -182,9 +181,9 @@ const TopBar = () => {
                     </DropdownMenuItem>
                   ) : (
                     <DropdownMenuItem asChild>
-                      <Link href="/dashboard" className="cursor-pointer font-medium text-primary">
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        <span>Dashboard</span>
+                      <Link href="/workspace" className="cursor-pointer font-medium text-primary">
+                        <PanelsTopLeft className="mr-2 h-4 w-4" />
+                        <span>Workspace</span>
                       </Link>
                     </DropdownMenuItem>
                   )}

@@ -16,6 +16,7 @@ import {
   Search,
   Settings,
   ShieldCheck,
+  Tags,
   Users,
   X,
   type LucideIcon,
@@ -48,6 +49,7 @@ const IconMap: Record<string, LucideIcon> = {
   PieChart,
   Settings,
   ShieldCheck,
+  Tags,
   Users,
 };
 

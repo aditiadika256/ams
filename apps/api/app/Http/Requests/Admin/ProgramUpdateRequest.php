@@ -31,10 +31,6 @@ class ProgramUpdateRequest extends BaseFormRequest
             'currency' => ['sometimes', 'string', 'size:3', Rule::in(['IDR'])],
             'visibility' => ['sometimes', Rule::enum(ProgramVisibility::class)],
             'completion_rule' => ['sometimes', 'nullable', 'array'],
-            'level' => ['prohibited'],
-            'type' => ['prohibited'],
-            'program_level_id' => ['prohibited'],
-            'program_type_id' => ['prohibited'],
         ];
     }
 }

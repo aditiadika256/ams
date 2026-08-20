@@ -1,184 +1,53 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
-import { useSalesStore } from '@/store/useSalesStore';
-import { Button } from '@/components/ui/button';
+import { useParams, useRouter } from 'next/navigation';
+import { ArrowLeft, BookOpen, CheckCircle2, Layers3 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle2, Clock, Signal, Award, BookOpen } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { PageLoader } from '@/components/ui/loaders';
-import {
-  getProgramLevelLabel,
-  getProgramTypeLabel,
-} from '@/lib/program-labels';
+import { apiClient } from '@/lib/api';
+import { getErrorMessage } from '@/lib/get-error-message';
+import { alertActions } from '@/store/useAlertStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useSalesStore } from '@/store/useSalesStore';
+
+function currency(value: string): string {
+  const amount = Number(value);
+  return amount === 0 ? 'Gratis' : new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+}
 
 export default function ProgramDetailPage() {
+  const params = useParams<{ id: string }>();
   const router = useRouter();
-  const params = useParams();
-  const id = params?.id as string;
-  const { currentProgram, fetchProgram, isLoading } = useSalesStore();
+  const { isAuthenticated } = useAuthStore();
+  const { currentProgram, fetchProgram, isLoading, error } = useSalesStore();
+  const [enrolling, setEnrolling] = useState(false);
+  const id = params.id;
 
-  useEffect(() => {
-    if (id) {
-      console.log('[ProgramDetailPage] Fetching program:', id);
-      fetchProgram(id);
-    }
-  }, [id]);  // Only id - not fetchProgram function!
+  useEffect(() => { if (id) void fetchProgram(id); }, [fetchProgram, id]);
+  if (isLoading && !currentProgram) return <PageLoader />;
+  if (!currentProgram || error) return <div className="mx-auto grid min-h-[60vh] max-w-3xl place-items-center px-4 text-center"><div><h1 className="text-2xl font-semibold">Program tidak ditemukan</h1><p className="mt-2 text-zinc-500">{error || 'Program ini tidak tersedia pada katalog publik.'}</p><Button asChild className="mt-5"><Link href="/programs">Kembali ke katalog</Link></Button></div></div>;
 
-  const handleBuyNow = () => {
-    router.push(`/checkout?program_id=${id}`);
+  const program = currentProgram;
+  const acquire = async () => {
+    if (!isAuthenticated) { router.push(`/auth/login?redirect=${encodeURIComponent(`/programs/${id}`)}`); return; }
+    if (Number(program.base_price) > 0) { router.push(`/checkout?program_id=${program.id}`); return; }
+    setEnrolling(true);
+    try {
+      const response = await apiClient.access.freeEnroll(program.id);
+      if (response.data) router.push(`/workspace/accesses/${response.data.id}`);
+    } catch (requestError) {
+      alertActions.error('Enrollment gagal', getErrorMessage(requestError, 'Program gratis tidak dapat ditambahkan ke Workspace.'));
+    } finally { setEnrolling(false); }
   };
 
-  if (isLoading) {
-    return <PageLoader />;
-  }
-
-  if (!currentProgram) {
-    return (
-      <div className="container py-12 text-center">
-        <h2 className="text-xl font-bold mb-4">Program tidak ditemukan</h2>
-        <Button asChild variant="outline">
-          <Link href="/programs">Kembali ke Daftar Program</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  const levelLabel = getProgramLevelLabel(currentProgram);
-  const typeLabel = getProgramTypeLabel(currentProgram);
-
   return (
-    <div className="min-h-screen pb-20">
-      {/* Header / Hero */}
-      <div className="bg-zinc-50 dark:bg-zinc-900 border-b">
-        <div className="container py-8 md:py-12 max-w-5xl mx-auto">
-          <div className="mb-6">
-            <Button asChild variant="ghost" size="sm" className="pl-0 hover:bg-transparent hover:text-primary">
-              <Link href="/programs">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Kembali ke Daftar
-              </Link>
-            </Button>
-          </div>
-          
-          <div className="flex flex-col md:flex-row gap-8 items-start">
-             <div className="flex-1 space-y-4">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="uppercase font-semibold">
-                    {levelLabel}
-                  </Badge>
-                  <Badge className="bg-primary text-primary-foreground">
-                    {typeLabel}
-                  </Badge>
-                </div>
-                <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground">
-                  {currentProgram.name}
-                </h1>
-                <p className="text-lg text-muted-foreground leading-relaxed max-w-2xl">
-                   Program komprehensif yang dirancang untuk membantu Anda menguasai skill {currentProgram.name} dari dasar hingga siap kerja.
-                </p>
-                
-                <div className="flex items-center gap-6 text-sm font-medium text-muted-foreground pt-4">
-                   <div className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-primary" />
-                      <span>3 Bulan Durasi</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                      <Signal className="h-5 w-5 text-primary" />
-                      <span>{levelLabel} Level</span>
-                   </div>
-                   <div className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-primary" />
-                      <span>Sertifikat</span>
-                   </div>
-                </div>
-                
-                {/* Mobile Buy Button */}
-                <div className="md:hidden pt-4">
-                    <div className="flex items-baseline gap-2 mb-2">
-                        <span className="text-3xl font-bold text-primary">
-                          {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(currentProgram.price)}
-                        </span>
-                    </div>
-                    <Button onClick={handleBuyNow} size="lg" className="w-full rounded-full shadow-lg">
-                       Beli Program Sekarang
-                    </Button>
-                </div>
-             </div>
-             
-             {/* Pricing Card (Desktop) */}
-             <motion.div 
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               className="hidden md:block w-full md:w-[350px] bg-card border rounded-2xl shadow-xl p-6 sticky top-24"
-             >
-                <div className="mb-6">
-                  <span className="text-muted-foreground text-sm">Harga Program</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-primary">
-                      {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(currentProgram.price)}
-                    </span>
-                  </div>
-                </div>
-                
-                <Button onClick={handleBuyNow} size="lg" className="w-full rounded-full mb-4 font-bold text-base shadow-lg shadow-primary/20">
-                   Beli Program Sekarang
-                </Button>
-                
-                <p className="text-xs text-center text-muted-foreground">
-                   Garansi uang kembali 30 hari
-                </p>
-             </motion.div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Content */}
-      <div className="container py-12 max-w-5xl">
-         <div className="grid md:grid-cols-3 gap-12">
-            <div className="md:col-span-2 space-y-12">
-               {/* Description */}
-               <section>
-                  <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                     <BookOpen className="h-6 w-6 text-primary" />
-                     Tentang Program
-                  </h2>
-                  <div className="prose prose-zinc dark:prose-invert max-w-none text-muted-foreground">
-                    <p>
-                      Dalam program ini, Anda akan mempelajari konsep-konsep fundamental hingga tingkat lanjut. 
-                      Kurikulum disusun oleh para ahli industri untuk memastikan materi yang relevan dan aplikatif.
-                    </p>
-                    <p>
-                      Metode pembelajaran interaktif dengan kombinasi video materi, kuis, dan proyek praktikal 
-                      akan membantu Anda memahami setiap topik secara mendalam.
-                    </p>
-                  </div>
-               </section>
-               
-               {/* Curriculum / Syllabus (Dummy) */}
-               <section>
-                  <h2 className="text-2xl font-bold mb-6">Materi yang Dipelajari</h2>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                     {[
-                        "Pengenalan & Fundamental",
-                        "Konsep Lanjutan",
-                        "Best Practices & Clean Code",
-                        "Studi Kasus & Proyek",
-                        "Deployment & Production",
-                        "Karir & Persiapan Kerja"
-                     ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg border">
-                           <CheckCircle2 className="h-5 w-5 text-green-500 shrink-0" />
-                           <span className="font-medium">{item}</span>
-                        </div>
-                     ))}
-                  </div>
-               </section>
-            </div>
-         </div>
-      </div>
-    </div>
+    <main className="min-h-screen">
+      <section className="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"><div className="mx-auto grid max-w-6xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_340px] lg:px-8 lg:py-16"><div><Button asChild variant="ghost" className="mb-6 -ml-3"><Link href="/programs"><ArrowLeft className="mr-2 size-4" />Katalog</Link></Button><div className="mb-4 flex flex-wrap gap-2">{program.tags?.map((tag) => <Badge key={tag.id} variant="secondary">{tag.name}</Badge>)}</div><h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{program.name}</h1><p className="mt-5 max-w-3xl text-lg leading-8 text-zinc-500">{program.short_description || 'Program modular yang dirancang untuk pengalaman belajar terstruktur.'}</p></div><Card className="self-end border-zinc-200 bg-white shadow-none dark:border-zinc-800 dark:bg-zinc-950"><CardContent className="grid gap-5 p-6"><div><span className="text-sm text-zinc-500">Harga dasar</span><p className="mt-1 text-3xl font-semibold text-primary">{currency(program.base_price)}</p></div><Button size="lg" disabled={enrolling} onClick={() => void acquire()}>{enrolling ? 'Menambahkan…' : Number(program.base_price) === 0 ? 'Tambahkan ke Workspace' : 'Lanjut ke checkout'}</Button><p className="text-center text-xs text-zinc-500">Akses akan terbit sebagai enrollment terpisah di Workspace Anda.</p></CardContent></Card></div></section>
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_320px] lg:px-8"><section><h2 className="text-2xl font-semibold">Tentang Program</h2><div className="mt-5 whitespace-pre-line text-base leading-8 text-zinc-600 dark:text-zinc-300">{program.description || program.short_description || 'Deskripsi Program akan segera tersedia.'}</div></section><aside><h2 className="text-lg font-semibold">Komponen tersedia</h2><div className="mt-4 grid gap-3">{program.components?.length ? program.components.map((component) => <div key={component.code} className="flex min-h-12 items-center gap-3 rounded-xl border border-zinc-200 px-4 py-3 dark:border-zinc-800"><Layers3 className="size-4 text-primary" /><span className="text-sm font-medium">{component.label || component.name}</span><CheckCircle2 className="ml-auto size-4 text-emerald-600" /></div>) : <div className="rounded-xl border border-dashed p-5 text-sm text-zinc-500"><BookOpen className="mb-2 size-5" />Komponen akan ditampilkan setelah konfigurasi tersedia.</div>}</div></aside></div>
+    </main>
   );
 }

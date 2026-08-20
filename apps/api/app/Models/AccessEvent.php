@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 class AccessEvent extends Model
 {
@@ -24,6 +25,12 @@ class AccessEvent extends Model
         'metadata' => 'array',
         'created_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(fn () => throw new LogicException('Access events are immutable.'));
+        static::deleting(fn () => throw new LogicException('Access events are immutable.'));
+    }
 
     public function access(): BelongsTo
     {

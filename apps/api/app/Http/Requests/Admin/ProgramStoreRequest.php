@@ -27,10 +27,6 @@ class ProgramStoreRequest extends BaseFormRequest
             'currency' => ['sometimes', 'string', 'size:3', Rule::in(['IDR'])],
             'visibility' => ['required', Rule::enum(ProgramVisibility::class)],
             'completion_rule' => ['nullable', 'array'],
-            'level' => ['prohibited'],
-            'type' => ['prohibited'],
-            'program_level_id' => ['prohibited'],
-            'program_type_id' => ['prohibited'],
         ];
     }
 }

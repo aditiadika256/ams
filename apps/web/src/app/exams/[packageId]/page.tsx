@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, use, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useState, use, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -20,9 +20,11 @@ interface ExamPackage {
   show_result_mode: string;
 }
 
-export default function ExamStartPage({ params }: { params: Promise<{ packageId: string }> }) {
+function ExamStartContent({ params }: { params: Promise<{ packageId: string }> }) {
   const { packageId } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const programAccessId = Number(searchParams.get('program_access_id'));
   const [isLoading, setIsLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +33,12 @@ export default function ExamStartPage({ params }: { params: Promise<{ packageId:
   useEffect(() => {
     const fetchPackage = async () => {
       try {
-        const res = await apiClient.cbt.getPackage(packageId);
+        if (!Number.isInteger(programAccessId) || programAccessId <= 0) {
+          setError('Enrollment ujian tidak valid. Buka kembali ujian melalui Workspace.');
+          setIsFetching(false);
+          return;
+        }
+        const res = await apiClient.cbt.getPackage(packageId, programAccessId);
         if (res.success && res.data) {
           setExamPackage(res.data);
         } else {
@@ -45,13 +52,13 @@ export default function ExamStartPage({ params }: { params: Promise<{ packageId:
       }
     };
     fetchPackage();
-  }, [packageId]);
+  }, [packageId, programAccessId]);
 
   const handleStartExam = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await apiClient.cbt.startExam(parseInt(packageId));
+      const res = await apiClient.cbt.startExam(parseInt(packageId), programAccessId);
       if (res.success && res.data) {
         const { attempt_id } = res.data;
         alertActions.success(
@@ -161,4 +168,8 @@ export default function ExamStartPage({ params }: { params: Promise<{ packageId:
       </Card>
     </div>
   );
+}
+
+export default function ExamStartPage(props: { params: Promise<{ packageId: string }> }) {
+  return <Suspense fallback={<PageLoader message="Memuat detail ujian…" />}><ExamStartContent {...props} /></Suspense>;
 }

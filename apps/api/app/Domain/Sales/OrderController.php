@@ -2,16 +2,14 @@
 
 namespace App\Domain\Sales;
 
+use App\Actions\Orders\CreateOrder;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\OrderIndexRequest;
 use App\Http\Requests\Sales\OrderStoreRequest;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
-use App\Models\Program;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -42,7 +40,7 @@ class OrderController extends Controller
 
         $query = Order::query()
             ->forUser($user->id)
-            ->with(['items.program']);
+            ->with('items');
 
         if (isset($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -83,7 +81,7 @@ class OrderController extends Controller
             return $this->forbiddenResponse('You are not allowed to view this order');
         }
 
-        $order->load(['items.program']);
+        $order->load('items');
 
         return $this->successResponse(
             new OrderResource($order),
@@ -124,78 +122,13 @@ class OrderController extends Controller
             new OA\Response(response: 401, description: 'Unauthenticated'),
         ]
     )]
-    public function store(OrderStoreRequest $request): JsonResponse
+    public function store(OrderStoreRequest $request, CreateOrder $action): JsonResponse
     {
-        $data = $request->validated();
-        $user = $request->user();
-
-        $programsInput = collect($data['programs']);
-        $programIds = $programsInput->pluck('id')->all();
-
-        $programs = Program::query()
-            ->whereIn('id', $programIds)
-            ->where('active', true)
-            ->get()
-            ->keyBy('id');
-
-        if ($programs->count() !== count($programIds)) {
-            return $this->validationErrorResponse([
-                'programs' => ['One or more programs are invalid or inactive'],
-            ]);
-        }
-
-        $itemsPayload = $this->buildOrderItemsPayload($programs, $programsInput);
-
-        $order = null;
-
-        DB::transaction(function () use (&$order, $user, $data, $itemsPayload) {
-            $order = Order::create([
-                'user_id' => $user->id,
-                'status' => 'pending',
-                'total' => $itemsPayload['total'],
-                'payment_provider' => $data['payment_provider'] ?? null,
-                'payment_reference' => $data['payment_reference'] ?? null,
-                'snap_token' => null,
-                'meta' => $data['meta'] ?? null,
-            ]);
-
-            foreach ($itemsPayload['items'] as $item) {
-                $order->items()->create($item);
-            }
-        });
-
-        $order->load(['items.program']);
+        $order = $action->handle($request->validated(), $request->user());
 
         return $this->createdResponse(
             new OrderResource($order),
             'Order created successfully'
         );
-    }
-
-    protected function buildOrderItemsPayload(Collection $programs, Collection $programsInput): array
-    {
-        $total = 0;
-        $items = [];
-
-        foreach ($programsInput as $input) {
-            $programId = $input['id'];
-            $quantity = $input['quantity'] ?? 1;
-
-            $program = $programs->get($programId);
-
-            $lineTotal = $program->price * $quantity;
-            $total += $lineTotal;
-
-            $items[] = [
-                'program_id' => $programId,
-                'price' => $program->price,
-                'quantity' => $quantity,
-            ];
-        }
-
-        return [
-            'total' => $total,
-            'items' => $items,
-        ];
     }
 }

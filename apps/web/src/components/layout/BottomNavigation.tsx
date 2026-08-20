@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutGrid, FileText, ShoppingBag, User, LogIn, LayoutDashboard } from 'lucide-react';
+import { Home, LayoutGrid, FileText, ShoppingBag, User, LogIn, LayoutDashboard, PanelsTopLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -16,7 +16,8 @@ const iconMap: Record<string, any> = {
   ShoppingBag: ShoppingBag,
   User: User,
   LogIn: LogIn,
-  LayoutDashboard: LayoutDashboard
+  LayoutDashboard: LayoutDashboard,
+  PanelsTopLeft: PanelsTopLeft,
 };
 
 const BottomNavigation = () => {
@@ -39,8 +40,7 @@ const BottomNavigation = () => {
       .filter(m => !m.parent_id)
       .filter(m => {
         if (!isAuthenticated) {
-          // Hide orders and profile/akun for guest users
-          return m.url !== '/orders' && m.url !== '/profile';
+          return !['/workspace', '/exams', '/orders', '/profile'].includes(m.url);
         }
         return true;
       })
@@ -54,9 +54,9 @@ const BottomNavigation = () => {
         let Icon = IconComponent;
 
         if (isAuthenticated && m.url === '/') {
-          href = '/dashboard';
-          label = 'Dashboard';
-          Icon = LayoutDashboard;
+          href = '/workspace';
+          label = 'Workspace';
+          Icon = PanelsTopLeft;
         }
 
         return {
@@ -69,7 +69,7 @@ const BottomNavigation = () => {
 
     const fallback = [];
     if (isAuthenticated) {
-      fallback.push({ href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' });
+      fallback.push({ href: '/workspace', icon: PanelsTopLeft, label: 'Workspace' });
     } else {
       fallback.push({ href: '/', icon: Home, label: 'Home' });
     }

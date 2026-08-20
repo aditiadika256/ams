@@ -11,11 +11,15 @@ class OrderItemResource extends BaseResource
         return [
             'id' => $this->id,
             'program_id' => $this->program_id,
-            'price' => $this->price,
+            'program_batch_id' => $this->program_batch_id,
+            'program_name' => $this->program_name,
+            'program_slug' => $this->program_slug,
+            'batch_name' => $this->batch_name,
+            'batch_code' => $this->batch_code,
+            'unit_price' => $this->unit_price,
+            'currency' => $this->currency,
             'quantity' => $this->quantity,
-            'program' => $this->whenLoaded('program', function () use ($request) {
-                return new ProgramResource($this->program);
-            }),
+            'snapshot' => $this->snapshot,
         ];
     }
 
@@ -24,4 +28,3 @@ class OrderItemResource extends BaseResource
         return [];
     }
 }
-

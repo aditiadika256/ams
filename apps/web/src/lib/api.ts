@@ -1,17 +1,22 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import { ApiResponse, User, RegisterData } from '../types/auth';
-import { Program, Order, CreateOrderPayload, ProgramMutationPayload } from '../types/sales';
+import {
+  ComponentDefinition,
+  CreateOrderPayload,
+  Order,
+  PaginatedResponse,
+  Program,
+  ProgramBatch,
+  ProgramSession,
+  ProgramSessionPayload,
+  ProgramMutationPayload,
+  ProgramTag,
+  ProgramWizardPayload,
+} from '../types/sales';
 import { ExamSession, Question, ExamResult } from '../types/cbt';
+import { CurriculumModule, WorkspaceAccess, WorkspacePage } from '../types/workspace';
 import { Menu } from '../types/system';
 import { ColorPalette, ColorPaletteFormData } from '../types/theme';
-import {
-  LaravelPaginator,
-  ProgramLookupData,
-  ProgramMasterCreatePayload,
-  ProgramMasterQuery,
-  ProgramMasterRecord,
-  ProgramMasterUpdatePayload,
-} from '../types/program-master';
 import { clearBrowserSession } from './session';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -63,33 +68,6 @@ export function deduplicatedGet<T>(url: string, config?: { params?: any }): Prom
   return promise;
 }
 
-function createProgramMasterClient(path: string) {
-  return {
-    list: async (params?: ProgramMasterQuery) => {
-      const response = await deduplicatedGet<
-        ApiResponse<LaravelPaginator<ProgramMasterRecord>>
-      >(
-        path,
-        { params }
-      );
-      return response.data;
-    },
-    create: async (payload: ProgramMasterCreatePayload) => {
-      const response = await api.post<ApiResponse<ProgramMasterRecord>>(path, payload);
-      return response.data;
-    },
-    update: async (id: number, payload: ProgramMasterUpdatePayload) => {
-      const response = await api.put<ApiResponse<ProgramMasterRecord>>(
-        `${path}/${id}`,
-        payload
-      );
-      return response.data;
-    },
-    remove: async (id: number) => {
-      await api.delete(`${path}/${id}`);
-    },
-  };
-}
 
 // Request interceptor - Add token to headers
 api.interceptors.request.use(
@@ -243,20 +221,6 @@ export const apiClient = {
       return response.data;
     },
 
-    createProgram: async (payload: ProgramMutationPayload) => {
-      const response = await api.post<ApiResponse<Program>>('/programs', payload);
-      return response.data;
-    },
-
-    updateProgram: async (id: number | string, payload: ProgramMutationPayload) => {
-      const response = await api.put<ApiResponse<Program>>(`/programs/${id}`, payload);
-      return response.data;
-    },
-
-    deleteProgram: async (id: number | string) => {
-      await api.delete(`/programs/${id}`);
-    },
-
     getOrders: async (params?: any) => {
       const response = await api.get<ApiResponse<Order[]>>('/orders', { params });
       return response.data;
@@ -275,27 +239,58 @@ export const apiClient = {
     },
   },
 
-  programLookups: {
-    get: async () => {
-      const response = await deduplicatedGet<ApiResponse<ProgramLookupData>>(
-        '/program-lookups'
-      );
+  workspace: {
+    list: async (params?: Record<string, unknown>) => {
+      const response = await api.get<ApiResponse<WorkspacePage>>('/workspace', { params });
+      return response.data;
+    },
+    get: async (accessId: number) => {
+      const response = await api.get<ApiResponse<WorkspaceAccess>>(`/workspace/accesses/${accessId}`);
+      return response.data;
+    },
+    archive: async (accessId: number) => {
+      const response = await api.post<ApiResponse<WorkspaceAccess>>(`/workspace/accesses/${accessId}/archive`);
+      return response.data;
+    },
+    restore: async (accessId: number) => {
+      const response = await api.post<ApiResponse<WorkspaceAccess>>(`/workspace/accesses/${accessId}/restore`);
+      return response.data;
+    },
+    curriculum: async (accessId: number) => {
+      const response = await api.get<ApiResponse<CurriculumModule[]>>(`/workspace/accesses/${accessId}/curriculum`);
+      return response.data;
+    },
+  },
+
+  access: {
+    freeEnroll: async (programId: number, programBatchId?: number | null) => {
+      const response = await api.post<ApiResponse<{ id: number }>>('/access/free-enrollments', {
+        program_id: programId,
+        program_batch_id: programBatchId ?? null,
+      });
+      return response.data;
+    },
+    redeem: async (type: 'voucher' | 'enrollment-code', code: string, idempotencyKey: string) => {
+      const response = await api.post<ApiResponse<{ id: number }>>(`/access/redeem-${type}`, {
+        code,
+        idempotency_key: idempotencyKey,
+      });
       return response.data;
     },
   },
 
   // CBT endpoints
   cbt: {
-    getPackages: async () => {
-      const response = await api.get<ApiResponse<any[]>>('/exams/packages');
+    getPackages: async (programAccessId: number) => {
+      const response = await api.get<ApiResponse<any[]>>('/exams/packages', { params: { program_access_id: programAccessId } });
       return response.data;
     },
-    getPackage: async (id: number | string) => {
-      const response = await api.get<ApiResponse<any>>(`/exams/packages/${id}`);
+    getPackage: async (id: number | string, programAccessId: number) => {
+      const response = await api.get<ApiResponse<any>>(`/exams/packages/${id}`, { params: { program_access_id: programAccessId } });
       return response.data;
     },
-    startExam: async (packageId: number) => {
-      const response = await api.post<ApiResponse<ExamSession>>('/exams/start', { package_id: packageId });
+    startExam: async (packageId: number, programAccessId: number) => {
+      const response = await api.post<ApiResponse<ExamSession>>('/exams/start', { package_id: packageId, program_access_id: programAccessId });
       return response.data;
     },
 
@@ -456,8 +451,129 @@ export const apiClient = {
 
   // Admin endpoints
   admin: {
-    programLevels: createProgramMasterClient('/admin/master/program-levels'),
-    programTypes: createProgramMasterClient('/admin/master/program-types'),
+    programs: {
+      list: async (params?: Record<string, unknown>) => {
+        const response = await deduplicatedGet<ApiResponse<PaginatedResponse<Program>>>(
+          '/admin/programs',
+          { params },
+        );
+        return response.data;
+      },
+      get: async (id: number) => {
+        const response = await api.get<ApiResponse<Program>>(`/admin/programs/${id}`);
+        return response.data;
+      },
+      create: async (payload: ProgramMutationPayload) => {
+        const response = await api.post<ApiResponse<Program>>('/admin/programs', payload);
+        return response.data;
+      },
+      update: async (id: number, payload: ProgramMutationPayload) => {
+        const response = await api.put<ApiResponse<Program>>(`/admin/programs/${id}`, payload);
+        return response.data;
+      },
+      remove: async (id: number) => {
+        await api.delete(`/admin/programs/${id}`);
+      },
+      transition: async (id: number, action: 'publish' | 'unpublish' | 'archive' | 'restore', reason: string) => {
+        const response = await api.post<ApiResponse<Program>>(
+          `/admin/programs/${id}/${action}`,
+          { reason },
+        );
+        return response.data;
+      },
+      syncTags: async (id: number, tagIds: number[], reason: string) => {
+        const response = await api.put<ApiResponse<ProgramTag[]>>(
+          `/admin/programs/${id}/tags`,
+          { tag_ids: tagIds, reason },
+        );
+        return response.data;
+      },
+      syncComponents: async (id: number, components: ProgramWizardPayload['components'], reason: string) => {
+        const response = await api.put<ApiResponse<Program['components']>>(
+          `/admin/programs/${id}/components`,
+          { components, reason },
+        );
+        return response.data;
+      },
+      syncRelations: async (id: number, children: ProgramWizardPayload['children'], reason: string) => {
+        const response = await api.put<ApiResponse<Program['children']>>(
+          `/admin/programs/${id}/relations`,
+          { children, reason },
+        );
+        return response.data;
+      },
+        batches: {
+        list: async (programId: number) => {
+          const response = await api.get<ApiResponse<ProgramBatch[]>>(
+            `/admin/programs/${programId}/batches`,
+          );
+          return response.data;
+        },
+          create: async (programId: number, payload: ProgramWizardPayload['batches'][number]) => {
+          const response = await api.post<ApiResponse<ProgramBatch>>(
+            `/admin/programs/${programId}/batches`,
+            payload,
+          );
+            return response.data;
+          },
+          update: async (programId: number, batchId: number, payload: ProgramWizardPayload['batches'][number]) => {
+            const response = await api.put<ApiResponse<ProgramBatch>>(
+              `/admin/programs/${programId}/batches/${batchId}`,
+              payload,
+            );
+            return response.data;
+          },
+          remove: async (programId: number, batchId: number) => {
+            await api.delete(`/admin/programs/${programId}/batches/${batchId}`);
+          },
+          sessions: {
+            list: async (programId: number, batchId: number) => {
+              const response = await api.get<ApiResponse<ProgramSession[]>>(`/admin/programs/${programId}/batches/${batchId}/sessions`);
+              return response.data;
+            },
+            create: async (programId: number, batchId: number, payload: ProgramSessionPayload) => {
+              const response = await api.post<ApiResponse<ProgramSession>>(`/admin/programs/${programId}/batches/${batchId}/sessions`, payload);
+              return response.data;
+            },
+            update: async (programId: number, batchId: number, sessionId: number, payload: ProgramSessionPayload) => {
+              const response = await api.put<ApiResponse<ProgramSession>>(`/admin/programs/${programId}/batches/${batchId}/sessions/${sessionId}`, payload);
+              return response.data;
+            },
+            remove: async (programId: number, batchId: number, sessionId: number) => {
+              await api.delete(`/admin/programs/${programId}/batches/${batchId}/sessions/${sessionId}`);
+            },
+            transition: async (programId: number, batchId: number, sessionId: number, status: ProgramSession['status'], reason: string) => {
+              const response = await api.post<ApiResponse<ProgramSession>>(`/admin/programs/${programId}/batches/${batchId}/sessions/${sessionId}/transition`, { status, reason });
+              return response.data;
+            },
+          },
+        },
+    },
+    tags: {
+      list: async (params?: { search?: string; include_archived?: boolean }) => {
+        const response = await api.get<ApiResponse<ProgramTag[]>>('/admin/tags', { params });
+        return response.data;
+      },
+      create: async (payload: Omit<ProgramTag, 'id'>) => {
+        const response = await api.post<ApiResponse<ProgramTag>>('/admin/tags', payload);
+        return response.data;
+      },
+      update: async (id: number, payload: Partial<ProgramTag>) => {
+        const response = await api.put<ApiResponse<ProgramTag>>(`/admin/tags/${id}`, payload);
+        return response.data;
+      },
+      remove: async (id: number) => {
+        await api.delete(`/admin/tags/${id}`);
+      },
+    },
+    componentDefinitions: {
+      list: async () => {
+        const response = await api.get<ApiResponse<ComponentDefinition[]>>(
+          '/admin/component-definitions',
+        );
+        return response.data;
+      },
+    },
     branches: {
       list: async () => {
         const response = await api.get<ApiResponse<any[]>>('/admin/branches');

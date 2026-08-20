@@ -19,12 +19,7 @@ const securityHeaders = [
   { key: 'Content-Security-Policy', value: csp },
 ];
 
-const nextConfig: NextConfig & { eslint?: any } = {
-  eslint: {
-    // ESLint 9 + eslint-config-next@16 has a circular structure bug
-    // during build. Lint during dev instead. See: docs/dev-guide
-    ignoreDuringBuilds: true,
-  },
+const nextConfig: NextConfig = {
   transpilePackages: ['@theme-toggles/react'],
   turbopack: {
     root: __dirname,

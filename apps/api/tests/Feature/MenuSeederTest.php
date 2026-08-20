@@ -51,5 +51,66 @@ class MenuSeederTest extends TestCase
             'seed_key' => 'admin.sidebar.education.tags',
             'url' => 'admin://view/tags',
         ]);
+
+        $this->assertDatabaseMissing('menus', ['seed_key' => 'users.topbar.blog']);
+        $this->assertDatabaseMissing('menus', ['url' => 'admin://view/program-levels']);
+        $this->assertDatabaseMissing('menus', ['url' => 'admin://view/program-types']);
+    }
+
+    public function test_admin_seeded_views_match_the_frontend_view_map(): void
+    {
+        $this->seed(MenuSeeder::class);
+
+        $expectedViews = [
+            'cms-pages',
+            'cms-posts',
+            'colorpalette',
+            'curriculum-builder',
+            'dashboard',
+            'finance',
+            'mentors',
+            'menus',
+            'programs',
+            'roles',
+            'settings',
+            'tags',
+            'users',
+        ];
+        $actualViews = Menu::query()
+            ->where('layout', 'admin')
+            ->pluck('url')
+            ->map(fn (string $url): string => str_replace('admin://view/', '', $url))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertSame($expectedViews, $actualViews);
+    }
+
+    public function test_rerun_prunes_obsolete_seeded_menus_without_deleting_custom_children(): void
+    {
+        $obsolete = Menu::query()->create([
+            'seed_key' => 'users.topbar.obsolete',
+            'name' => 'Obsolete',
+            'url' => '/obsolete',
+            'layout' => 'users',
+            'section' => 'topbar',
+            'order' => 99,
+        ]);
+        $customChild = Menu::query()->create([
+            'name' => 'Custom Child',
+            'url' => '/custom-child',
+            'layout' => 'users',
+            'section' => 'topbar',
+            'parent_id' => $obsolete->id,
+            'order' => 1,
+        ]);
+
+        $this->seed(MenuSeeder::class);
+
+        $this->assertModelMissing($obsolete);
+        $this->assertModelExists($customChild);
+        $this->assertNull($customChild->fresh()->parent_id);
     }
 }
