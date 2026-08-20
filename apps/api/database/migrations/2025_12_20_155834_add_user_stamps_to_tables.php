@@ -16,12 +16,16 @@ return new class extends Migration
         foreach ($tables as $tableName) {
             if (Schema::hasTable($tableName)) {
                 Schema::table($tableName, function (Blueprint $table) {
-                    $table->unsignedBigInteger('created_by')->nullable()->after('created_at');
-                    $table->unsignedBigInteger('updated_by')->nullable()->after('updated_at');
-                    
-                    // Optional: Add foreign keys if you want strict referential integrity
-                    // $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
-                    // $table->foreign('updated_by')->references('id')->on('users')->nullOnDelete();
+                    $table->foreignId('created_by')
+                        ->nullable()
+                        ->index()
+                        ->constrained('users')
+                        ->nullOnDelete();
+                    $table->foreignId('updated_by')
+                        ->nullable()
+                        ->index()
+                        ->constrained('users')
+                        ->nullOnDelete();
                 });
             }
         }
@@ -37,6 +41,8 @@ return new class extends Migration
         foreach ($tables as $tableName) {
             if (Schema::hasTable($tableName)) {
                 Schema::table($tableName, function (Blueprint $table) {
+                    $table->dropForeign(['created_by']);
+                    $table->dropForeign(['updated_by']);
                     $table->dropColumn(['created_by', 'updated_by']);
                 });
             }

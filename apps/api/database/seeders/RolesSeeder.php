@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
-use App\Models\User;
 use App\Models\Branch;
+use App\Models\User;
+use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class RolesSeeder extends Seeder
 {
@@ -28,42 +28,56 @@ class RolesSeeder extends Seeder
             'view_dashboard_branch',
             'view_dashboard_finance',
             'view_dashboard_learning',
-            
+
             // Activities
             'view_all_activities',
             'view_branch_activities',
-            
+
             // Global Settings
             'manage_global_settings',
             // Menu Management
             'manage_menus',
 
             // Program Management
-            'manage_programs',
-            'manage_program_masters',
-            
+            'program.view',
+            'program.create',
+            'program.update',
+            'program.publish',
+            'program.archive',
+            'program.clone',
+            'program-tag.manage',
+            'program-component.manage',
+            'program-batch.manage',
+            'program-session.manage',
+            'mentor-assignment.manage',
+            'program-access.view',
+            'program-access.grant',
+            'program-access.suspend',
+            'program-access.revoke',
+            'program-access.extend',
+
             // User Management
             'manage_users_global', // Create, read, update, delete, assign roles globally
             'manage_users_branch', // Read only (or manage) within branch
-            
+
             // Branch Management (Master Cabang)
             'manage_branches', // CRUD branches, link users
-            
+
             // Role Management (Master Role)
             'manage_roles', // CRUD roles, assign permissions
-            
+
             // Permission Management
             'view_permissions',
-            
+
             // Finance
             'view_finance_analytics',
             'view_finance_reports',
-            
+
             // Learning / Mentoring
             'manage_students',
             'view_student_progress',
             'manage_learning_content',
-            
+
             // General
             'view_profile',
             'edit_profile',
@@ -78,7 +92,7 @@ class RolesSeeder extends Seeder
         $rolesStructure = [
             'superadmin' => $permissions, // All permissions
             'direktur' => $permissions,   // All permissions (similar to Super Admin)
-            
+
             'manajer_cabang' => [
                 'view_dashboard_branch',
                 'view_branch_activities',
@@ -87,7 +101,7 @@ class RolesSeeder extends Seeder
                 'edit_profile',
                 // Add specific branch management permissions if needed
             ],
-            
+
             'admin_keuangan' => [
                 'view_dashboard_finance',
                 'view_finance_analytics',
@@ -95,20 +109,20 @@ class RolesSeeder extends Seeder
                 'view_profile',
                 'edit_profile',
             ],
-            
+
             'admin_cabang' => [
                 'view_dashboard_branch',
                 'manage_users_branch',
                 'view_profile',
                 'edit_profile',
             ],
-            
+
             // Other Admins (Placeholder permissions, customize as needed)
             'admin_kemitraan' => ['view_dashboard_global', 'view_profile', 'edit_profile'],
             'admin_operasional' => ['view_dashboard_global', 'view_profile', 'edit_profile'],
             'admin_teknologi' => ['view_dashboard_global', 'view_profile', 'edit_profile'],
             'admin_pemasaran' => ['view_dashboard_global', 'view_profile', 'edit_profile'],
-            
+
             'mentor_harian' => [
                 'view_dashboard_learning',
                 'manage_students',
@@ -116,7 +130,7 @@ class RolesSeeder extends Seeder
                 'view_profile',
                 'edit_profile',
             ],
-            
+
             'mentor_utama' => [
                 'view_dashboard_learning',
                 'manage_students',
@@ -125,13 +139,13 @@ class RolesSeeder extends Seeder
                 'view_profile',
                 'edit_profile',
             ],
-            
+
             'member' => [
                 'view_dashboard_learning',
                 'view_profile',
                 'edit_profile',
             ],
-            
+
             'student' => [ // Previously 'siswa'
                 'view_dashboard_learning',
                 'view_profile',
@@ -180,7 +194,7 @@ class RolesSeeder extends Seeder
             ['code' => 'JKT01'],
             ['name' => 'Cabang Jakarta Selatan', 'is_active' => true]
         );
-        
+
         $manajer = User::firstOrCreate(
             ['email' => 'manajer.jkt@arkanin.com'],
             [
