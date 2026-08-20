@@ -47,4 +47,14 @@ class ProgramAccessPolicy
     {
         return $user->checkPermissionTo('program-access.extend', 'web');
     }
+
+    public function archive(User $user, ProgramAccess $access): bool
+    {
+        return $access->user_id === $user->id;
+    }
+
+    public function restoreArchive(User $user, ProgramAccess $access): bool
+    {
+        return $this->archive($user, $access);
+    }
 }

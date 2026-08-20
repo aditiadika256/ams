@@ -53,6 +53,11 @@ class ProgramAccess extends Model
         return $this->belongsTo(ProgramBatch::class, 'program_batch_id');
     }
 
+    public function nextSession(): BelongsTo
+    {
+        return $this->belongsTo(ProgramSession::class, 'next_session_id');
+    }
+
     public function parentAccess(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_program_access_id');

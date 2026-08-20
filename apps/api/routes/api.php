@@ -36,6 +36,13 @@ Route::prefix('v1')->group(function () {
         Route::post('redeem-enrollment-code', [\App\Domain\Access\CodeRedemptionController::class, 'enrollment']);
     });
 
+    Route::prefix('workspace')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [\App\Domain\Workspace\WorkspaceController::class, 'index']);
+        Route::get('accesses/{programAccess}', [\App\Domain\Workspace\WorkspaceController::class, 'show']);
+        Route::post('accesses/{programAccess}/archive', [\App\Domain\Workspace\WorkspaceController::class, 'archive']);
+        Route::post('accesses/{programAccess}/restore', [\App\Domain\Workspace\WorkspaceController::class, 'restore']);
+    });
+
     // CBT
     Route::get('exams/packages', [\App\Domain\CBT\ExamController::class, 'index'])->middleware('auth:sanctum');
     Route::get('exams/packages/{id}', [\App\Domain\CBT\ExamController::class, 'show'])->middleware('auth:sanctum');
