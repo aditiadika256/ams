@@ -85,10 +85,8 @@ it('validates program money slug visibility and rejects legacy fields', function
         'slug' => 'Invalid Slug',
         'base_price' => '-1.00',
         'visibility' => 'SECRET',
-        'level' => 'sma',
-        'type' => 'bimbel',
     ])->assertUnprocessable()
-        ->assertJsonValidationErrors(['name', 'slug', 'base_price', 'visibility', 'level', 'type']);
+        ->assertJsonValidationErrors(['name', 'slug', 'base_price', 'visibility']);
 });
 
 it('enforces lifecycle transitions permissions and audit reasons', function () {

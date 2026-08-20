@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
-    "start": "next start"
+    "start": "next start",
+    "test:program-contract": "node --test tests/program-contract.test.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

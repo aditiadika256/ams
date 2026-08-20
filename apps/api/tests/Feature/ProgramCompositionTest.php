@@ -59,6 +59,31 @@ it('manages tags while keeping used codes immutable and archive non destructive'
     $this->assertDatabaseHas('program_tag', ['program_id' => $program->id, 'tag_id' => $tagId]);
 });
 
+it('synchronizes active tags onto a program with an audited reason', function () {
+    $program = Program::factory()->create();
+    $first = Tag::factory()->create();
+    $second = Tag::factory()->create();
+    $archived = Tag::factory()->create(['is_active' => false, 'archived_at' => now()]);
+    ($this->authenticateWith)(['program-tag.manage']);
+
+    $this->putJson("/api/v1/admin/programs/{$program->id}/tags", [
+        'tag_ids' => [$second->id, $first->id],
+        'reason' => 'Mengelompokkan program untuk katalog.',
+    ])->assertOk()->assertJsonCount(2, 'data');
+
+    expect($program->refresh()->tags->modelKeys())->toEqualCanonicalizing([$first->id, $second->id]);
+    $this->assertDatabaseHas('audit_logs', [
+        'entity_id' => $program->id,
+        'action' => 'program.tags_synced',
+        'reason' => 'Mengelompokkan program untuk katalog.',
+    ]);
+
+    $this->putJson("/api/v1/admin/programs/{$program->id}/tags", [
+        'tag_ids' => [$archived->id],
+        'reason' => 'Tag arsip tidak boleh dipasang.',
+    ])->assertUnprocessable()->assertJsonValidationErrors('tag_ids.0');
+});
+
 it('exposes the application component registry as read only administration data', function () {
     ($this->authenticateWith)(['program-component.manage']);
 
@@ -204,4 +229,3 @@ it('audits composition changes and rotates the catalog generation', function () 
     ]);
     expect(Cache::get('programs:cache_version'))->not->toBe('before-composition');
 });
-

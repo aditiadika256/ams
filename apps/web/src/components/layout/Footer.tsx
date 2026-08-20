@@ -60,20 +60,20 @@ export function Footer() {
           <div className="space-y-6">
             <h4 className="font-semibold text-foreground text-lg">Perusahaan</h4>
             <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><Link href="/about" className="hover:text-primary transition-colors font-medium">Tentang Kami</Link></li>
-              <li><Link href="/services" className="hover:text-primary transition-colors font-medium">Layanan</Link></li>
-              <li><Link href="/careers" className="hover:text-primary transition-colors font-medium">Karir</Link></li>
-              <li><Link href="/testimonials" className="hover:text-primary transition-colors font-medium">Testimoni</Link></li>
+              <li><Link href="/" className="hover:text-primary transition-colors font-medium">Beranda</Link></li>
+              <li><Link href="/programs" className="hover:text-primary transition-colors font-medium">Katalog Program</Link></li>
+              <li><Link href="/workspace" className="hover:text-primary transition-colors font-medium">Workspace</Link></li>
+              <li><Link href="/profile" className="hover:text-primary transition-colors font-medium">Profil</Link></li>
             </ul>
           </div>
 
           <div className="space-y-6">
             <h4 className="font-semibold text-foreground text-lg">Program Kami</h4>
             <ul className="space-y-4 text-sm text-muted-foreground">
-              <li><Link href="/courses" className="hover:text-primary transition-colors font-medium">Daftar Kursus</Link></li>
-              <li><Link href="/membership" className="hover:text-primary transition-colors font-medium">Membership Premium</Link></li>
-              <li><Link href="/products" className="hover:text-primary transition-colors font-medium">Produk Digital</Link></li>
-              <li><Link href="/blog" className="hover:text-primary transition-colors font-medium">Artikel & Blog</Link></li>
+              <li><Link href="/programs" className="hover:text-primary transition-colors font-medium">Semua Program</Link></li>
+              <li><Link href="/exams" className="hover:text-primary transition-colors font-medium">Ujian & Tryout</Link></li>
+              <li><Link href="/orders" className="hover:text-primary transition-colors font-medium">Riwayat Order</Link></li>
+              <li><Link href="/settings" className="hover:text-primary transition-colors font-medium">Pengaturan</Link></li>
             </ul>
           </div>
 

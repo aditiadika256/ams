@@ -7,7 +7,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/loaders';
-import StudentDashboard from '@/components/dashboard/StudentDashboard';
 import MentorDashboard from '@/components/dashboard/MentorDashboard';
 
 function DashboardPage() {
@@ -19,10 +18,11 @@ function DashboardPage() {
     router.push('/auth/login');
   };
 
-  // Redirect admins to admin panel
   useEffect(() => {
     if (user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang', 'direktur'].includes(role))) {
       router.replace('/admin');
+    } else if (user && !user.roles?.some(role => role.startsWith('mentor'))) {
+      router.replace('/workspace');
     }
   }, [user, router]);
 
@@ -47,8 +47,11 @@ function DashboardPage() {
       return <MentorDashboard />;
     }
 
-    // Default: Student/Member View
-    return <StudentDashboard />;
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center"><Spinner className="mx-auto mb-4" /><p>Membuka Workspace…</p></div>
+      </div>
+    );
   };
 
   return (

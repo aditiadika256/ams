@@ -9,12 +9,12 @@ export type AdminViewKey =
   | 'cms-pages' 
   | 'mentors'
   | 'programs'
-  | 'program-levels'
-  | 'program-types'
+  | 'tags'
   | 'curriculum-builder'
   | 'menus'
   | 'roles'
-  | 'settings';
+  | 'settings'
+  | 'colorpalette';
 
 export interface AdminTab {
   id: string;

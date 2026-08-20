@@ -63,7 +63,7 @@ export default function OrderHistoryPage() {
                           {getStatusBadge(order.status)}
                         </div>
                         <h3 className="font-semibold text-lg mb-1">
-                          {order.items.map(item => item.program?.name).join(', ')}
+                          {order.items.map(item => item.program_name).join(', ')}
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           {new Date(order.created_at).toLocaleDateString('id-ID', {
@@ -79,7 +79,7 @@ export default function OrderHistoryPage() {
                         <div className="text-right">
                           <p className="text-sm text-muted-foreground">Total Pembayaran</p>
                           <p className="font-bold text-lg text-primary">
-                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(order.total)}
+                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(order.total))}
                           </p>
                         </div>
                         <Button asChild variant="outline" size="sm">

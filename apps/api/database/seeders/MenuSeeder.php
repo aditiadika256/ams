@@ -8,13 +8,15 @@ use Illuminate\Database\Seeder;
 
 class MenuSeeder extends Seeder
 {
+    /** @var array<int, string> */
+    private array $seededKeys = [];
+
     public function run(): void
     {
         $this->createMenu('users.topbar.home', 'Beranda', 'Home', '/', 'users', 'topbar', null, 1);
         $this->createMenu('users.topbar.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'topbar', null, 2);
         $this->createMenu('users.topbar.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'topbar', null, 3);
         $this->createMenu('users.topbar.exams', 'Ujian', 'FileText', '/exams', 'users', 'topbar', null, 4);
-        $this->createMenu('users.topbar.blog', 'Blog', 'FileText', '/blog', 'users', 'topbar', null, 5);
 
         $this->createMenu('users.bottom.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'bottomnavigation', null, 1);
         $this->createMenu('users.bottom.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'bottomnavigation', null, 2);
@@ -46,6 +48,8 @@ class MenuSeeder extends Seeder
 
         $this->createMenu('admin.header.dashboard', 'Dashboard', 'LayoutDashboard', 'admin://view/dashboard', 'admin', 'header', null, 1);
         $this->createMenu('admin.header.settings', 'Settings', 'Settings', 'admin://view/settings', 'admin', 'header', null, 2);
+
+        $this->pruneObsoleteSeededMenus();
     }
 
     protected function createMenu(
@@ -58,6 +62,7 @@ class MenuSeeder extends Seeder
         ?int $parentId,
         int $order
     ): Menu {
+        $this->seededKeys[] = $seedKey;
         $this->adoptLegacyMenu($seedKey, $url, $layout, $section, $parentId);
 
         Menu::query()->upsert(
@@ -76,6 +81,35 @@ class MenuSeeder extends Seeder
         );
 
         return Menu::query()->where('seed_key', $seedKey)->firstOrFail();
+    }
+
+    private function pruneObsoleteSeededMenus(): void
+    {
+        $staleMenus = Menu::query()
+            ->whereNotNull('seed_key')
+            ->whereNotIn('seed_key', $this->seededKeys)
+            ->get(['id', 'parent_id']);
+
+        while ($staleMenus->isNotEmpty()) {
+            $staleIds = $staleMenus->pluck('id');
+            $leafMenus = $staleMenus->reject(
+                fn (Menu $menu): bool => $staleMenus->contains('parent_id', $menu->id)
+            );
+
+            if ($leafMenus->isEmpty()) {
+                throw new \LogicException('Cannot prune cyclic seeded menu hierarchy.');
+            }
+
+            foreach ($leafMenus as $menu) {
+                Menu::query()
+                    ->where('parent_id', $menu->id)
+                    ->whereNotIn('id', $staleIds)
+                    ->update(['parent_id' => $menu->parent_id]);
+
+                $menu->delete();
+                $staleMenus = $staleMenus->reject(fn (Menu $stale): bool => $stale->id === $menu->id);
+            }
+        }
     }
 
     private function adoptLegacyMenu(
