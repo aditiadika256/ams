@@ -54,6 +54,14 @@ return new class extends Migration
             $table->index(['action', 'created_at']);
         });
 
+        Schema::table('exam_sessions', function (Blueprint $table) {
+            $table->foreignId('program_access_id')
+                ->after('user_id')
+                ->constrained('program_accesses')
+                ->restrictOnDelete();
+            $table->index(['program_access_id', 'status']);
+        });
+
         if (DB::getDriverName() === 'pgsql') {
             DB::statement(
                 'ALTER TABLE program_accesses ADD CONSTRAINT program_accesses_period_valid CHECK (starts_at IS NULL OR ends_at IS NULL OR starts_at < ends_at)'
@@ -63,8 +71,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::table('exam_sessions', function (Blueprint $table) {
+            $table->dropConstrainedForeignId('program_access_id');
+        });
         Schema::dropIfExists('access_events');
         Schema::dropIfExists('program_accesses');
     }
 };
-

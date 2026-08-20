@@ -73,6 +73,11 @@ class ProgramAccess extends Model
         return $this->hasMany(AccessEvent::class)->orderBy('created_at');
     }
 
+    public function examSessions(): HasMany
+    {
+        return $this->hasMany(ExamSession::class);
+    }
+
     public function scopeForUser(Builder $query, int $userId): Builder
     {
         return $query->where('user_id', $userId);

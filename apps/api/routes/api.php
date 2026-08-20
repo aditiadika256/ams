@@ -41,6 +41,7 @@ Route::prefix('v1')->group(function () {
         Route::get('accesses/{programAccess}', [\App\Domain\Workspace\WorkspaceController::class, 'show']);
         Route::post('accesses/{programAccess}/archive', [\App\Domain\Workspace\WorkspaceController::class, 'archive']);
         Route::post('accesses/{programAccess}/restore', [\App\Domain\Workspace\WorkspaceController::class, 'restore']);
+        Route::get('accesses/{programAccess}/curriculum', \App\Domain\Workspace\WorkspaceCurriculumController::class);
     });
 
     // CBT

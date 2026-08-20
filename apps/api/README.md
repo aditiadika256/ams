@@ -1,66 +1,53 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# AMS API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Laravel 11 API untuk katalog Program, administrasi Program modular, entitlement, dan Personal Workspace.
 
-## About Laravel
+## Kontrak Program
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- `ProgramAccess` adalah satu-satunya sumber kebenaran entitlement.
+- Order menyimpan snapshot historis dan baru memberi akses setelah callback pembayaran tervalidasi.
+- Pembayaran, voucher, enrollment code, program gratis, dan admin grant memakai grant service yang sama.
+- Program lama berbasis `ProgramLevel`/`ProgramType` tidak memiliki endpoint kompatibilitas.
+- Workspace selalu di-scope ke user terautentikasi dan berorientasi pada access instance/Batch.
+- Curriculum serta CBT memerlukan `ProgramAccess` aktif dan component Program yang tersedia.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Semua endpoint berada di bawah `/api/v1`. Endpoint utama kontrak baru:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```text
+GET  /api/v1/programs
+GET  /api/v1/admin/programs
+GET  /api/v1/workspace
+GET  /api/v1/workspace/accesses/{access}
+POST /api/v1/access/redeem-voucher
+POST /api/v1/access/redeem-enrollment-code
+POST /api/v1/admin/program-accesses/grant
+```
 
-## Learning Laravel
+## Setup development
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Jalankan melalui Compose dari root repository:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+```bash
+docker compose -p ams_program_workspace -f ops/docker-compose.yml up -d
+docker compose -p ams_program_workspace -f ops/docker-compose.yml exec api php artisan migrate:fresh --seed
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+`migrate:fresh --seed` hanya untuk database development/test pada cutover big-bang ini. Jangan arahkan perintah tersebut ke database yang perlu dipertahankan.
 
-## Laravel Sponsors
+Payment callback memakai `PAYMENT_WEBHOOK_SECRET`. Signature dihitung dengan SHA-512 atas `order_id + status_code + gross_amount + secret`.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Verification
 
-### Premium Partners
+Suite default memakai SQLite in-memory:
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+```bash
+composer test
+```
 
-## Contributing
+Race condition dan lock diverifikasi terpisah pada PostgreSQL yang sudah dimigrasikan:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+DB_CONNECTION=pgsql DB_DATABASE=edutech_test php vendor/bin/pest tests/Postgres --compact
+```
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Gunakan database test khusus. SQLite tidak membuktikan perilaku `lockForUpdate()` atau constraint PostgreSQL.
