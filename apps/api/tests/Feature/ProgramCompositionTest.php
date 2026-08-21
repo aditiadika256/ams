@@ -84,17 +84,13 @@ it('synchronizes active tags onto a program with an audited reason', function ()
     ])->assertUnprocessable()->assertJsonValidationErrors('tag_ids.0');
 });
 
-it('exposes the application component registry as read only administration data', function () {
-    ($this->authenticateWith)(['program-component.manage']);
+it('separates component catalog visibility from program composition permissions', function () {
+    ($this->authenticateWith)(['component-definition.view']);
 
     $this->getJson('/api/v1/admin/component-definitions')
         ->assertOk()
         ->assertJsonCount(14, 'data')
         ->assertJsonPath('data.0.code', 'material');
-
-    $this->postJson('/api/v1/admin/component-definitions', [
-        'code' => 'unknown_feature',
-    ])->assertMethodNotAllowed();
 });
 
 it('only advertises implemented components and rejects unavailable activation', function () {

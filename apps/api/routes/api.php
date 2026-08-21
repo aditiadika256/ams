@@ -88,7 +88,12 @@ Route::prefix('v1')->group(function () {
         Route::post('program-accesses/{programAccess}/revoke', [\App\Domain\Admin\ProgramAccessController::class, 'revoke']);
         Route::post('program-accesses/{programAccess}/extend', [\App\Domain\Admin\ProgramAccessController::class, 'extend']);
         Route::apiResource('tags', \App\Domain\Admin\TagController::class);
-        Route::get('component-definitions', [\App\Domain\Admin\ComponentDefinitionController::class, 'index']);
+        Route::post('component-definitions/{componentDefinition}/restore', [\App\Domain\Admin\ComponentDefinitionController::class, 'restore'])
+            ->withTrashed();
+        Route::delete('component-definitions/{componentDefinition}/force', [\App\Domain\Admin\ComponentDefinitionController::class, 'forceDelete'])
+            ->withTrashed();
+        Route::apiResource('component-definitions', \App\Domain\Admin\ComponentDefinitionController::class)
+            ->parameters(['component-definitions' => 'componentDefinition']);
         Route::put('programs/{program}/tags', [\App\Domain\Admin\ProgramTagController::class, 'update']);
         Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
         Route::put('programs/{program}/relations', [\App\Domain\Admin\ProgramRelationController::class, 'update']);
