@@ -43,6 +43,7 @@ Route::prefix('v1')->group(function () {
         Route::post('accesses/{programAccess}/restore', [\App\Domain\Workspace\WorkspaceController::class, 'restore']);
         Route::get('accesses/{programAccess}/curriculum', \App\Domain\Workspace\WorkspaceCurriculumController::class);
         Route::post('accesses/{programAccess}/lessons/{lesson}/complete', [\App\Domain\Workspace\WorkspaceActivityController::class, 'completeLesson']);
+        Route::get('accesses/{programAccess}/media-assets/{mediaAsset}', [\App\Domain\Workspace\WorkspaceMediaController::class, 'show']);
         Route::post('accesses/{programAccess}/sessions/{session}/mentor-reservations', [\App\Domain\Workspace\WorkspaceMentorReservationController::class, 'store']);
         Route::get('session-updates', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'index']);
         Route::post('session-updates/{sessionUpdate}/acknowledge', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'acknowledge']);
@@ -94,6 +95,8 @@ Route::prefix('v1')->group(function () {
             ->withTrashed();
         Route::apiResource('component-definitions', \App\Domain\Admin\ComponentDefinitionController::class)
             ->parameters(['component-definitions' => 'componentDefinition']);
+        Route::post('programs/{program}/media-assets', [\App\Domain\Admin\MediaAssetController::class, 'store']);
+        Route::scopeBindings()->delete('programs/{program}/media-assets/{mediaAsset}', [\App\Domain\Admin\MediaAssetController::class, 'destroy']);
         Route::put('programs/{program}/tags', [\App\Domain\Admin\ProgramTagController::class, 'update']);
         Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
         Route::scopeBindings()->group(function () {
