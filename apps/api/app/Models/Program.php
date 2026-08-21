@@ -64,6 +64,11 @@ class Program extends Model
         return $this->hasMany(ProgramComponent::class)->orderBy('sort_order');
     }
 
+    public function programComponents(): HasMany
+    {
+        return $this->hasMany(ProgramComponent::class);
+    }
+
     public function componentDefinitions(): BelongsToMany
     {
         return $this->belongsToMany(ComponentDefinition::class, 'program_components')

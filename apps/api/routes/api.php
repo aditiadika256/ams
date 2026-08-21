@@ -96,6 +96,16 @@ Route::prefix('v1')->group(function () {
             ->parameters(['component-definitions' => 'componentDefinition']);
         Route::put('programs/{program}/tags', [\App\Domain\Admin\ProgramTagController::class, 'update']);
         Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
+        Route::scopeBindings()->group(function () {
+            Route::post('programs/{program}/components/{programComponent}/contents/{content}/restore', [\App\Domain\Admin\ProgramComponentContentController::class, 'restore'])
+                ->withTrashed();
+            Route::apiResource('programs.components.contents', \App\Domain\Admin\ProgramComponentContentController::class)
+                ->parameters([
+                    'programs' => 'program',
+                    'components' => 'programComponent',
+                    'contents' => 'content',
+                ]);
+        });
         Route::put('programs/{program}/relations', [\App\Domain\Admin\ProgramRelationController::class, 'update']);
         Route::scopeBindings()->group(function () {
             Route::get('programs/{program}/batches', [\App\Domain\Admin\ProgramBatchController::class, 'index']);

@@ -51,21 +51,33 @@ class SyncProgramComponents
             $this->validator->validate($program, $definitions, $components);
 
             $before = $this->snapshot($program);
-            $program->components()->whereNotIn('component_definition_id', $definitionIds)->delete();
+            $installedComponents = $program->components();
+            if ($definitionIds === []) {
+                $installedComponents->delete();
+            } else {
+                $installedComponents->whereNotIn('component_definition_id', $definitionIds)->delete();
+            }
 
             foreach ($components as $index => $component) {
-                ProgramComponent::query()->updateOrCreate(
-                    [
+                $installation = ProgramComponent::withTrashed()
+                    ->where('program_id', $program->id)
+                    ->where('component_definition_id', $component['component_definition_id'])
+                    ->lockForUpdate()
+                    ->first() ?? new ProgramComponent([
                         'program_id' => $program->id,
                         'component_definition_id' => $component['component_definition_id'],
-                    ],
-                    [
-                        'is_enabled' => $component['is_enabled'] ?? true,
-                        'label' => $component['label'] ?? null,
-                        'sort_order' => $component['sort_order'] ?? $index,
-                        'configuration' => $component['configuration'] ?? [],
-                    ],
-                );
+                    ]);
+
+                if ($installation->trashed()) {
+                    $installation->restore();
+                }
+
+                $installation->fill([
+                    'is_enabled' => $component['is_enabled'] ?? true,
+                    'label' => $component['label'] ?? null,
+                    'sort_order' => $component['sort_order'] ?? $index,
+                    'configuration' => $component['configuration'] ?? [],
+                ])->save();
             }
 
             $after = $this->snapshot($program);
