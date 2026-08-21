@@ -18,6 +18,8 @@ class WorkspaceQuery
         'program_accesses.source_type', 'program_accesses.status', 'program_accesses.starts_at',
         'program_accesses.ends_at', 'program_accesses.activated_at', 'program_accesses.completed_at',
         'program_accesses.archived_at', 'program_accesses.last_accessed_at',
+        'program_accesses.progress_percent', 'program_accesses.progress_breakdown',
+        'program_accesses.progress_calculated_at',
         'program_accesses.created_at', 'program_accesses.updated_at',
     ];
 
@@ -50,7 +52,22 @@ class WorkspaceQuery
 
     public function findForUser(int $userId, int $accessId): ProgramAccess
     {
-        return $this->baseQuery($userId)->findOrFail($accessId);
+        $access = $this->baseQuery($userId)->findOrFail($accessId);
+        $access->load([
+            'nextSession.mentorAssignments' => fn ($query) => $query
+                ->where('status', 'ACTIVE')
+                ->select([
+                    'id', 'program_session_id', 'mentor_id', 'role', 'status',
+                    'capacity', 'reserved_count', 'assigned_at',
+                ])
+                ->with([
+                    'mentor' => fn ($mentor) => $mentor
+                        ->select(['id', 'user_id', 'specialization'])
+                        ->with('user:id,name'),
+                ]),
+        ]);
+
+        return $access;
     }
 
     public function summary(int $userId): array
@@ -111,7 +128,8 @@ class WorkspaceQuery
                             ->orderBy('id'),
                     ]),
                 'batch:id,program_id,name,code,starts_at,ends_at,mode,timezone,status',
-                'nextSession:id,program_batch_id,title,starts_at,ends_at,timezone,mode,location,meeting_url,status',
+                'nextSession:id,program_batch_id,title,starts_at,ends_at,timezone,mode,mentor_assignment_mode,location,meeting_url,status',
+                'certificate:id,program_access_id,certificate_number,issued_at,revoked_at',
             ]);
     }
 

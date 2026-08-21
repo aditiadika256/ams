@@ -62,6 +62,18 @@ function toBatchDraft(batch: ProgramBatch): BatchDraft {
 }
 
 function initialState(program?: Program | null, batches: ProgramBatch[] = []): ProgramWizardState {
+  const completionComponents = new Set(
+    ((program?.completion_rule?.all as Array<{ component?: string }> | undefined) ?? [])
+      .map((requirement) => requirement.component),
+  );
+  const completionMode = completionComponents.has('material') && completionComponents.has('assessment')
+    ? 'BOTH'
+    : completionComponents.has('material')
+      ? 'MATERIAL'
+      : completionComponents.has('assessment')
+        ? 'ASSESSMENT'
+        : 'NONE';
+
   return {
     name: program?.name ?? '',
     slug: program?.slug ?? '',
@@ -70,6 +82,7 @@ function initialState(program?: Program | null, batches: ProgramBatch[] = []): P
     thumbnailUrl: program?.thumbnail_url ?? '',
     basePrice: program?.base_price ?? '0',
     visibility: program?.visibility ?? 'PUBLIC',
+    completionMode,
     tagIds: program?.tags?.map((tag) => tag.id) ?? [],
     componentIds: program?.components?.filter((component) => component.is_enabled).map((component) => component.definition_id ?? component.component_definition_id ?? 0).filter(Boolean) ?? [],
     componentLabels: Object.fromEntries((program?.components ?? []).map((component) => [component.definition_id ?? component.component_definition_id ?? 0, component.label ?? ''])),
@@ -129,7 +142,17 @@ export function ProgramForm({
         base_price: state.basePrice,
         currency: 'IDR',
         visibility: state.visibility,
-        completion_rule: null,
+        completion_rule: state.completionMode === 'NONE' ? null : {
+          version: 1,
+          all: [
+            ...(state.completionMode === 'MATERIAL' || state.completionMode === 'BOTH' ? [{
+              component: 'material', metric: 'completed_percent', operator: '>=', value: 100,
+            }] : []),
+            ...(state.completionMode === 'ASSESSMENT' || state.completionMode === 'BOTH' ? [{
+              component: 'assessment', metric: 'submitted_count', operator: '>=', value: 1,
+            }] : []),
+          ],
+        },
       },
       tag_ids: state.tagIds,
       components: state.componentIds.map((definitionId, index) => ({

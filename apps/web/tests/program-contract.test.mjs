@@ -25,6 +25,18 @@ test('frontend uses only the modular Program contract', async () => {
   assert.match(contract, /'tags': TagsView/);
 });
 
+test('admin and workspace never advertise unavailable component actions', async () => {
+  const [adminStep, workspaceDetail] = await Promise.all([
+    readFile('src/components/admin/views/Programs/ProgramComponentsStep.tsx', 'utf8'),
+    readFile('src/app/workspace/accesses/[accessId]/page.tsx', 'utf8'),
+  ]);
+
+  assert.match(adminStep, /definition\.is_available/);
+  assert.match(adminStep, /Belum tersedia/);
+  assert.match(workspaceDetail, /componentRoutes/);
+  assert.doesNotMatch(workspaceDetail, /`#\$\{component\.code\}`/);
+});
+
 test('student experience is driven by ProgramAccess workspace contracts', async () => {
   const [api, store, workspace, dashboard, exams] = await Promise.all([
     readFile('src/lib/api.ts', 'utf8'),
@@ -45,4 +57,38 @@ test('student experience is driven by ProgramAccess workspace contracts', async 
   assert.doesNotMatch(dashboard, /orders|OrderItem/i);
   assert.match(dashboard, /router\.replace\('\/workspace'\)/);
   assert.match(exams, /program_access_id/);
+});
+
+test('workspace exposes authoritative progress activities and certificates', async () => {
+  const [api, types, detail] = await Promise.all([
+    readFile('src/lib/api.ts', 'utf8'),
+    readFile('src/types/workspace.ts', 'utf8'),
+    readFile('src/app/workspace/accesses/[accessId]/page.tsx', 'utf8'),
+  ]);
+
+  assert.match(api, /lessons\/\$\{lessonId\}\/complete/);
+  assert.match(types, /breakdown/);
+  assert.match(types, /certificate_number/);
+  assert.match(detail, /componentRoutes/);
+  assert.match(detail, /certificate:/);
+  assert.match(detail, /Sertifikat kelulusan/);
+});
+
+test('delivery UI exposes mentor selection and acknowledged reschedule updates', async () => {
+  const [api, types, detail, delivery] = await Promise.all([
+    readFile('src/lib/api.ts', 'utf8'),
+    readFile('src/types/workspace.ts', 'utf8'),
+    readFile('src/app/workspace/accesses/[accessId]/page.tsx', 'utf8'),
+    readFile('src/components/admin/views/Programs/ProgramDeliveryDialog.tsx', 'utf8'),
+  ]);
+
+  assert.match(api, /mentor-reservations/);
+  assert.match(api, /session-updates\/\$\{updateId\}\/acknowledge/);
+  assert.match(types, /mentor_assignment_mode/);
+  assert.match(types, /SESSION_RESCHEDULED/);
+  assert.match(detail, /aria-live="polite"/);
+  assert.match(detail, /Pilih mentor sesi/);
+  assert.match(delivery, /mentor_assignment_mode: mentorMode/);
+  assert.match(api, /mentor-assignments/);
+  assert.match(delivery, /ProgramMentorAssignments/);
 });

@@ -18,6 +18,7 @@ class MentorAssignmentRequest extends BaseFormRequest
         return [
             'mentor_id' => ['required', 'integer', Rule::exists(Mentor::class, 'id')],
             'role' => ['sometimes', Rule::in(['lead', 'co_mentor', 'reviewer', 'substitute'])],
+            'capacity' => ['nullable', 'integer', 'min:1'],
             'metadata' => ['nullable', 'array'],
             'reason' => ['required', 'string', 'min:5', 'max:1000'],
         ];

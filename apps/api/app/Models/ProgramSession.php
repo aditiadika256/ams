@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MentorAssignmentMode;
 use App\Enums\SessionMode;
 use App\Enums\SessionStatus;
 use App\Traits\UserStamps;
@@ -18,13 +19,14 @@ class ProgramSession extends Model
     protected $fillable = [
         'program_batch_id', 'title', 'description', 'starts_at', 'ends_at',
         'timezone', 'mode', 'location', 'meeting_url', 'capacity', 'reserved_count',
-        'status', 'metadata', 'created_by', 'updated_by',
+        'mentor_assignment_mode', 'status', 'metadata', 'created_by', 'updated_by',
     ];
 
     protected $attributes = [
         'timezone' => 'Asia/Makassar',
         'mode' => 'ONLINE',
         'reserved_count' => 0,
+        'mentor_assignment_mode' => 'ADMIN',
         'status' => 'DRAFT',
     ];
 
@@ -34,6 +36,7 @@ class ProgramSession extends Model
         'mode' => SessionMode::class,
         'capacity' => 'integer',
         'reserved_count' => 'integer',
+        'mentor_assignment_mode' => MentorAssignmentMode::class,
         'status' => SessionStatus::class,
         'metadata' => 'array',
     ];
@@ -46,6 +49,11 @@ class ProgramSession extends Model
     public function mentorAssignments(): HasMany
     {
         return $this->hasMany(SessionMentorAssignment::class)->orderBy('assigned_at');
+    }
+
+    public function mentorReservations(): HasMany
+    {
+        return $this->hasMany(SessionMentorReservation::class);
     }
 
     public function scopeUpcoming(Builder $query): Builder

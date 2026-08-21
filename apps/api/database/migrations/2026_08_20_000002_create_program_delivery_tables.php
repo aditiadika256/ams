@@ -43,6 +43,7 @@ return new class extends Migration
             $table->timestamp('ends_at');
             $table->string('timezone', 64)->default('Asia/Makassar');
             $table->string('mode', 20)->default('ONLINE');
+            $table->string('mentor_assignment_mode', 20)->default('ADMIN');
             $table->string('location', 500)->nullable();
             $table->string('meeting_url', 2048)->nullable();
             $table->unsignedInteger('capacity')->nullable();
@@ -61,6 +62,8 @@ return new class extends Migration
             $table->foreignId('mentor_id')->constrained()->restrictOnDelete();
             $table->string('role', 30)->default('lead');
             $table->string('status', 20)->default('ACTIVE');
+            $table->unsignedInteger('capacity')->nullable();
+            $table->unsignedInteger('reserved_count')->default(0);
             $table->timestamp('assigned_at');
             $table->timestamp('ended_at')->nullable();
             $table->json('metadata')->nullable();
@@ -96,6 +99,9 @@ return new class extends Migration
             );
             DB::statement(
                 'ALTER TABLE program_sessions ADD CONSTRAINT program_sessions_period_valid CHECK (starts_at < ends_at)'
+            );
+            DB::statement(
+                'ALTER TABLE session_mentor_assignments ADD CONSTRAINT session_mentor_capacity_valid CHECK (capacity IS NULL OR reserved_count <= capacity)'
             );
         }
     }

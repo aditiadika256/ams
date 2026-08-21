@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\MentorAssignmentMode;
 use App\Enums\SessionMode;
 use App\Http\Requests\BaseFormRequest;
 use Illuminate\Validation\Rule;
@@ -33,6 +34,7 @@ class ProgramSessionUpdateRequest extends BaseFormRequest
             'ends_at' => ['required', 'date', 'after:starts_at'],
             'timezone' => ['sometimes', 'timezone'],
             'mode' => ['sometimes', Rule::enum(SessionMode::class)],
+            'mentor_assignment_mode' => ['sometimes', Rule::enum(MentorAssignmentMode::class)],
             'location' => ['nullable', 'required_if:mode,OFFLINE,HYBRID', 'string', 'max:500'],
             'meeting_url' => ['nullable', 'required_if:mode,ONLINE,HYBRID', 'url', 'max:2048'],
             'capacity' => ['nullable', 'integer', 'min:'.max(1, $session->reserved_count)],

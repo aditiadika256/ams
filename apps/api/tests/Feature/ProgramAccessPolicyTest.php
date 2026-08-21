@@ -85,3 +85,29 @@ it('requires ownership active period enabled component and valid parent access',
     ProgramComponent::query()->where('program_id', $program->id)->update(['is_enabled' => false]);
     expect($gate->allows($owner, $access->fresh(), 'material'))->toBeFalse();
 });
+
+it('denies completed derived reads when the parent entitlement is no longer effective', function () {
+    $owner = User::factory()->create();
+    $program = Program::factory()->create();
+    $material = ComponentDefinition::query()->where('code', 'material')->firstOrFail();
+    ProgramComponent::query()->create([
+        'program_id' => $program->id,
+        'component_definition_id' => $material->id,
+        'is_enabled' => true,
+    ]);
+    $parent = ProgramAccess::factory()->active()->for($owner)->create();
+    $derived = ProgramAccess::factory()->for($owner)->for($program)->create([
+        'status' => AccessStatus::Completed,
+        'completed_at' => now(),
+        'parent_program_access_id' => $parent->id,
+    ]);
+    $gate = app(ComponentAccessGate::class);
+
+    expect($gate->allowsRead($owner, $derived, 'material'))->toBeTrue();
+
+    $parent->update(['status' => AccessStatus::Revoked, 'revoked_at' => now()]);
+    expect($gate->allowsRead($owner, $derived->fresh(), 'material'))->toBeFalse();
+
+    $parent->update(['status' => AccessStatus::Active, 'revoked_at' => null, 'ends_at' => now()->subSecond()]);
+    expect($gate->allowsRead($owner, $derived->fresh(), 'material'))->toBeFalse();
+});

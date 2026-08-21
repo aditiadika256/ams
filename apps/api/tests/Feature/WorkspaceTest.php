@@ -10,6 +10,7 @@ use App\Models\ProgramSession;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\Sanctum;
 
 uses(LazilyRefreshDatabase::class);
@@ -132,4 +133,23 @@ it('requires authentication for every workspace endpoint', function () {
     $this->getJson('/api/v1/workspace')->assertUnauthorized();
     $this->getJson("/api/v1/workspace/accesses/{$access->id}")->assertUnauthorized();
     $this->postJson("/api/v1/workspace/accesses/{$access->id}/archive")->assertUnauthorized();
+});
+
+it('keeps workspace projection queries bounded as card count grows', function () {
+    $user = User::factory()->create();
+    $program = Program::factory()->published()->create();
+    ProgramAccess::factory()->active()->for($user)->for($program)->create();
+    Sanctum::actingAs($user);
+
+    DB::enableQueryLog();
+    $this->getJson('/api/v1/workspace?per_page=15')->assertOk()->assertJsonCount(1, 'data.data');
+    $singleCardQueries = count(DB::getQueryLog());
+
+    ProgramAccess::factory()->count(9)->active()->for($user)->for($program)->create();
+    DB::flushQueryLog();
+    $this->getJson('/api/v1/workspace?per_page=15')->assertOk()->assertJsonCount(10, 'data.data');
+    $tenCardQueries = count(DB::getQueryLog());
+    DB::disableQueryLog();
+
+    expect($tenCardQueries)->toBeLessThanOrEqual($singleCardQueries + 1);
 });

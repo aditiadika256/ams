@@ -97,10 +97,37 @@ it('exposes the application component registry as read only administration data'
     ])->assertMethodNotAllowed();
 });
 
+it('only advertises implemented components and rejects unavailable activation', function () {
+    $program = Program::factory()->create();
+    $shipping = ComponentDefinition::query()->where('code', 'shipping')->firstOrFail();
+    ($this->authenticateWith)(['program-component.manage']);
+
+    expect(ComponentDefinition::query()->available()->pluck('code')->all())
+        ->toBe(['material', 'meeting', 'assessment', 'certificate']);
+
+    $this->putJson("/api/v1/admin/programs/{$program->id}/components", [
+        'components' => [[
+            'component_definition_id' => $shipping->id,
+            'is_enabled' => true,
+            'configuration' => [
+                'requires_address' => true,
+                'fulfillment_mode' => 'manual',
+            ],
+        ]],
+        'reason' => 'Menguji capability yang belum tersedia.',
+    ])->assertUnprocessable()
+        ->assertJsonPath('code', 'COMPONENT_UNAVAILABLE');
+
+    $this->assertDatabaseMissing('program_components', [
+        'program_id' => $program->id,
+        'component_definition_id' => $shipping->id,
+    ]);
+});
+
 it('synchronizes valid enabled components with ordered validated configuration', function () {
     $program = Program::factory()->create();
     $meeting = ComponentDefinition::query()->where('code', 'meeting')->firstOrFail();
-    $attendance = ComponentDefinition::query()->where('code', 'attendance')->firstOrFail();
+    $material = ComponentDefinition::query()->where('code', 'material')->firstOrFail();
     ($this->authenticateWith)(['program-component.manage']);
 
     $this->putJson("/api/v1/admin/programs/{$program->id}/components", [
@@ -113,20 +140,20 @@ it('synchronizes valid enabled components with ordered validated configuration',
                 'configuration' => ['recording_enabled' => true],
             ],
             [
-                'component_definition_id' => $attendance->id,
+                'component_definition_id' => $material->id,
                 'is_enabled' => true,
                 'sort_order' => 2,
                 'configuration' => [],
             ],
         ],
-        'reason' => 'Mengaktifkan kelas dan presensi.',
+        'reason' => 'Mengaktifkan kelas dan materi.',
     ])->assertOk()
         ->assertJsonPath('data.0.code', 'meeting')
-        ->assertJsonPath('data.1.code', 'attendance');
+        ->assertJsonPath('data.1.code', 'material');
 
     $this->assertDatabaseHas('program_components', [
         'program_id' => $program->id,
-        'component_definition_id' => $attendance->id,
+        'component_definition_id' => $material->id,
         'is_enabled' => true,
     ]);
 });
@@ -134,6 +161,7 @@ it('synchronizes valid enabled components with ordered validated configuration',
 it('rejects invalid component dependencies and oversized configuration', function () {
     $program = Program::factory()->create();
     $qrAttendance = ComponentDefinition::query()->where('code', 'qr_attendance')->firstOrFail();
+    $qrAttendance->update(['is_available' => true]);
     $material = ComponentDefinition::query()->where('code', 'material')->firstOrFail();
     ($this->authenticateWith)(['program-component.manage']);
 
@@ -161,6 +189,7 @@ it('rejects invalid component dependencies and oversized configuration', functio
 it('requires a completion rule before enabling certificates', function () {
     $program = Program::factory()->create(['completion_rule' => null]);
     $certificate = ComponentDefinition::query()->where('code', 'certificate')->firstOrFail();
+    $certificate->update(['is_available' => true]);
     ($this->authenticateWith)(['program-component.manage']);
 
     $this->putJson("/api/v1/admin/programs/{$program->id}/components", [

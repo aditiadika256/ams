@@ -21,6 +21,9 @@ class WorkspaceAccessDetailResource extends WorkspaceAccessResource
 
         if ($data['next_session'] !== null) {
             $data['next_session']['meeting_url'] = $this->nextSession->meeting_url;
+            $data['next_session']['mentor_assignments'] = SessionMentorAssignmentResource::collection(
+                $this->nextSession->mentorAssignments
+            );
         }
 
         return $data;

@@ -19,7 +19,7 @@ class ProgramComponentsUpdateRequest extends BaseFormRequest
             'components' => ['required', 'array', 'max:50'],
             'components.*.component_definition_id' => [
                 'required', 'integer', 'distinct',
-                Rule::exists(ComponentDefinition::class, 'id')->where('is_available', true),
+                Rule::exists(ComponentDefinition::class, 'id'),
             ],
             'components.*.is_enabled' => ['sometimes', 'boolean'],
             'components.*.label' => ['nullable', 'string', 'max:120'],

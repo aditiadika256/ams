@@ -32,6 +32,7 @@ export interface ProgramWizardState {
   thumbnailUrl: string;
   basePrice: string;
   visibility: ProgramVisibility;
+  completionMode: 'NONE' | 'MATERIAL' | 'ASSESSMENT' | 'BOTH';
   tagIds: number[];
   componentIds: number[];
   componentLabels: Record<number, string>;

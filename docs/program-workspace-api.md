@@ -18,6 +18,9 @@ Kontrak ini adalah satu-satunya kontrak aktif setelah cutover big-bang. Semua UR
 | `PUT/DELETE` | `/admin/programs/{program}/batches/{batch}` | Update atau hapus Batch draft |
 | `GET/POST` | `/admin/programs/{program}/batches/{batch}/sessions` | Daftar atau membuat Session |
 | `PUT/DELETE` | `/admin/programs/{program}/batches/{batch}/sessions/{session}` | Update atau hapus Session draft |
+| `GET` | `/admin/mentor-options` | Mentor aktif yang eligible untuk assignment |
+| `POST` | `/admin/programs/{program}/batches/{batch}/sessions/{session}/mentor-assignments` | Tetapkan mentor dan kapasitas slot |
+| `DELETE` | `/admin/programs/{program}/batches/{batch}/sessions/{session}/mentor-assignments/{assignment}` | Akhiri assignment dan lepaskan reservasi aktif |
 
 Field uang menggunakan decimal string (`"799000.00"`), bukan float. Program menggunakan `status`, `visibility`, tags, components, relations, Batch, dan Session; field level/type lama ditolak.
 
@@ -42,10 +45,16 @@ Semua acquisition menggunakan grant service yang sama. `ProgramAccess.grant_key`
 | `POST` | `/workspace/accesses/{access}/archive` | Sembunyikan kartu tanpa mengubah entitlement |
 | `POST` | `/workspace/accesses/{access}/restore` | Pulihkan kartu |
 | `GET` | `/workspace/accesses/{access}/curriculum` | Materi terbit bila component `material` aktif |
+| `POST` | `/workspace/accesses/{access}/lessons/{lesson}/complete` | Catat completion lesson secara idempotent dan hitung ulang progress |
+| `POST` | `/workspace/accesses/{access}/sessions/{session}/mentor-reservations` | Pilih slot mentor pada mode `STUDENT`/`HYBRID` |
+| `GET` | `/workspace/session-updates` | Inbox perubahan jadwal milik user |
+| `POST` | `/workspace/session-updates/{update}/acknowledge` | Tandai pembaruan jadwal telah dibaca secara idempotent |
 | `GET` | `/exams/packages?program_access_id={access}` | Paket assessment untuk enrollment tersebut |
 | `POST` | `/exams/start` | Mulai/resume ujian dengan `package_id` dan `program_access_id` |
 
 Status access: `WAITING`, `ACTIVE`, `COMPLETED`, `EXPIRED`, `SUSPENDED`, dan `REVOKED`. Hanya access efektif pada user yang sama, periode valid, parent collection valid, dan component tersedia yang dapat membuka layanan.
+
+Progress berasal dari ledger activity authoritative, bukan angka yang dikirim client. Rule completion v1 mengevaluasi material dan assessment; completion terakhir menulis satu event dan satu certificate yang deterministic. Session mendukung mode assignment mentor `ADMIN`, `STUDENT`, dan `HYBRID`. Reschedule diproyeksikan sesudah commit ke inbox peserta dan mentor dengan correlation ID yang sama seperti audit.
 
 ## Error dan audit
 
@@ -58,6 +67,7 @@ docker compose -p ams_program_workspace -f ops/docker-compose.yml exec api php a
 docker compose -p ams_program_workspace -f ops/docker-compose.yml exec api composer test
 docker compose -p ams_program_workspace -f ops/docker-compose.yml run --rm --no-deps web npm run test:program-contract
 docker compose -p ams_program_workspace -f ops/docker-compose.yml run --rm --no-deps web npm run build
+docker compose -p ams_program_workspace -f ops/docker-compose.yml exec -T -e DB_CONNECTION=pgsql -e DB_DATABASE=edutech_test api php vendor/bin/pest --configuration phpunit.pgsql.xml --compact
 ```
 
 Concurrency/row-lock test wajib memakai database PostgreSQL test khusus, bukan SQLite memory. `migrate:fresh --seed` bersifat destruktif dan hanya boleh diarahkan ke database development/test yang dapat dibuat ulang.

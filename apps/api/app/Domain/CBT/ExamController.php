@@ -2,6 +2,7 @@
 
 namespace App\Domain\CBT;
 
+use App\Actions\Access\RecordProgramActivity;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Access\ExamPackageAccessRequest;
 use App\Http\Requests\Access\ExamStartRequest;
@@ -23,7 +24,10 @@ use OpenApi\Attributes as OA;
 )]
 class ExamController extends Controller
 {
-    public function __construct(private readonly AssessmentAccessAuthorizer $assessmentAccess) {}
+    public function __construct(
+        private readonly AssessmentAccessAuthorizer $assessmentAccess,
+        private readonly RecordProgramActivity $activities,
+    ) {}
 
     /**
      * List available exam packages.
@@ -66,7 +70,7 @@ class ExamController extends Controller
         $access = ProgramAccess::query()
             ->forUser($request->user()->id)
             ->findOrFail($request->validated('program_access_id'));
-        $packageIds = $this->assessmentAccess->authorizedPackageIds($request->user(), $access);
+        $packageIds = $this->assessmentAccess->authorizedPackageIds($request->user(), $access, true);
         $packages = ExamPackage::query()->whereKey($packageIds)->orderBy('id')->get();
 
         return $this->successResponse($packages, 'Packages retrieved successfully');
@@ -121,7 +125,7 @@ class ExamController extends Controller
         $access = ProgramAccess::query()
             ->forUser($request->user()->id)
             ->findOrFail($request->validated('program_access_id'));
-        $this->assessmentAccess->authorize($request->user(), $access, $id);
+        $this->assessmentAccess->authorize($request->user(), $access, $id, true);
         $package = ExamPackage::find($id);
 
         if (! $package) {
@@ -299,7 +303,7 @@ class ExamController extends Controller
             return $this->unauthorizedResponse();
         }
 
-        $this->authorizeAttempt($user, $attempt);
+        $this->authorizeAttempt($user, $attempt, true);
 
         // Check if answers already generated
         $answers = $attempt->answers()->with('question')->get();
@@ -477,7 +481,13 @@ class ExamController extends Controller
         // Calculate Score
         $totalScore = 0;
 
-        DB::transaction(function () use ($attempt, &$totalScore) {
+        DB::transaction(function () use ($attempt, $user, &$totalScore) {
+            $access = ProgramAccess::query()->lockForUpdate()->findOrFail($attempt->session->program_access_id);
+            $attempt = ExamAttempt::query()
+                ->with(['answers.question', 'session'])
+                ->lockForUpdate()
+                ->findOrFail($attempt->id);
+
             foreach ($attempt->answers as $ans) {
                 $question = $ans->question;
                 $isCorrect = false;
@@ -515,7 +525,23 @@ class ExamController extends Controller
                 'status' => 'finished',
                 'end_at' => now(),
             ]);
+
+            $this->activities->handle(
+                $access,
+                'assessment',
+                'assessment_submitted',
+                "exam-attempt:{$attempt->id}",
+                $user,
+                ExamAttempt::class,
+                (string) $attempt->id,
+                [
+                    'package_id' => $attempt->session->package_id,
+                    'score' => $totalScore,
+                ],
+            );
         });
+
+        $attempt->refresh();
 
         return $this->successResponse([
             'score' => $totalScore,
@@ -581,7 +607,7 @@ class ExamController extends Controller
             return $this->unauthorizedResponse();
         }
 
-        $this->authorizeAttempt($user, $attempt);
+        $this->authorizeAttempt($user, $attempt, true);
 
         if (! $attempt->submitted_at) {
             return $this->errorResponse('Exam not yet submitted', 400);
@@ -629,12 +655,13 @@ class ExamController extends Controller
         return $generatedAnswers;
     }
 
-    private function authorizeAttempt(User $user, ExamAttempt $attempt): void
+    private function authorizeAttempt(User $user, ExamAttempt $attempt, bool $readOnly = false): void
     {
         $this->assessmentAccess->authorize(
             $user,
             $attempt->session->programAccess,
             $attempt->session->package_id,
+            $readOnly,
         );
     }
 }

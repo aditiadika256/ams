@@ -83,7 +83,7 @@ class WorkspaceController extends Controller
         $access->program->setRelation(
             'components',
             $access->program->components
-                ->filter(fn ($component) => $this->componentGate->allows(
+                ->filter(fn ($component) => $this->componentGate->allowsRead(
                     $user,
                     $access,
                     $component->definition->code,

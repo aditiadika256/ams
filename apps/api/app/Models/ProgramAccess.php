@@ -19,10 +19,11 @@ class ProgramAccess extends Model
         'user_id', 'program_id', 'program_batch_id', 'parent_program_access_id',
         'source_type', 'source_id', 'grant_key', 'status', 'starts_at', 'ends_at',
         'activated_at', 'completed_at', 'suspended_at', 'revoked_at', 'archived_at',
-        'last_accessed_at', 'metadata', 'created_by', 'updated_by',
+        'last_accessed_at', 'progress_percent', 'progress_breakdown', 'progress_calculated_at',
+        'metadata', 'created_by', 'updated_by',
     ];
 
-    protected $attributes = ['status' => 'WAITING'];
+    protected $attributes = ['status' => 'WAITING', 'progress_percent' => '0.00'];
 
     protected $casts = [
         'source_type' => AccessSource::class,
@@ -35,6 +36,9 @@ class ProgramAccess extends Model
         'revoked_at' => 'datetime',
         'archived_at' => 'datetime',
         'last_accessed_at' => 'datetime',
+        'progress_percent' => 'decimal:2',
+        'progress_breakdown' => 'array',
+        'progress_calculated_at' => 'datetime',
         'metadata' => 'array',
     ];
 
@@ -76,6 +80,21 @@ class ProgramAccess extends Model
     public function examSessions(): HasMany
     {
         return $this->hasMany(ExamSession::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(ProgramAccessActivity::class);
+    }
+
+    public function certificate(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(ProgramCertificate::class);
+    }
+
+    public function mentorReservations(): HasMany
+    {
+        return $this->hasMany(SessionMentorReservation::class);
     }
 
     public function scopeForUser(Builder $query, int $userId): Builder

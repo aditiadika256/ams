@@ -17,6 +17,7 @@ class ProgramSessionResource extends BaseResource
             'ends_at' => $this->ends_at->toIso8601String(),
             'timezone' => $this->timezone,
             'mode' => $this->mode->value,
+            'mentor_assignment_mode' => $this->mentor_assignment_mode->value,
             'location' => $this->location,
             'meeting_url' => $this->meeting_url,
             'capacity' => $this->capacity,

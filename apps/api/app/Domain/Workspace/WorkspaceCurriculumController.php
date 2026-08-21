@@ -17,7 +17,7 @@ class WorkspaceCurriculumController extends Controller
             ->forUser($user->id)
             ->findOrFail($programAccess);
 
-        if (! $componentGate->allows($user, $access, 'material')) {
+        if (! $componentGate->allowsRead($user, $access, 'material')) {
             throw new DomainAuthorizationException(
                 'COMPONENT_ACCESS_DENIED',
                 'Akses materi tidak tersedia untuk enrollment ini.',
