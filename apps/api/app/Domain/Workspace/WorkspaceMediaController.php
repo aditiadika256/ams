@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\MediaAsset;
 use App\Models\ProgramAccess;
 use App\Models\ProgramComponentContent;
+use App\Models\ProgramLesson;
 use App\Support\Access\ComponentAccessGate;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -37,8 +38,18 @@ class WorkspaceMediaController extends Controller
             ->with('programComponent.definition')
             ->first();
 
-        if ($content === null
-            || ! $componentGate->allowsRead($user, $access, $content->programComponent->definition->code)
+        $lessonExists = ProgramLesson::query()
+            ->where('media_asset_id', $asset->id)
+            ->where('is_published', true)
+            ->whereHas('module', fn ($module) => $module
+                ->where('program_id', $access->program_id)
+                ->where('is_published', true))
+            ->exists();
+        $hasContentAccess = $content !== null
+            && $componentGate->allowsRead($user, $access, $content->programComponent->definition->code);
+        $hasMaterialAccess = $lessonExists && $componentGate->allowsRead($user, $access, 'material');
+
+        if ((! $hasContentAccess && ! $hasMaterialAccess)
             || ! Storage::disk($asset->disk)->exists($asset->object_key)) {
             abort(404);
         }

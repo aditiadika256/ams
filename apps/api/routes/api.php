@@ -159,7 +159,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Learning
-    Route::prefix('learning')->middleware(['auth:sanctum', 'permission:view_dashboard_learning|manage_learning_content'])->group(function () {
+    Route::prefix('learning')->middleware(['auth:sanctum', 'permission:view_dashboard_learning|manage_learning_content|program-content.view|program-content.manage'])->group(function () {
         // Mentors
         Route::get('mentor-candidates', [\App\Domain\Learning\MentorController::class, 'candidates'])
             ->middleware('permission:manage_learning_content');
@@ -180,14 +180,14 @@ Route::prefix('v1')->group(function () {
         Route::get('programs/{program}/curriculum', [\App\Domain\Learning\CurriculumController::class, 'index']);
 
         // Modules
-        Route::post('programs/{program}/modules', [\App\Domain\Learning\CurriculumController::class, 'storeModule'])->middleware('permission:manage_learning_content');
-        Route::put('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'updateModule'])->middleware('permission:manage_learning_content');
-        Route::delete('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'destroyModule'])->middleware('permission:manage_learning_content');
+        Route::post('programs/{program}/modules', [\App\Domain\Learning\CurriculumController::class, 'storeModule'])->middleware('permission:program-content.manage');
+        Route::put('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'updateModule'])->middleware('permission:program-content.manage');
+        Route::delete('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'destroyModule'])->middleware('permission:program-content.manage');
 
         // Lessons
-        Route::post('modules/{module}/lessons', [\App\Domain\Learning\CurriculumController::class, 'storeLesson'])->middleware('permission:manage_learning_content');
-        Route::put('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'updateLesson'])->middleware('permission:manage_learning_content');
-        Route::delete('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'destroyLesson'])->middleware('permission:manage_learning_content');
+        Route::post('modules/{module}/lessons', [\App\Domain\Learning\CurriculumController::class, 'storeLesson'])->middleware('permission:program-content.manage');
+        Route::put('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'updateLesson'])->middleware('permission:program-content.manage');
+        Route::delete('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'destroyLesson'])->middleware('permission:program-content.manage');
     });
 
     // Finance
