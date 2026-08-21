@@ -99,7 +99,7 @@ it('only advertises implemented components and rejects unavailable activation', 
     ($this->authenticateWith)(['program-component.manage']);
 
     expect(ComponentDefinition::query()->available()->pluck('code')->all())
-        ->toBe(['material', 'meeting', 'assessment', 'certificate']);
+        ->toBe(['material', 'video', 'meeting', 'assessment', 'certificate', 'download']);
 
     $this->putJson("/api/v1/admin/programs/{$program->id}/components", [
         'components' => [[

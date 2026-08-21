@@ -19,6 +19,7 @@ class Menu extends Model
         'section',
         'parent_id',
         'order',
+        'required_permission',
         'created_by',
         'updated_by',
     ];
