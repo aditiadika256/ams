@@ -14,6 +14,8 @@ class SessionMentorAssignmentResource extends BaseResource
             'mentor_id' => $this->mentor_id,
             'role' => $this->role,
             'status' => $this->status,
+            'capacity' => $this->capacity,
+            'reserved_count' => $this->reserved_count,
             'assigned_at' => $this->assigned_at?->toIso8601String(),
             'ended_at' => $this->ended_at?->toIso8601String(),
             'metadata' => $this->metadata,

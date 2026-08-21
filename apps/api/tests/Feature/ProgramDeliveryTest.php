@@ -6,6 +6,8 @@ use App\Models\Mentor;
 use App\Models\Program;
 use App\Models\ProgramBatch;
 use App\Models\ProgramSession;
+use App\Models\SessionMentorAssignment;
+use App\Models\SessionMentorReservation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -150,6 +152,54 @@ it('audits rescheduling and prevents capacity below existing reservations', func
     ]);
 });
 
+it('rejects rescheduling that would overlap an assigned mentor schedule', function () {
+    $program = Program::factory()->create();
+    $batch = ProgramBatch::factory()->for($program)->create();
+    $session = ProgramSession::factory()->for($batch, 'batch')->create([
+        'status' => SessionStatus::Scheduled,
+        'starts_at' => '2026-09-03T08:00:00+08:00',
+        'ends_at' => '2026-09-03T10:00:00+08:00',
+    ]);
+    $otherSession = ProgramSession::factory()->for($batch, 'batch')->create([
+        'status' => SessionStatus::Scheduled,
+        'starts_at' => '2026-09-03T11:00:00+08:00',
+        'ends_at' => '2026-09-03T13:00:00+08:00',
+    ]);
+    $mentor = Mentor::query()->create([
+        'user_id' => User::factory()->create()->id,
+        'specialization' => 'Matematika',
+        'is_active' => true,
+    ]);
+
+    foreach ([$session, $otherSession] as $assignedSession) {
+        SessionMentorAssignment::query()->create([
+            'program_session_id' => $assignedSession->id,
+            'mentor_id' => $mentor->id,
+            'status' => 'ACTIVE',
+            'assigned_at' => now(),
+        ]);
+    }
+
+    ($this->authenticateWith)(['program-session.manage']);
+    $originalStartsAt = $session->starts_at->toIso8601String();
+
+    $this->putJson("/api/v1/admin/programs/{$program->id}/batches/{$batch->id}/sessions/{$session->id}", [
+        'starts_at' => '2026-09-03T12:00:00+08:00',
+        'ends_at' => '2026-09-03T14:00:00+08:00',
+        'reason' => 'Memindahkan jadwal kelas.',
+    ])->assertUnprocessable()->assertJsonPath('code', 'MENTOR_SCHEDULE_CONFLICT');
+
+    $session->refresh();
+    expect($session->starts_at->toIso8601String())->toBe($originalStartsAt);
+
+    $otherSession->update(['status' => SessionStatus::Completed]);
+    $this->putJson("/api/v1/admin/programs/{$program->id}/batches/{$batch->id}/sessions/{$session->id}", [
+        'starts_at' => '2026-09-03T12:00:00+08:00',
+        'ends_at' => '2026-09-03T14:00:00+08:00',
+        'reason' => 'Memindahkan setelah sesi lain selesai.',
+    ])->assertOk();
+});
+
 it('enforces the session lifecycle', function () {
     $program = Program::factory()->create();
     $batch = ProgramBatch::factory()->for($program)->create();
@@ -196,10 +246,20 @@ it('requires an active eligible mentor and rejects overlapping active assignment
         ->assertUnprocessable()->assertJsonPath('code', 'MENTOR_NOT_ELIGIBLE');
 
     $mentor->update(['is_active' => true]);
+    $this->getJson('/api/v1/admin/mentor-options')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $mentor->id);
     $this->postJson("{$baseUrl}/{$session->id}/mentor-assignments", $payload)->assertCreated();
 
     $this->postJson("{$baseUrl}/{$overlap->id}/mentor-assignments", $payload)
         ->assertUnprocessable()->assertJsonPath('code', 'MENTOR_SCHEDULE_CONFLICT');
+
+    $session->update(['status' => SessionStatus::Completed]);
+    $this->postJson("{$baseUrl}/{$overlap->id}/mentor-assignments", $payload)->assertCreated();
+
+    $draft = ProgramSession::factory()->for($batch, 'batch')->create(['status' => SessionStatus::Draft]);
+    $this->postJson("{$baseUrl}/{$draft->id}/mentor-assignments", $payload)
+        ->assertUnprocessable()->assertJsonPath('code', 'MENTOR_ASSIGNMENT_NOT_ALLOWED');
 });
 
 it('keeps assignment history while allowing only one active mentor assignment per session', function () {
@@ -219,6 +279,16 @@ it('keeps assignment history while allowing only one active mentor assignment pe
     $payload = ['mentor_id' => $mentor->id, 'role' => 'lead', 'reason' => 'Menetapkan mentor utama.'];
 
     $assignmentId = $this->postJson($url, $payload)->assertCreated()->json('data.id');
+    $access = \App\Models\ProgramAccess::factory()->active()->for($program)->for($batch, 'batch')->create();
+    SessionMentorReservation::query()->create([
+        'session_mentor_assignment_id' => $assignmentId,
+        'program_session_id' => $session->id,
+        'program_access_id' => $access->id,
+        'status' => 'ACTIVE',
+        'idempotency_key' => 'assignment-release',
+        'reserved_at' => now(),
+    ]);
+    SessionMentorAssignment::query()->whereKey($assignmentId)->update(['reserved_count' => 1]);
     $this->postJson($url, $payload)
         ->assertUnprocessable()->assertJsonPath('code', 'MENTOR_ASSIGNMENT_EXISTS');
 
@@ -230,5 +300,10 @@ it('keeps assignment history while allowing only one active mentor assignment pe
     $this->assertDatabaseHas('session_mentor_assignments', [
         'id' => $assignmentId,
         'status' => 'ENDED',
+        'reserved_count' => 0,
+    ]);
+    $this->assertDatabaseHas('session_mentor_reservations', [
+        'session_mentor_assignment_id' => $assignmentId,
+        'status' => 'RELEASED',
     ]);
 });

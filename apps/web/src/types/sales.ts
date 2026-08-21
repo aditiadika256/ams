@@ -3,6 +3,13 @@ export type ProgramVisibility = 'PUBLIC' | 'UNLISTED' | 'PRIVATE';
 export type BatchStatus = 'DRAFT' | 'OPEN' | 'CLOSED' | 'COMPLETED' | 'CANCELLED';
 export type BatchMode = 'ONLINE' | 'OFFLINE' | 'HYBRID';
 
+export interface MentorOption { id: number; name: string; specialization?: string | null }
+export interface SessionMentorAssignment {
+  id: number; mentor_id: number; role: string; status: string;
+  capacity?: number | null; reserved_count: number;
+  mentor: MentorOption;
+}
+
 export interface ProgramTag {
   id: number;
   code: string;
@@ -71,11 +78,13 @@ export interface ProgramSession {
   ends_at: string;
   timezone: string;
   mode: BatchMode;
+  mentor_assignment_mode: 'ADMIN' | 'STUDENT' | 'HYBRID';
   location?: string | null;
   meeting_url?: string | null;
   capacity?: number | null;
   reserved_count: number;
   status: 'DRAFT' | 'SCHEDULED' | 'ONGOING' | 'COMPLETED' | 'CANCELLED';
+  mentor_assignments?: SessionMentorAssignment[];
 }
 
 export interface ProgramSessionPayload {
@@ -85,6 +94,7 @@ export interface ProgramSessionPayload {
   ends_at: string;
   timezone: string;
   mode: BatchMode;
+  mentor_assignment_mode?: 'ADMIN' | 'STUDENT' | 'HYBRID';
   location?: string | null;
   meeting_url?: string | null;
   capacity?: number | null;

@@ -50,6 +50,7 @@ export default function ProgramsView() {
   const canPublish = hasPermission('program.publish');
   const canArchive = hasPermission('program.archive');
   const canManageSessions = hasPermission('program-session.manage');
+  const canManageMentors = hasPermission('mentor-assignment.manage');
   const {
     adminPrograms,
     fetchAdminPrograms,
@@ -232,7 +233,7 @@ export default function ProgramsView() {
           )}
         </DialogContent>
       </Dialog>
-      <ProgramDeliveryDialog program={deliveryProgram} open={deliveryProgram !== null} onOpenChange={(open) => !open && setDeliveryProgram(null)} />
+      <ProgramDeliveryDialog program={deliveryProgram} open={deliveryProgram !== null} canManageMentors={canManageMentors} onOpenChange={(open) => !open && setDeliveryProgram(null)} />
     </motion.div>
   );
 }

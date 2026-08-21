@@ -1052,3 +1052,19 @@ Session, serta hak user oleh ProgramAccess.
 Workspace menjadi pengalaman utama user untuk mengakses layanan yang benar-benar
 dimiliki, terlepas dari sumbernya: pembayaran, voucher, enrollment code, program
 gratis, grant admin, atau paket.
+
+---
+
+## 34. Implementation status (2026-08-21)
+
+Cutover big-bang telah diimplementasikan sampai closure Task 17:
+
+- component registry hanya mengiklankan capability yang memiliki handler;
+- progress material/assessment memakai activity ledger idempotent, completion otomatis, dan certificate tunggal;
+- Session mendukung mode mentor `ADMIN`, `STUDENT`, `HYBRID`, reservasi berkapasitas, dan participant scope per assignment;
+- reschedule memvalidasi konflik mentor, diaudit, lalu diproyeksikan after-commit ke inbox peserta/mentor;
+- Workspace dan Admin memakai kontrak baru, termasuk progress, certificate, pemilihan mentor, dan acknowledgment jadwal;
+- migration/seeder dapat dibangun ulang pada PostgreSQL development;
+- suite SQLite, contract frontend, build Next.js, dan PostgreSQL concurrency callback payment/grant/code/Batch/mentor menjadi quality gate.
+
+Konfigurasi concurrency wajib menunjuk database bernama `*_test`; suite menolak database lain untuk mencegah cleanup terhadap data development/production.

@@ -7,6 +7,8 @@ use Illuminate\Database\Seeder;
 
 class ComponentDefinitionSeeder extends Seeder
 {
+    private const AVAILABLE_COMPONENTS = ['material', 'meeting', 'assessment', 'certificate'];
+
     public function run(): void
     {
         $definitions = [
@@ -33,7 +35,7 @@ class ComponentDefinitionSeeder extends Seeder
                     'name' => $definition['name'],
                     'description' => $definition['description'],
                     'config_schema' => $this->schemaFor($definition['code']),
-                    'is_available' => true,
+                    'is_available' => in_array($definition['code'], self::AVAILABLE_COMPONENTS, true),
                     'sort_order' => $index + 1,
                 ]
             );

@@ -3,6 +3,7 @@
 namespace App\Actions\Programs;
 
 use App\Actions\Audit\RecordDomainAudit;
+use App\Exceptions\ProgramCompositionException;
 use App\Models\ComponentDefinition;
 use App\Models\Program;
 use App\Models\ProgramComponent;
@@ -26,11 +27,26 @@ class SyncProgramComponents
             $program = Program::query()->lockForUpdate()->findOrFail($program->id);
             $definitionIds = collect($components)->pluck('component_definition_id')->all();
             $definitions = ComponentDefinition::query()
-                ->available()
                 ->whereIn('id', $definitionIds)
                 ->orderBy('id')
                 ->lockForUpdate()
                 ->get();
+
+            $unavailable = collect($components)
+                ->filter(fn (array $component): bool => $component['is_enabled'] ?? true)
+                ->map(fn (array $component) => $definitions->firstWhere('id', $component['component_definition_id']))
+                ->first(fn (?ComponentDefinition $definition): bool => $definition === null || ! $definition->is_available);
+
+            if ($unavailable !== null) {
+                throw new ProgramCompositionException(
+                    'COMPONENT_UNAVAILABLE',
+                    'Komponen belum memiliki implementasi backend dan frontend yang tersedia.',
+                    [
+                        'component_definition_id' => $unavailable?->id,
+                        'component' => $unavailable?->code,
+                    ],
+                );
+            }
 
             $this->validator->validate($program, $definitions, $components);
 

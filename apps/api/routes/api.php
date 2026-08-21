@@ -42,7 +42,14 @@ Route::prefix('v1')->group(function () {
         Route::post('accesses/{programAccess}/archive', [\App\Domain\Workspace\WorkspaceController::class, 'archive']);
         Route::post('accesses/{programAccess}/restore', [\App\Domain\Workspace\WorkspaceController::class, 'restore']);
         Route::get('accesses/{programAccess}/curriculum', \App\Domain\Workspace\WorkspaceCurriculumController::class);
+        Route::post('accesses/{programAccess}/lessons/{lesson}/complete', [\App\Domain\Workspace\WorkspaceActivityController::class, 'completeLesson']);
+        Route::post('accesses/{programAccess}/sessions/{session}/mentor-reservations', [\App\Domain\Workspace\WorkspaceMentorReservationController::class, 'store']);
+        Route::get('session-updates', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'index']);
+        Route::post('session-updates/{sessionUpdate}/acknowledge', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'acknowledge']);
     });
+
+    Route::get('mentor/sessions/{session}/participants', \App\Domain\Learning\MentorSessionParticipantController::class)
+        ->middleware('auth:sanctum');
 
     // CBT
     Route::get('exams/packages', [\App\Domain\CBT\ExamController::class, 'index'])->middleware('auth:sanctum');
@@ -73,6 +80,7 @@ Route::prefix('v1')->group(function () {
 
     // Admin
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+        Route::get('mentor-options', [\App\Domain\Admin\SessionMentorAssignmentController::class, 'options']);
         Route::post('program-accesses/grant', [\App\Domain\Admin\ProgramAccessController::class, 'grant']);
         Route::post('program-accesses/{programAccess}/activate', [\App\Domain\Admin\ProgramAccessController::class, 'activate']);
         Route::post('program-accesses/{programAccess}/suspend', [\App\Domain\Admin\ProgramAccessController::class, 'suspend']);

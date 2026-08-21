@@ -3,10 +3,12 @@
 namespace App\Actions\Programs;
 
 use App\Actions\Audit\RecordDomainAudit;
+use App\Enums\SessionStatus;
 use App\Exceptions\MentorAssignmentException;
 use App\Models\Mentor;
 use App\Models\ProgramSession;
 use App\Models\SessionMentorAssignment;
+use App\Models\SessionMentorReservation;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -18,6 +20,7 @@ class AssignSessionMentor
         ProgramSession $session,
         int $mentorId,
         string $role,
+        ?int $capacity,
         array $metadata,
         User $actor,
         string $reason,
@@ -26,12 +29,22 @@ class AssignSessionMentor
             $session,
             $mentorId,
             $role,
+            $capacity,
             $metadata,
             $actor,
             $reason,
         ): SessionMentorAssignment {
-            $mentor = Mentor::query()->with('user')->lockForUpdate()->findOrFail($mentorId);
             $session = ProgramSession::query()->lockForUpdate()->findOrFail($session->id);
+
+            if (! in_array($session->status, [SessionStatus::Scheduled, SessionStatus::Ongoing], true)) {
+                throw new MentorAssignmentException(
+                    'MENTOR_ASSIGNMENT_NOT_ALLOWED',
+                    'Mentor hanya dapat ditetapkan pada Session terjadwal atau sedang berlangsung.',
+                    ['program_session_id' => $session->id, 'status' => $session->status->value],
+                );
+            }
+
+            $mentor = Mentor::query()->with('user')->lockForUpdate()->findOrFail($mentorId);
 
             if (! $mentor->is_active || ! $mentor->user->hasPermissionTo('view_dashboard_learning', 'web')) {
                 throw new MentorAssignmentException(
@@ -58,6 +71,7 @@ class AssignSessionMentor
                 ->where('status', 'ACTIVE')
                 ->whereHas('session', fn ($query) => $query
                     ->where('id', '!=', $session->id)
+                    ->whereIn('status', [SessionStatus::Scheduled->value, SessionStatus::Ongoing->value])
                     ->where('starts_at', '<', $session->ends_at)
                     ->where('ends_at', '>', $session->starts_at))
                 ->exists();
@@ -75,6 +89,8 @@ class AssignSessionMentor
                 'mentor_id' => $mentor->id,
                 'role' => $role,
                 'status' => 'ACTIVE',
+                'capacity' => $capacity,
+                'reserved_count' => 0,
                 'assigned_at' => now(),
                 'metadata' => $metadata,
             ]);
@@ -94,6 +110,7 @@ class AssignSessionMentor
     public function end(SessionMentorAssignment $assignment, User $actor, string $reason): void
     {
         DB::transaction(function () use ($assignment, $actor, $reason): void {
+            ProgramSession::query()->lockForUpdate()->findOrFail($assignment->program_session_id);
             $assignment = SessionMentorAssignment::query()->lockForUpdate()->findOrFail($assignment->id);
             $before = $assignment->getAttributes();
 
@@ -105,7 +122,21 @@ class AssignSessionMentor
                 );
             }
 
-            $assignment->update(['status' => 'ENDED', 'ended_at' => now()]);
+            $releasedCount = SessionMentorReservation::query()
+                ->where('session_mentor_assignment_id', $assignment->id)
+                ->where('status', 'ACTIVE')
+                ->lockForUpdate()
+                ->get(['id'])
+                ->count();
+            SessionMentorReservation::query()
+                ->where('session_mentor_assignment_id', $assignment->id)
+                ->where('status', 'ACTIVE')
+                ->update(['status' => 'RELEASED', 'released_at' => now(), 'updated_at' => now()]);
+            $assignment->update([
+                'status' => 'ENDED',
+                'ended_at' => now(),
+                'reserved_count' => max(0, $assignment->reserved_count - $releasedCount),
+            ]);
             $this->audit->handle(
                 $assignment,
                 'session.mentor_assignment_ended',

@@ -11,14 +11,14 @@ class AssessmentAccessAuthorizer
 {
     public function __construct(private readonly ComponentAccessGate $componentGate) {}
 
-    public function authorize(User $user, ProgramAccess $access, int $packageId): void
+    public function authorize(User $user, ProgramAccess $access, int $packageId, bool $readOnly = false): void
     {
-        if (! in_array($packageId, $this->authorizedPackageIds($user, $access), true)) {
+        if (! in_array($packageId, $this->authorizedPackageIds($user, $access, $readOnly), true)) {
             throw $this->denied($access);
         }
     }
 
-    public function authorizedPackageIds(User $user, ProgramAccess $access): array
+    public function authorizedPackageIds(User $user, ProgramAccess $access, bool $readOnly = false): array
     {
         $component = ProgramComponent::query()
             ->where('program_id', $access->program_id)
@@ -30,7 +30,11 @@ class AssessmentAccessAuthorizer
         $configuration = $component?->configuration ?? [];
         $allowedPackageIds = array_map('intval', $configuration['exam_package_ids'] ?? []);
 
-        if (! $this->componentGate->allows($user, $access, 'assessment')) {
+        $allowed = $readOnly
+            ? $this->componentGate->allowsRead($user, $access, 'assessment')
+            : $this->componentGate->allows($user, $access, 'assessment');
+
+        if (! $allowed) {
             throw $this->denied($access);
         }
 

@@ -10,11 +10,12 @@ import {
   ProgramSession,
   ProgramSessionPayload,
   ProgramMutationPayload,
+  MentorOption,
   ProgramTag,
   ProgramWizardPayload,
 } from '../types/sales';
 import { ExamSession, Question, ExamResult } from '../types/cbt';
-import { CurriculumModule, WorkspaceAccess, WorkspacePage } from '../types/workspace';
+import { CurriculumModule, WorkspaceAccess, WorkspacePage, WorkspaceSessionUpdate } from '../types/workspace';
 import { Menu } from '../types/system';
 import { ColorPalette, ColorPaletteFormData } from '../types/theme';
 import { clearBrowserSession } from './session';
@@ -260,6 +261,27 @@ export const apiClient = {
       const response = await api.get<ApiResponse<CurriculumModule[]>>(`/workspace/accesses/${accessId}/curriculum`);
       return response.data;
     },
+    completeLesson: async (accessId: number, lessonId: number, idempotencyKey: string) => {
+      const response = await api.post(`/workspace/accesses/${accessId}/lessons/${lessonId}/complete`, {
+        idempotency_key: idempotencyKey,
+      });
+      return response.data;
+    },
+    reserveMentor: async (accessId: number, sessionId: number, mentorAssignmentId: number, idempotencyKey: string) => {
+      const response = await api.post(`/workspace/accesses/${accessId}/sessions/${sessionId}/mentor-reservations`, {
+        mentor_assignment_id: mentorAssignmentId,
+        idempotency_key: idempotencyKey,
+      });
+      return response.data;
+    },
+    sessionUpdates: async () => {
+      const response = await api.get<ApiResponse<WorkspaceSessionUpdate[]>>('/workspace/session-updates');
+      return response.data;
+    },
+    acknowledgeSessionUpdate: async (updateId: number) => {
+      const response = await api.post<ApiResponse<WorkspaceSessionUpdate>>(`/workspace/session-updates/${updateId}/acknowledge`);
+      return response.data;
+    },
   },
 
   access: {
@@ -502,6 +524,10 @@ export const apiClient = {
         );
         return response.data;
       },
+      mentorOptions: async () => {
+        const response = await api.get<ApiResponse<MentorOption[]>>('/admin/mentor-options');
+        return response.data;
+      },
         batches: {
         list: async (programId: number) => {
           const response = await api.get<ApiResponse<ProgramBatch[]>>(
@@ -545,6 +571,20 @@ export const apiClient = {
             transition: async (programId: number, batchId: number, sessionId: number, status: ProgramSession['status'], reason: string) => {
               const response = await api.post<ApiResponse<ProgramSession>>(`/admin/programs/${programId}/batches/${batchId}/sessions/${sessionId}/transition`, { status, reason });
               return response.data;
+            },
+            assignMentor: async (programId: number, batchId: number, sessionId: number, mentorId: number, capacity?: number | null) => {
+              const response = await api.post(`/admin/programs/${programId}/batches/${batchId}/sessions/${sessionId}/mentor-assignments`, {
+                mentor_id: mentorId,
+                role: 'lead',
+                capacity: capacity ?? null,
+                reason: 'Menetapkan mentor melalui administrasi Program',
+              });
+              return response.data;
+            },
+            endMentorAssignment: async (programId: number, batchId: number, sessionId: number, assignmentId: number) => {
+              await api.delete(`/admin/programs/${programId}/batches/${batchId}/sessions/${sessionId}/mentor-assignments/${assignmentId}`, {
+                data: { reason: 'Mengakhiri assignment mentor melalui administrasi Program' },
+              });
             },
           },
         },

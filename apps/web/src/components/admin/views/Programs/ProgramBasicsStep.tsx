@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { ProgramStepProps } from './wizard-types';
+import type { ProgramStepProps, ProgramWizardState } from './wizard-types';
 
 export function ProgramBasicsStep({ state, setState }: ProgramStepProps) {
   const update = (field: string, value: string) => setState((current) => ({
@@ -44,6 +44,19 @@ export function ProgramBasicsStep({ state, setState }: ProgramStepProps) {
       <div className="grid gap-2">
         <Label htmlFor="program-thumbnail">URL thumbnail</Label>
         <Input id="program-thumbnail" type="url" value={state.thumbnailUrl} onChange={(event) => update('thumbnailUrl', event.target.value)} />
+      </div>
+      <div className="grid gap-2 md:col-span-2">
+        <Label htmlFor="program-completion">Aturan kelulusan</Label>
+        <Select value={state.completionMode} onValueChange={(value) => setState((current) => ({ ...current, completionMode: value as ProgramWizardState['completionMode'] }))}>
+          <SelectTrigger id="program-completion"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="NONE">Tidak otomatis</SelectItem>
+            <SelectItem value="MATERIAL">Semua materi selesai</SelectItem>
+            <SelectItem value="ASSESSMENT">Minimal satu assessment disubmit</SelectItem>
+            <SelectItem value="BOTH">Materi dan assessment selesai</SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-zinc-500">Access menjadi completed hanya dari aktivitas component, bukan angka manual.</p>
       </div>
       <div className="grid gap-2 md:col-span-2">
         <Label htmlFor="program-summary">Deskripsi singkat</Label>

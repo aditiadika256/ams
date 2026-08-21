@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Enums\AccessStatus;
 use Illuminate\Http\Request;
 
 class WorkspaceAccessResource extends BaseResource
@@ -38,9 +37,16 @@ class WorkspaceAccessResource extends BaseResource
             'next_session' => $this->sessionData(),
             'primary_component' => $program?->components->first()?->definition->code,
             'progress' => [
-                'percent' => $this->status === AccessStatus::Completed ? 100 : 0,
+                'percent' => (float) $this->progress_percent,
                 'content_count' => (int) ($program?->modules_count ?? 0),
+                'breakdown' => $this->progress_breakdown ?? [],
+                'calculated_at' => $this->progress_calculated_at?->toIso8601String(),
             ],
+            'certificate' => $this->relationLoaded('certificate') && $this->certificate !== null ? [
+                'certificate_number' => $this->certificate->certificate_number,
+                'issued_at' => $this->certificate->issued_at->toIso8601String(),
+                'revoked_at' => $this->certificate->revoked_at?->toIso8601String(),
+            ] : null,
         ];
     }
 
@@ -75,6 +81,7 @@ class WorkspaceAccessResource extends BaseResource
             'ends_at' => $this->nextSession->ends_at->toIso8601String(),
             'timezone' => $this->nextSession->timezone,
             'mode' => $this->nextSession->mode->value,
+            'mentor_assignment_mode' => $this->nextSession->mentor_assignment_mode->value,
             'location' => $this->nextSession->location,
             'status' => $this->nextSession->status->value,
         ];

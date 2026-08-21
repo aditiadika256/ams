@@ -15,6 +15,8 @@ class ComponentConfigValidator
 
     private const MAX_CONFIG_NODES = 500;
 
+    public function __construct(private readonly CompletionRuleValidator $completionRules) {}
+
     public function validate(Program $program, Collection $definitions, array $components): void
     {
         $definitionsById = $definitions->keyBy('id');
@@ -100,7 +102,7 @@ class ComponentConfigValidator
         $valid = match ($code) {
             'qr_attendance' => $enabledCodes->contains('attendance'),
             'attendance' => $enabledCodes->contains('meeting') || ($hasSessions ??= $this->hasSessions($program)),
-            'certificate' => ! empty($program->completion_rule),
+            'certificate' => $this->hasValidCompletionRule($program),
             'shipping' => ($configuration['requires_address'] ?? false) === true
                 && filled($configuration['fulfillment_mode'] ?? null),
             'consultation' => $hasSessions ??= $this->hasSessions($program),
@@ -119,5 +121,16 @@ class ComponentConfigValidator
     private function hasSessions(Program $program): bool
     {
         return $program->batches()->whereHas('sessions')->exists();
+    }
+
+    private function hasValidCompletionRule(Program $program): bool
+    {
+        if (empty($program->completion_rule)) {
+            return false;
+        }
+
+        $this->completionRules->validate($program->completion_rule);
+
+        return true;
     }
 }

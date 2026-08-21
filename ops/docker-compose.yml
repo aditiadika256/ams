@@ -72,6 +72,34 @@ services:
       postgres:
         condition: service_healthy
 
+  queue:
+    build:
+      context: ../apps/api
+      dockerfile: Dockerfile.dev
+    container_name: edutech_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ../apps/api:/var/www/html:delegated
+      - /var/www/html/vendor
+      - /var/www/html/storage
+      - /var/www/html/bootstrap/cache
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: edutech
+      DB_USERNAME: edutech_user
+      DB_PASSWORD: secretpassword
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      APP_ENV: local
+      APP_DEBUG: true
+    command: sh -c "composer install --no-interaction --prefer-dist || true; php artisan queue:work --sleep=1 --tries=4 --timeout=60"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   web:
     image: node:20
     container_name: edutech_web
