@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'ax
 import { ApiResponse, User, RegisterData } from '../types/auth';
 import {
   ComponentDefinition,
+  ComponentDefinitionPayload,
   CreateOrderPayload,
   Order,
   PaginatedResponse,
@@ -607,11 +608,29 @@ export const apiClient = {
       },
     },
     componentDefinitions: {
-      list: async () => {
+      list: async (params?: { search?: string; include_archived?: boolean }) => {
         const response = await api.get<ApiResponse<ComponentDefinition[]>>(
-          '/admin/component-definitions',
+          '/admin/component-definitions', { params },
         );
         return response.data;
+      },
+      create: async (payload: ComponentDefinitionPayload) => {
+        const response = await api.post<ApiResponse<ComponentDefinition>>('/admin/component-definitions', payload);
+        return response.data;
+      },
+      update: async (id: number, payload: Partial<ComponentDefinitionPayload>) => {
+        const response = await api.put<ApiResponse<ComponentDefinition>>(`/admin/component-definitions/${id}`, payload);
+        return response.data;
+      },
+      archive: async (id: number, reason: string) => {
+        await api.delete(`/admin/component-definitions/${id}`, { data: { reason } });
+      },
+      restore: async (id: number, reason: string) => {
+        const response = await api.post<ApiResponse<ComponentDefinition>>(`/admin/component-definitions/${id}/restore`, { reason });
+        return response.data;
+      },
+      forceDelete: async (id: number, reason: string) => {
+        await api.delete(`/admin/component-definitions/${id}/force`, { data: { reason } });
       },
     },
     branches: {

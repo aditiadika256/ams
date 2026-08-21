@@ -15,6 +15,7 @@ import CMSPostsView from '../views/CMSPosts/view';
 import MentorsView from '../views/Mentors/view';
 import ProgramsView from '../views/Programs/view';
 import TagsView from '../views/Tags/view';
+import ComponentsView from '../views/Components/view';
 import CurriculumBuilderView from '../views/CurriculumBuilder/view';
 import RolesPermissionsView from '../views/RolesPermissions/view';
 import MenuManagementView from '../views/MenuManagement/view';
@@ -28,6 +29,7 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'mentors': MentorsView,
   'programs': ProgramsView,
   'tags': TagsView,
+  'components': ComponentsView,
   'curriculum-builder': CurriculumBuilderView,
   'menus': MenuManagementView,
   'colorpalette': ColorPaletteView,// With hyphen
@@ -45,6 +47,7 @@ const ViewPermissions: Record<string, string[]> = {
   'mentors': ['manage_students', 'view_dashboard_learning'],
   'programs': ['program.view', 'program.create', 'program.update'],
   'tags': ['program-tag.manage'],
+  'components': ['component-definition.view'],
   'curriculum-builder': ['manage_learning_content'],
   'menus': ['manage_menus'],
   'colorpalette': ['manage_global_settings'],

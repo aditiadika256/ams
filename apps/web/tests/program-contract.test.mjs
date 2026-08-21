@@ -92,3 +92,27 @@ test('delivery UI exposes mentor selection and acknowledged reschedule updates',
   assert.match(api, /mentor-assignments/);
   assert.match(delivery, /ProgramMentorAssignments/);
 });
+
+test('component catalog is wired to guarded CRUD navigation', async () => {
+  const [types, api, store, layout, sidebar, view, menuSeeder] = await Promise.all([
+    readFile('src/types/sales.ts', 'utf8'),
+    readFile('src/lib/api.ts', 'utf8'),
+    readFile('src/store/useAdminStore.ts', 'utf8'),
+    readFile('src/components/admin/layout/AdminLayout.tsx', 'utf8'),
+    readFile('src/components/admin/layout/AdminSidebar.tsx', 'utf8'),
+    readFile('src/components/admin/views/Components/view.tsx', 'utf8'),
+    readFile('../api/database/seeders/MenuSeeder.php', 'utf8'),
+  ]);
+
+  assert.match(types, /ComponentHandlerTemplate/);
+  assert.match(api, /component-definitions\/\$\{id\}\/restore/);
+  assert.match(api, /component-definitions\/\$\{id\}\/force/);
+  assert.match(store, /'components'/);
+  assert.match(layout, /'components': ComponentsView/);
+  assert.match(layout, /component-definition\.view/);
+  assert.match(sidebar, /Blocks/);
+  assert.match(view, /include_archived/);
+  assert.match(view, /handler_template/);
+  assert.match(menuSeeder, /admin:\/\/view\/components/);
+  assert.doesNotMatch(menuSeeder, /admin:\/\/view\/curriculum-builder/);
+});
