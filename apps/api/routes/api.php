@@ -42,6 +42,8 @@ Route::prefix('v1')->group(function () {
         Route::post('accesses/{programAccess}/archive', [\App\Domain\Workspace\WorkspaceController::class, 'archive']);
         Route::post('accesses/{programAccess}/restore', [\App\Domain\Workspace\WorkspaceController::class, 'restore']);
         Route::get('accesses/{programAccess}/curriculum', \App\Domain\Workspace\WorkspaceCurriculumController::class);
+        Route::get('accesses/{programAccess}/components/{programComponent}/contents', [\App\Domain\Workspace\WorkspaceComponentContentController::class, 'index']);
+        Route::post('accesses/{programAccess}/components/{programComponent}/contents/{content}/submissions', [\App\Domain\Workspace\WorkspaceComponentContentController::class, 'submit']);
         Route::post('accesses/{programAccess}/lessons/{lesson}/complete', [\App\Domain\Workspace\WorkspaceActivityController::class, 'completeLesson']);
         Route::get('accesses/{programAccess}/media-assets/{mediaAsset}', [\App\Domain\Workspace\WorkspaceMediaController::class, 'show']);
         Route::post('accesses/{programAccess}/sessions/{session}/mentor-reservations', [\App\Domain\Workspace\WorkspaceMentorReservationController::class, 'store']);
