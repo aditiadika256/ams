@@ -2,12 +2,18 @@
 
 namespace App\Domain\CBT;
 
+use App\Actions\Access\RecordProgramActivity;
 use App\Http\Controllers\Controller;
-use App\Models\ExamAttempt;
-use App\Models\ExamSession;
+use App\Http\Requests\Access\ExamPackageAccessRequest;
+use App\Http\Requests\Access\ExamStartRequest;
 use App\Models\ExamAnswer;
-use App\Models\Question;
+use App\Models\ExamAttempt;
 use App\Models\ExamPackage;
+use App\Models\ExamSession;
+use App\Models\ProgramAccess;
+use App\Models\Question;
+use App\Models\User;
+use App\Support\Access\AssessmentAccessAuthorizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
@@ -18,6 +24,11 @@ use OpenApi\Attributes as OA;
 )]
 class ExamController extends Controller
 {
+    public function __construct(
+        private readonly AssessmentAccessAuthorizer $assessmentAccess,
+        private readonly RecordProgramActivity $activities,
+    ) {}
+
     /**
      * List available exam packages.
      */
@@ -44,21 +55,24 @@ class ExamController extends Controller
                                     new OA\Property(property: 'title', type: 'string', example: 'Tryout SNBT 2025'),
                                     new OA\Property(property: 'description', type: 'string', example: 'Description here'),
                                     new OA\Property(property: 'duration', type: 'integer', example: 120),
-                                    new OA\Property(property: 'status', type: 'string', example: 'active')
+                                    new OA\Property(property: 'status', type: 'string', example: 'active'),
                                 ]
                             )
-                        )
+                        ),
                     ]
                 )
             ),
-            new OA\Response(response: 401, description: 'Unauthorized')
+            new OA\Response(response: 401, description: 'Unauthorized'),
         ]
     )]
-    public function index(Request $request)
+    public function index(ExamPackageAccessRequest $request)
     {
-        // For now, return all packages.
-        $packages = ExamPackage::all();
-        
+        $access = ProgramAccess::query()
+            ->forUser($request->user()->id)
+            ->findOrFail($request->validated('program_access_id'));
+        $packageIds = $this->assessmentAccess->authorizedPackageIds($request->user(), $access, true);
+        $packages = ExamPackage::query()->whereKey($packageIds)->orderBy('id')->get();
+
         return $this->successResponse($packages, 'Packages retrieved successfully');
     }
 
@@ -78,7 +92,7 @@ class ExamController extends Controller
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -97,20 +111,24 @@ class ExamController extends Controller
                                 new OA\Property(property: 'level', type: 'string', example: 'sma'),
                                 new OA\Property(property: 'duration_minutes', type: 'integer', example: 120),
                                 new OA\Property(property: 'randomize', type: 'boolean', example: true),
-                                new OA\Property(property: 'show_result_mode', type: 'string', example: 'after')
+                                new OA\Property(property: 'show_result_mode', type: 'string', example: 'after'),
                             ]
-                        )
+                        ),
                     ]
                 )
             ),
-            new OA\Response(response: 404, description: 'Package not found')
+            new OA\Response(response: 404, description: 'Package not found'),
         ]
     )]
-    public function show($id)
+    public function show(ExamPackageAccessRequest $request, int $id)
     {
+        $access = ProgramAccess::query()
+            ->forUser($request->user()->id)
+            ->findOrFail($request->validated('program_access_id'));
+        $this->assessmentAccess->authorize($request->user(), $access, $id, true);
         $package = ExamPackage::find($id);
 
-        if (!$package) {
+        if (! $package) {
             return response()->json(['message' => 'Package not found'], 404);
         }
 
@@ -131,7 +149,7 @@ class ExamController extends Controller
             content: new OA\JsonContent(
                 required: ['package_id'],
                 properties: [
-                    new OA\Property(property: 'package_id', type: 'integer', example: 1)
+                    new OA\Property(property: 'package_id', type: 'integer', example: 1),
                 ]
             )
         ),
@@ -148,50 +166,43 @@ class ExamController extends Controller
                             properties: [
                                 new OA\Property(property: 'session_id', type: 'integer', example: 1),
                                 new OA\Property(property: 'attempt_id', type: 'integer', example: 1),
-                                new OA\Property(property: 'restored', type: 'boolean', example: false)
+                                new OA\Property(property: 'restored', type: 'boolean', example: false),
                             ],
                             type: 'object'
-                        )
+                        ),
                     ]
                 )
             ),
-            new OA\Response(response: 422, description: 'Validation error')
+            new OA\Response(response: 422, description: 'Validation error'),
         ]
     )]
-    public function start(Request $request)
+    public function start(ExamStartRequest $request)
     {
-        // Debugging: Log the request
-        \Illuminate\Support\Facades\Log::info('Start Exam Request', ['package_id' => $request->package_id, 'all' => $request->all()]);
-        
-        // Manual validation to debug
-        if (!$request->has('package_id')) {
-            return response()->json(['message' => 'Package ID is required'], 422);
-        }
-
-        $package = ExamPackage::find($request->package_id);
-        if (!$package) {
-            \Illuminate\Support\Facades\Log::error('Package not found', ['id' => $request->package_id]);
-            return response()->json(['message' => 'The selected package id is invalid (not found in DB). ID: ' . $request->package_id], 422);
-        }
-
         $user = $request->user();
-        $packageId = $request->package_id;
+        $validated = $request->validated();
+        $packageId = $validated['package_id'];
+        $access = ProgramAccess::query()
+            ->forUser($user->id)
+            ->findOrFail($validated['program_access_id']);
+        $this->assessmentAccess->authorize($user, $access, $packageId);
 
         // Check for existing session
         $session = ExamSession::where('user_id', $user->id)
             ->where('package_id', $packageId)
+            ->where('program_access_id', $access->id)
             ->latest()
             ->first();
 
         // If no session or last session is finished, create new one
-        if (!$session || $session->status === 'finished' || $session->status === 'expired') {
+        if (! $session || $session->status === 'finished' || $session->status === 'expired') {
             $session = ExamSession::create([
                 'user_id' => $user->id,
                 'package_id' => $packageId,
+                'program_access_id' => $access->id,
                 'status' => 'scheduled',
             ]);
         }
-        
+
         // Update session status if scheduled
         if ($session->status === 'scheduled') {
             $session->update([
@@ -243,7 +254,7 @@ class ExamController extends Controller
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -262,28 +273,28 @@ class ExamController extends Controller
                                     new OA\Property(property: 'question_id', type: 'integer', example: 50),
                                     new OA\Property(property: 'type', type: 'string', example: 'mcq'),
                                     new OA\Property(property: 'stem', type: 'string', example: 'What is 2+2?'),
-                                    new OA\Property(property: 'options', type: 'object', example: ["A" => "3", "B" => "4"]),
+                                    new OA\Property(property: 'options', type: 'object', example: ['A' => '3', 'B' => '4']),
                                     new OA\Property(property: 'user_answer', type: 'string', example: null, nullable: true),
-                                    new OA\Property(property: 'flagged', type: 'boolean', example: false)
+                                    new OA\Property(property: 'flagged', type: 'boolean', example: false),
                                 ]
                             )
-                        )
+                        ),
                     ]
                 )
             ),
             new OA\Response(response: 404, description: 'Exam attempt not found'),
-            new OA\Response(response: 401, description: 'Unauthorized')
+            new OA\Response(response: 401, description: 'Unauthorized'),
         ]
     )]
     public function getQuestions(Request $request, $attemptId)
     {
         $user = $request->user();
-        
-        $attempt = ExamAttempt::with(['session.package.sections'])
+
+        $attempt = ExamAttempt::with(['session.package.sections', 'session.programAccess'])
             ->where('id', $attemptId)
             ->first();
 
-        if (!$attempt) {
+        if (! $attempt) {
             return $this->notFoundResponse('Exam attempt not found');
         }
 
@@ -291,6 +302,8 @@ class ExamController extends Controller
         if ($attempt->session->user_id !== $user->id) {
             return $this->unauthorizedResponse();
         }
+
+        $this->authorizeAttempt($user, $attempt, true);
 
         // Check if answers already generated
         $answers = $attempt->answers()->with('question')->get();
@@ -303,6 +316,7 @@ class ExamController extends Controller
         // Transform response (hide answer keys)
         $data = $answers->map(function ($ans) {
             $q = $ans->question;
+
             return [
                 'id' => $ans->id, // answer id (to submit answer)
                 'question_id' => $q->id,
@@ -334,7 +348,7 @@ class ExamController extends Controller
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         requestBody: new OA\RequestBody(
             required: true,
@@ -342,7 +356,7 @@ class ExamController extends Controller
                 required: ['question_id'],
                 properties: [
                     new OA\Property(property: 'question_id', type: 'integer', example: 50),
-                    new OA\Property(property: 'answer', type: 'string', example: 'B', nullable: true)
+                    new OA\Property(property: 'answer', type: 'string', example: 'B', nullable: true),
                 ]
             )
         ),
@@ -354,12 +368,12 @@ class ExamController extends Controller
                     properties: [
                         new OA\Property(property: 'success', type: 'boolean', example: true),
                         new OA\Property(property: 'message', type: 'string', example: 'Answer saved'),
-                        new OA\Property(property: 'data', example: null)
+                        new OA\Property(property: 'data', example: null),
                     ]
                 )
             ),
             new OA\Response(response: 404, description: 'Question not found in this attempt'),
-            new OA\Response(response: 400, description: 'Exam already submitted')
+            new OA\Response(response: 400, description: 'Exam already submitted'),
         ]
     )]
     public function saveAnswer(Request $request, $attemptId)
@@ -370,16 +384,18 @@ class ExamController extends Controller
         ]);
 
         $user = $request->user();
-        
-        $attempt = ExamAttempt::where('id', $attemptId)->first();
-        
-        if (!$attempt) {
+
+        $attempt = ExamAttempt::with('session.programAccess')->where('id', $attemptId)->first();
+
+        if (! $attempt) {
             return $this->notFoundResponse('Exam attempt not found');
         }
 
         if ($attempt->session->user_id !== $user->id) {
             return $this->unauthorizedResponse();
         }
+
+        $this->authorizeAttempt($user, $attempt);
 
         if ($attempt->submitted_at) {
             return $this->errorResponse('Exam already submitted', 400);
@@ -389,12 +405,12 @@ class ExamController extends Controller
             ->where('question_id', $request->question_id)
             ->first();
 
-        if (!$answer) {
-             return $this->errorResponse('Question not found in this attempt', 404);
+        if (! $answer) {
+            return $this->errorResponse('Question not found in this attempt', 404);
         }
 
         $answer->update([
-            'answer' => $request->answer
+            'answer' => $request->answer,
         ]);
 
         return $this->successResponse(null, 'Answer saved');
@@ -416,7 +432,7 @@ class ExamController extends Controller
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -430,25 +446,25 @@ class ExamController extends Controller
                             property: 'data',
                             properties: [
                                 new OA\Property(property: 'score', type: 'integer', example: 85),
-                                new OA\Property(property: 'submitted_at', type: 'string', format: 'date-time')
+                                new OA\Property(property: 'submitted_at', type: 'string', format: 'date-time'),
                             ],
                             type: 'object'
-                        )
+                        ),
                     ]
                 )
             ),
-            new OA\Response(response: 400, description: 'Exam already submitted')
+            new OA\Response(response: 400, description: 'Exam already submitted'),
         ]
     )]
     public function submit(Request $request, $attemptId)
     {
         $user = $request->user();
-        
-        $attempt = ExamAttempt::with(['answers.question', 'session'])
+
+        $attempt = ExamAttempt::with(['answers.question', 'session.programAccess'])
             ->where('id', $attemptId)
             ->first();
 
-        if (!$attempt) {
+        if (! $attempt) {
             return $this->notFoundResponse('Exam attempt not found');
         }
 
@@ -456,14 +472,22 @@ class ExamController extends Controller
             return $this->unauthorizedResponse();
         }
 
+        $this->authorizeAttempt($user, $attempt);
+
         if ($attempt->submitted_at) {
             return $this->errorResponse('Exam already submitted', 400);
         }
 
         // Calculate Score
         $totalScore = 0;
-        
-        DB::transaction(function () use ($attempt, &$totalScore) {
+
+        DB::transaction(function () use ($attempt, $user, &$totalScore) {
+            $access = ProgramAccess::query()->lockForUpdate()->findOrFail($attempt->session->program_access_id);
+            $attempt = ExamAttempt::query()
+                ->with(['answers.question', 'session'])
+                ->lockForUpdate()
+                ->findOrFail($attempt->id);
+
             foreach ($attempt->answers as $ans) {
                 $question = $ans->question;
                 $isCorrect = false;
@@ -472,22 +496,22 @@ class ExamController extends Controller
                 // Simple scoring logic for MCQ
                 // Assuming answer_key and answer are comparable arrays/values
                 if ($question->type === 'mcq' || $question->type === 'single') {
-                     $correctAnswer = $question->answer_key;
-                     $userAnswer = $ans->answer;
-                     
-                     // Loose comparison for flexibility, or strict if standardized
-                     if ($correctAnswer == $userAnswer) {
-                         $isCorrect = true;
-                         $score = 1; // Default score
-                         // TODO: Implement weighted scoring based on question difficulty
-                     }
+                    $correctAnswer = $question->answer_key;
+                    $userAnswer = $ans->answer;
+
+                    // Loose comparison for flexibility, or strict if standardized
+                    if ($correctAnswer == $userAnswer) {
+                        $isCorrect = true;
+                        $score = 1; // Default score
+                        // TODO: Implement weighted scoring based on question difficulty
+                    }
                 }
-                
+
                 $ans->update([
                     'is_correct' => $isCorrect,
-                    'score' => $score
+                    'score' => $score,
                 ]);
-                
+
                 $totalScore += $score;
             }
 
@@ -495,13 +519,29 @@ class ExamController extends Controller
                 'submitted_at' => now(),
                 'score_total' => $totalScore,
             ]);
-            
+
             // Mark session as finished
             $attempt->session->update([
                 'status' => 'finished',
                 'end_at' => now(),
             ]);
+
+            $this->activities->handle(
+                $access,
+                'assessment',
+                'assessment_submitted',
+                "exam-attempt:{$attempt->id}",
+                $user,
+                ExamAttempt::class,
+                (string) $attempt->id,
+                [
+                    'package_id' => $attempt->session->package_id,
+                    'score' => $totalScore,
+                ],
+            );
         });
+
+        $attempt->refresh();
 
         return $this->successResponse([
             'score' => $totalScore,
@@ -525,7 +565,7 @@ class ExamController extends Controller
                 in: 'path',
                 required: true,
                 schema: new OA\Schema(type: 'integer')
-            )
+            ),
         ],
         responses: [
             new OA\Response(
@@ -542,24 +582,24 @@ class ExamController extends Controller
                                 new OA\Property(property: 'package_id', type: 'integer', example: 10),
                                 new OA\Property(property: 'package_name', type: 'string', example: 'Tryout SNBT 1'),
                                 new OA\Property(property: 'score_total', type: 'integer', example: 85),
-                                new OA\Property(property: 'submitted_at', type: 'string', format: 'date-time')
+                                new OA\Property(property: 'submitted_at', type: 'string', format: 'date-time'),
                             ],
                             type: 'object'
-                        )
+                        ),
                     ]
                 )
             ),
-            new OA\Response(response: 400, description: 'Exam not yet submitted')
+            new OA\Response(response: 400, description: 'Exam not yet submitted'),
         ]
     )]
     public function getResult(Request $request, $attemptId)
     {
         $user = $request->user();
-        $attempt = ExamAttempt::with(['session.package'])
+        $attempt = ExamAttempt::with(['session.package', 'session.programAccess'])
             ->where('id', $attemptId)
             ->first();
 
-        if (!$attempt) {
+        if (! $attempt) {
             return $this->notFoundResponse('Exam attempt not found');
         }
 
@@ -567,8 +607,10 @@ class ExamController extends Controller
             return $this->unauthorizedResponse();
         }
 
-        if (!$attempt->submitted_at) {
-             return $this->errorResponse('Exam not yet submitted', 400);
+        $this->authorizeAttempt($user, $attempt, true);
+
+        if (! $attempt->submitted_at) {
+            return $this->errorResponse('Exam not yet submitted', 400);
         }
 
         return $this->successResponse([
@@ -585,7 +627,7 @@ class ExamController extends Controller
     {
         $package = $attempt->session->package;
         $sections = $package->sections;
-        
+
         $generatedAnswers = collect([]);
 
         DB::transaction(function () use ($sections, $attempt, &$generatedAnswers) {
@@ -611,5 +653,15 @@ class ExamController extends Controller
         });
 
         return $generatedAnswers;
+    }
+
+    private function authorizeAttempt(User $user, ExamAttempt $attempt, bool $readOnly = false): void
+    {
+        $this->assessmentAccess->authorize(
+            $user,
+            $attempt->session->programAccess,
+            $attempt->session->package_id,
+            $readOnly,
+        );
     }
 }

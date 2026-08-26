@@ -1,175 +1,42 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useSalesStore } from '@/store/useSalesStore';
+import { useEffect, useMemo, useState } from 'react';
+import { Search } from 'lucide-react';
 import ProgramCard from '@/components/programs/ProgramCard';
 import { ProgramCardSkeleton } from '@/components/programs/ProgramCardSkeleton';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { GlassCard } from '@/components/ui/glass-card';
-import { AnimatedButton } from '@/components/ui/animated-button';
-import { ViewToggle, ViewMode } from '@/components/ui/view-toggle';
 import { PaginationControls } from '@/components/ui/pagination-controls';
-import {
-  getProgramLevelLabel,
-  getProgramTypeCode,
-  getProgramTypeLabel,
-} from '@/lib/program-labels';
+import { ViewToggle, type ViewMode } from '@/components/ui/view-toggle';
+import { useSalesStore } from '@/store/useSalesStore';
 
 export default function ProgramsPage() {
-  const { programs, fetchPrograms, isLoading } = useSalesStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const { programs, fetchPrograms, isLoading, error } = useSalesStore();
+  const [search, setSearch] = useState('');
+  const [tag, setTag] = useState<string | null>(null);
+  const [view, setView] = useState<ViewMode>('grid');
   const [page, setPage] = useState(1);
   const perPage = 8;
-  const fetchedRef = useRef(false);
 
-  useEffect(() => {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-    console.log('[ProgramsPage] Fetching programs...');
-    fetchPrograms({ active: true });
-  }, []);  // Empty deps - run only once
+  useEffect(() => { void fetchPrograms(); }, [fetchPrograms]);
+  const tags = useMemo(() => Array.from(new Map(programs.flatMap((program) => program.tags ?? []).map((item) => [item.code, item])).values()), [programs]);
+  const normalized = search.trim().toLocaleLowerCase('id-ID');
+  const filtered = programs.filter((program) => (!normalized || [program.name, program.short_description ?? '', ...(program.tags?.map((item) => item.name) ?? [])].some((value) => value.toLocaleLowerCase('id-ID').includes(normalized))) && (!tag || program.tags?.some((item) => item.code === tag)));
+  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
 
-  const typeOptions = useMemo(() => {
-    const options = new Map<string, string>();
-
-    programs.forEach((program) => {
-      const code = getProgramTypeCode(program);
-
-      if (code && !options.has(code)) {
-        options.set(code, getProgramTypeLabel(program));
-      }
-    });
-
-    return Array.from(options, ([code, label]) => ({ code, label }));
-  }, [programs]);
-
-  const normalizedSearch = searchQuery.trim().toLocaleLowerCase('id-ID');
-  const filteredPrograms = programs.filter((program) => {
-    const matchesSearch = !normalizedSearch || [
-      program.name,
-      getProgramLevelLabel(program),
-      getProgramTypeLabel(program),
-    ].some((value) => value.toLocaleLowerCase('id-ID').includes(normalizedSearch));
-    const matchesType = selectedType
-      ? getProgramTypeCode(program) === selectedType
-      : true;
-    return matchesSearch && matchesType;
-  });
-
-  useEffect(() => {
-    setPage(1);
-  }, [searchQuery, selectedType]);
-
-  const paginatedPrograms = filteredPrograms.slice((page - 1) * perPage, page * perPage);
+  useEffect(() => setPage(1), [search, tag]);
 
   return (
-    <div className="container py-8 md:py-12 mx-auto">
-      <div className="flex flex-col gap-6 mb-12">
-        <div className="text-center max-w-2xl mx-auto space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">
-             Jelajahi Program Belajar
-          </h1>
-          <p className="text-muted-foreground text-lg">
-            Temukan kelas yang sesuai dengan minat dan kebutuhan karirmu.
-          </p>
-        </div>
-
-        {/* Search and Filter */}
-        <GlassCard className="flex flex-col md:flex-row gap-4 items-center justify-between p-4 max-w-4xl mx-auto w-full sticky top-20 z-10">
-           <div className="relative w-full md:max-w-md">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-             <Input 
-               placeholder="Cari program (contoh: React, UI/UX)..." 
-               className="pl-9 bg-white/5 border-white/10 focus:bg-white/10"
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-             />
-           </div>
-           
-           <div className="flex items-center justify-between md:justify-end gap-4 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 no-scrollbar">
-              <div className="flex items-center gap-2 shrink-0">
-                <AnimatedButton 
-                  variant={selectedType === null ? "default" : "glass"} 
-                  size="sm"
-                  onClick={() => setSelectedType(null)}
-                  className="rounded-full"
-                >
-                  Semua
-                </AnimatedButton>
-                {typeOptions.map(({ code, label }) => (
-                  <AnimatedButton
-                    key={code}
-                    variant={selectedType === code ? "default" : "glass"}
-                    size="sm"
-                    onClick={() => setSelectedType(code)}
-                    className="rounded-full"
-                  >
-                    {label}
-                  </AnimatedButton>
-                ))}
-              </div>
-              
-           </div>
-        </GlassCard>
-      </div>
-      <div className="flex justify-end mb-4">
-        <ViewToggle view={viewMode} onViewChange={setViewMode} className="shrink-0" />
-      </div>
-
-      {isLoading && programs.length === 0 ? (
-        <div className={viewMode === 'grid' 
-          ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" 
-          : "flex flex-col gap-4"
-        }>
-           {[1,2,3,4,5,6,7,8].map((n) => (
-             <ProgramCardSkeleton key={n} />
-           ))}
-        </div>
-      ) : (
-        <div className={viewMode === 'grid' 
-          ? "grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 min-h-[400px]" 
-          : "flex flex-col gap-4 min-h-[400px]"
-        }>
-          {filteredPrograms.length > 0 ? (
-            paginatedPrograms.map((program, index) => (
-              <ProgramCard key={program.id} program={program} index={index} layout={viewMode} />
-            ))
-          ) : (
-            <div className="col-span-full flex flex-col items-center justify-center text-center py-20 bg-muted/20 rounded-2xl border border-dashed w-full">
-              <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mb-4">
-                 <Search className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">Tidak ditemukan program</h3>
-              <p className="text-muted-foreground max-w-sm">
-                Coba gunakan kata kunci lain atau ubah filter pencarian.
-              </p>
-              <AnimatedButton 
-                variant="link" 
-                onClick={() => { setSearchQuery(''); setSelectedType(null); }}
-                className="mt-2 text-primary"
-              >
-                Reset Filter
-              </AnimatedButton>
-            </div>
-          )}
-        </div>
-      )}
-      {filteredPrograms.length > perPage && (
-        <div className="mt-12">
-          <PaginationControls
-            currentPage={page}
-            lastPage={Math.ceil(filteredPrograms.length / perPage) || 1}
-            total={filteredPrograms.length}
-            from={filteredPrograms.length > 0 ? (page - 1) * perPage + 1 : 0}
-            to={filteredPrograms.length > 0 ? Math.min(page * perPage, filteredPrograms.length) : 0}
-            onPageChange={setPage}
-            itemLabel="program"
-          />
-        </div>
-      )}
-    </div>
+    <main className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <header className="mx-auto max-w-3xl text-center"><p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Program catalog</p><h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Temukan Program yang tepat</h1><p className="mt-4 text-zinc-500">Pilih Program modular berdasarkan fokus belajar Anda. Akses yang diperoleh akan tampil otomatis di Workspace.</p></header>
+      <section className="sticky top-20 z-20 mx-auto my-8 grid max-w-5xl gap-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950 lg:grid-cols-[1fr_auto] lg:items-center">
+        <div className="relative"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama Program atau tag" className="min-h-11 pl-9" /></div>
+        <div className="flex gap-2 overflow-x-auto pb-1"><Button size="sm" className="min-h-11 shrink-0" variant={tag === null ? 'default' : 'outline'} onClick={() => setTag(null)}>Semua</Button>{tags.map((item) => <Button key={item.code} size="sm" className="min-h-11 shrink-0" variant={tag === item.code ? 'default' : 'outline'} onClick={() => setTag(item.code)}>{item.name}</Button>)}</div>
+      </section>
+      <div className="mb-5 flex items-center justify-between"><p className="text-sm text-zinc-500">{filtered.length} Program tersedia</p><ViewToggle view={view} onViewChange={setView} /></div>
+      {error && <div role="alert" className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+      {isLoading && programs.length === 0 ? <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{[1, 2, 3, 4].map((item) => <ProgramCardSkeleton key={item} />)}</div> : paginated.length ? <div className={view === 'grid' ? 'grid gap-5 sm:grid-cols-2 lg:grid-cols-4' : 'grid gap-4'}>{paginated.map((program, index) => <ProgramCard key={program.id} program={program} index={index} layout={view} />)}</div> : <div className="grid min-h-72 place-items-center rounded-2xl border border-dashed text-center"><div><Search className="mx-auto mb-3 size-8 text-zinc-400" /><h2 className="font-semibold">Program tidak ditemukan</h2><p className="mt-1 text-sm text-zinc-500">Ubah kata kunci atau filter tag.</p></div></div>}
+      {filtered.length > perPage && <div className="mt-8"><PaginationControls currentPage={page} lastPage={Math.ceil(filtered.length / perPage)} total={filtered.length} from={(page - 1) * perPage + 1} to={Math.min(page * perPage, filtered.length)} onPageChange={setPage} itemLabel="program" isLoading={isLoading} /></div>}
+    </main>
   );
 }

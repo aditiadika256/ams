@@ -10,12 +10,12 @@ class OrderStoreRequest extends BaseFormRequest
     {
         return [
             'programs' => ['required', 'array', 'min:1'],
-            'programs.*.id' => ['required', 'integer', 'exists:programs,id'],
-            'programs.*.quantity' => ['sometimes', 'integer', 'min:1'],
+            'programs.*.id' => ['required', 'integer', 'distinct', 'exists:programs,id'],
+            'programs.*.batch_id' => ['nullable', 'integer', 'exists:program_batches,id'],
+            'programs.*.quantity' => ['sometimes', 'integer', 'min:1', 'max:1'],
             'payment_provider' => ['sometimes', 'string', 'max:50'],
-            'payment_reference' => ['sometimes', 'string', 'max:100'],
+            'payment_reference' => ['prohibited'],
             'meta' => ['sometimes', 'array'],
         ];
     }
 }
-

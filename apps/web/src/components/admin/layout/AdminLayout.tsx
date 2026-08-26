@@ -14,8 +14,7 @@ import FinanceView from '../views/finance/view';
 import CMSPostsView from '../views/CMSPosts/view';
 import MentorsView from '../views/Mentors/view';
 import ProgramsView from '../views/Programs/view';
-import ProgramLevelsView from '../views/ProgramLevels/view';
-import ProgramTypesView from '../views/ProgramTypes/view';
+import TagsView from '../views/Tags/view';
 import CurriculumBuilderView from '../views/CurriculumBuilder/view';
 import RolesPermissionsView from '../views/RolesPermissions/view';
 import MenuManagementView from '../views/MenuManagement/view';
@@ -28,8 +27,7 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'cms-posts': CMSPostsView,
   'mentors': MentorsView,
   'programs': ProgramsView,
-  'program-levels': ProgramLevelsView,
-  'program-types': ProgramTypesView,
+  'tags': TagsView,
   'curriculum-builder': CurriculumBuilderView,
   'menus': MenuManagementView,
   'colorpalette': ColorPaletteView,// With hyphen
@@ -45,9 +43,8 @@ const ViewPermissions: Record<string, string[]> = {
   'finance': ['view_finance_analytics'],
   'cms-posts': ['manage_global_settings'],
   'mentors': ['manage_students', 'view_dashboard_learning'],
-  'programs': ['manage_learning_content', 'view_dashboard_learning'],
-  'program-levels': ['manage_program_masters'],
-  'program-types': ['manage_program_masters'],
+  'programs': ['program.view', 'program.create', 'program.update'],
+  'tags': ['program-tag.manage'],
   'curriculum-builder': ['manage_learning_content'],
   'menus': ['manage_menus'],
   'colorpalette': ['manage_global_settings'],

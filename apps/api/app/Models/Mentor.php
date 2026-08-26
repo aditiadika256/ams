@@ -35,4 +35,9 @@ class Mentor extends Model
     {
         return $this->hasMany(MentorSchedule::class);
     }
+
+    public function sessionAssignments(): HasMany
+    {
+        return $this->hasMany(SessionMentorAssignment::class);
+    }
 }

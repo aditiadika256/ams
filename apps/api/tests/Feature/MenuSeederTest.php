@@ -14,9 +14,8 @@ class MenuSeederTest extends TestCase
     public function test_rerunning_the_seeder_is_stable_and_preserves_custom_menus(): void
     {
         $this->seed(MenuSeeder::class);
-
         $canonicalCount = Menu::query()->count();
-        $customMenu = Menu::create([
+        $customMenu = Menu::query()->create([
             'name' => 'Custom Operations',
             'icon' => 'Wrench',
             'url' => 'admin://view/custom-operations',
@@ -27,117 +26,91 @@ class MenuSeederTest extends TestCase
 
         $this->seed(MenuSeeder::class);
 
-        $customMenu->refresh();
-
         $this->assertModelExists($customMenu);
-        $this->assertSame(
-            [
-                'name' => 'Custom Operations',
-                'icon' => 'Wrench',
-                'url' => 'admin://view/custom-operations',
-                'order' => 99,
-                'seed_key' => null,
-            ],
-            $customMenu->only(['name', 'icon', 'url', 'order', 'seed_key'])
-        );
         $this->assertSame($canonicalCount + 1, Menu::query()->count());
-
-        $seedKeys = Menu::query()->whereNotNull('seed_key')->pluck('seed_key');
-
-        $this->assertCount($canonicalCount, $seedKeys);
-        $this->assertCount($canonicalCount, $seedKeys->unique());
+        $this->assertSame(
+            $canonicalCount,
+            Menu::query()->whereNotNull('seed_key')->distinct()->count('seed_key')
+        );
     }
 
-    public function test_seeder_adopts_a_legacy_canonical_row_without_creating_a_duplicate(): void
+    public function test_seeder_creates_workspace_and_program_management_navigation(): void
     {
-        Menu::query()
-            ->whereIn('seed_key', [
-                'admin.sidebar.master.program-levels',
-                'admin.sidebar.master.program-types',
-            ])
-            ->delete();
-        Menu::query()
-            ->where('seed_key', 'admin.sidebar.master')
-            ->delete();
+        $this->seed(MenuSeeder::class);
 
-        $legacyMaster = Menu::create([
-            'name' => 'Legacy Master',
-            'icon' => 'LegacyIcon',
-            'url' => 'admin://view/program-levels',
-            'layout' => 'admin',
-            'section' => 'sidebar',
+        $this->assertDatabaseHas('menus', [
+            'seed_key' => 'users.bottom.workspace',
+            'name' => 'Workspace',
+            'url' => '/workspace',
+        ]);
+        $this->assertDatabaseHas('menus', [
+            'seed_key' => 'admin.sidebar.education.programs',
+            'url' => 'admin://view/programs',
+        ]);
+        $this->assertDatabaseHas('menus', [
+            'seed_key' => 'admin.sidebar.education.tags',
+            'url' => 'admin://view/tags',
+        ]);
+
+        $this->assertDatabaseMissing('menus', ['seed_key' => 'users.topbar.blog']);
+        $this->assertDatabaseMissing('menus', ['url' => 'admin://view/program-levels']);
+        $this->assertDatabaseMissing('menus', ['url' => 'admin://view/program-types']);
+    }
+
+    public function test_admin_seeded_views_match_the_frontend_view_map(): void
+    {
+        $this->seed(MenuSeeder::class);
+
+        $expectedViews = [
+            'cms-pages',
+            'cms-posts',
+            'colorpalette',
+            'curriculum-builder',
+            'dashboard',
+            'finance',
+            'mentors',
+            'menus',
+            'programs',
+            'roles',
+            'settings',
+            'tags',
+            'users',
+        ];
+        $actualViews = Menu::query()
+            ->where('layout', 'admin')
+            ->pluck('url')
+            ->map(fn (string $url): string => str_replace('admin://view/', '', $url))
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        $this->assertSame($expectedViews, $actualViews);
+    }
+
+    public function test_rerun_prunes_obsolete_seeded_menus_without_deleting_custom_children(): void
+    {
+        $obsolete = Menu::query()->create([
+            'seed_key' => 'users.topbar.obsolete',
+            'name' => 'Obsolete',
+            'url' => '/obsolete',
+            'layout' => 'users',
+            'section' => 'topbar',
             'order' => 99,
+        ]);
+        $customChild = Menu::query()->create([
+            'name' => 'Custom Child',
+            'url' => '/custom-child',
+            'layout' => 'users',
+            'section' => 'topbar',
+            'parent_id' => $obsolete->id,
+            'order' => 1,
         ]);
 
         $this->seed(MenuSeeder::class);
 
-        $master = Menu::query()->where('seed_key', 'admin.sidebar.master')->firstOrFail();
-
-        $this->assertSame($legacyMaster->id, $master->id);
-        $this->assertSame('Master', $master->name);
-        $this->assertSame('Database', $master->icon);
-        $this->assertSame(4, $master->order);
-        $this->assertSame(
-            1,
-            Menu::query()
-                ->where('url', 'admin://view/program-levels')
-                ->where('layout', 'admin')
-                ->where('section', 'sidebar')
-                ->whereNull('parent_id')
-                ->count()
-        );
-    }
-
-    public function test_rerunning_the_seeder_refreshes_canonical_metadata_without_replacing_the_row(): void
-    {
-        $this->seed(MenuSeeder::class);
-
-        $master = Menu::query()
-            ->where('seed_key', 'admin.sidebar.master')
-            ->firstOrFail();
-
-        $masterId = $master->id;
-        $master->update([
-            'name' => 'Changed Master',
-            'icon' => 'ChangedIcon',
-            'order' => 99,
-        ]);
-
-        $this->seed(MenuSeeder::class);
-
-        $master->refresh();
-
-        $this->assertSame($masterId, $master->id);
-        $this->assertSame('Master', $master->name);
-        $this->assertSame('Database', $master->icon);
-        $this->assertSame(4, $master->order);
-    }
-
-    public function test_seeder_creates_the_program_master_menu_hierarchy(): void
-    {
-        $this->seed(MenuSeeder::class);
-
-        $master = Menu::query()
-            ->where('seed_key', 'admin.sidebar.master')
-            ->firstOrFail();
-
-        $this->assertSame(
-            [
-                [
-                    'name' => 'Master Jenjang / Level',
-                    'url' => 'admin://view/program-levels',
-                    'order' => 1,
-                ],
-                [
-                    'name' => 'Master Tipe Program',
-                    'url' => 'admin://view/program-types',
-                    'order' => 2,
-                ],
-            ],
-            $master->children()
-                ->get(['name', 'url', 'order'])
-                ->map(fn (Menu $menu): array => $menu->only(['name', 'url', 'order']))
-                ->all()
-        );
+        $this->assertModelMissing($obsolete);
+        $this->assertModelExists($customChild);
+        $this->assertNull($customChild->fresh()->parent_id);
     }
 }

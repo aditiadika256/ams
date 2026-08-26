@@ -22,6 +22,7 @@
         "laravel/sail": "^1.26",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.1",
+        "pestphp/pest": "^3.8",
         "phpunit/phpunit": "^11.0.1"
     },
     "autoload": {
@@ -37,6 +38,7 @@
         }
     },
     "scripts": {
+        "test": "APP_ENV=testing APP_KEY=base64:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY= DB_CONNECTION=sqlite DB_DATABASE=:memory: CACHE_STORE=array SESSION_DRIVER=array QUEUE_CONNECTION=sync VIEW_COMPILED_PATH=/tmp php vendor/bin/pest --compact",
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

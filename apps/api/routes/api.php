@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,15 +18,8 @@ Route::prefix('v1')->group(function () {
     Route::get('auth/google/callback', [\App\Domain\Auth\AuthController::class, 'googleCallback']);
 
     // Programs
-    Route::get('program-lookups', [\App\Domain\Sales\ProgramLookupController::class, 'index']);
     Route::get('programs', [\App\Domain\Sales\ProgramController::class, 'index']);
     Route::get('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'show']);
-    Route::post('programs', [\App\Domain\Sales\ProgramController::class, 'store'])
-        ->middleware(['auth:sanctum', 'permission:manage_programs']);
-    Route::put('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'update'])
-        ->middleware(['auth:sanctum', 'permission:manage_programs']);
-    Route::delete('programs/{program}', [\App\Domain\Sales\ProgramController::class, 'destroy'])
-        ->middleware(['auth:sanctum', 'permission:manage_programs']);
 
     // Orders
     Route::get('orders', [\App\Domain\Sales\OrderController::class, 'index'])->middleware('auth:sanctum');
@@ -37,6 +29,28 @@ Route::prefix('v1')->group(function () {
     // Payments
     Route::post('payments/webhook', [\App\Domain\Sales\PaymentWebhookController::class, 'handle']);
 
+    // Access acquisition
+    Route::prefix('access')->middleware('auth:sanctum')->group(function () {
+        Route::post('free-enrollments', [\App\Domain\Access\FreeEnrollmentController::class, 'store']);
+        Route::post('redeem-voucher', [\App\Domain\Access\CodeRedemptionController::class, 'voucher']);
+        Route::post('redeem-enrollment-code', [\App\Domain\Access\CodeRedemptionController::class, 'enrollment']);
+    });
+
+    Route::prefix('workspace')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [\App\Domain\Workspace\WorkspaceController::class, 'index']);
+        Route::get('accesses/{programAccess}', [\App\Domain\Workspace\WorkspaceController::class, 'show']);
+        Route::post('accesses/{programAccess}/archive', [\App\Domain\Workspace\WorkspaceController::class, 'archive']);
+        Route::post('accesses/{programAccess}/restore', [\App\Domain\Workspace\WorkspaceController::class, 'restore']);
+        Route::get('accesses/{programAccess}/curriculum', \App\Domain\Workspace\WorkspaceCurriculumController::class);
+        Route::post('accesses/{programAccess}/lessons/{lesson}/complete', [\App\Domain\Workspace\WorkspaceActivityController::class, 'completeLesson']);
+        Route::post('accesses/{programAccess}/sessions/{session}/mentor-reservations', [\App\Domain\Workspace\WorkspaceMentorReservationController::class, 'store']);
+        Route::get('session-updates', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'index']);
+        Route::post('session-updates/{sessionUpdate}/acknowledge', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'acknowledge']);
+    });
+
+    Route::get('mentor/sessions/{session}/participants', \App\Domain\Learning\MentorSessionParticipantController::class)
+        ->middleware('auth:sanctum');
+
     // CBT
     Route::get('exams/packages', [\App\Domain\CBT\ExamController::class, 'index'])->middleware('auth:sanctum');
     Route::get('exams/packages/{id}', [\App\Domain\CBT\ExamController::class, 'show'])->middleware('auth:sanctum');
@@ -45,7 +59,7 @@ Route::prefix('v1')->group(function () {
     Route::post('exams/{attempt}/answers', [\App\Domain\CBT\ExamController::class, 'saveAnswer'])->middleware('auth:sanctum');
     Route::post('exams/{attempt}/submit', [\App\Domain\CBT\ExamController::class, 'submit'])->middleware('auth:sanctum');
     Route::get('exams/{attempt}/result', [\App\Domain\CBT\ExamController::class, 'getResult'])->middleware('auth:sanctum');
-    
+
     // Proctoring
     Route::post('exams/{attempt}/log', [\App\Domain\CBT\ProctorController::class, 'logEvent'])->middleware('auth:sanctum');
     Route::post('exams/{attempt}/heartbeat', [\App\Domain\CBT\ProctorController::class, 'heartbeat'])->middleware('auth:sanctum');
@@ -66,27 +80,54 @@ Route::prefix('v1')->group(function () {
 
     // Admin
     Route::prefix('admin')->middleware(['auth:sanctum'])->group(function () {
+        Route::get('mentor-options', [\App\Domain\Admin\SessionMentorAssignmentController::class, 'options']);
+        Route::post('program-accesses/grant', [\App\Domain\Admin\ProgramAccessController::class, 'grant']);
+        Route::post('program-accesses/{programAccess}/activate', [\App\Domain\Admin\ProgramAccessController::class, 'activate']);
+        Route::post('program-accesses/{programAccess}/suspend', [\App\Domain\Admin\ProgramAccessController::class, 'suspend']);
+        Route::post('program-accesses/{programAccess}/restore', [\App\Domain\Admin\ProgramAccessController::class, 'restore']);
+        Route::post('program-accesses/{programAccess}/revoke', [\App\Domain\Admin\ProgramAccessController::class, 'revoke']);
+        Route::post('program-accesses/{programAccess}/extend', [\App\Domain\Admin\ProgramAccessController::class, 'extend']);
+        Route::apiResource('tags', \App\Domain\Admin\TagController::class);
+        Route::get('component-definitions', [\App\Domain\Admin\ComponentDefinitionController::class, 'index']);
+        Route::put('programs/{program}/tags', [\App\Domain\Admin\ProgramTagController::class, 'update']);
+        Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
+        Route::put('programs/{program}/relations', [\App\Domain\Admin\ProgramRelationController::class, 'update']);
+        Route::scopeBindings()->group(function () {
+            Route::get('programs/{program}/batches', [\App\Domain\Admin\ProgramBatchController::class, 'index']);
+            Route::post('programs/{program}/batches', [\App\Domain\Admin\ProgramBatchController::class, 'store']);
+            Route::get('programs/{program}/batches/{batch}', [\App\Domain\Admin\ProgramBatchController::class, 'show']);
+            Route::put('programs/{program}/batches/{batch}', [\App\Domain\Admin\ProgramBatchController::class, 'update']);
+            Route::delete('programs/{program}/batches/{batch}', [\App\Domain\Admin\ProgramBatchController::class, 'destroy']);
+            Route::post('programs/{program}/batches/{batch}/transition', [\App\Domain\Admin\ProgramBatchController::class, 'transition']);
+
+            Route::get('programs/{program}/batches/{batch}/sessions', [\App\Domain\Admin\ProgramSessionController::class, 'index']);
+            Route::post('programs/{program}/batches/{batch}/sessions', [\App\Domain\Admin\ProgramSessionController::class, 'store']);
+            Route::get('programs/{program}/batches/{batch}/sessions/{session}', [\App\Domain\Admin\ProgramSessionController::class, 'show']);
+            Route::put('programs/{program}/batches/{batch}/sessions/{session}', [\App\Domain\Admin\ProgramSessionController::class, 'update']);
+            Route::delete('programs/{program}/batches/{batch}/sessions/{session}', [\App\Domain\Admin\ProgramSessionController::class, 'destroy']);
+            Route::post('programs/{program}/batches/{batch}/sessions/{session}/transition', [\App\Domain\Admin\ProgramSessionController::class, 'transition']);
+
+            Route::post('programs/{program}/batches/{batch}/sessions/{session}/mentor-assignments', [\App\Domain\Admin\SessionMentorAssignmentController::class, 'store']);
+            Route::delete('programs/{program}/batches/{batch}/sessions/{session}/mentor-assignments/{mentorAssignment}', [\App\Domain\Admin\SessionMentorAssignmentController::class, 'destroy']);
+        });
+        Route::post('programs/{program}/publish', [\App\Domain\Admin\ProgramController::class, 'publish']);
+        Route::post('programs/{program}/unpublish', [\App\Domain\Admin\ProgramController::class, 'unpublish']);
+        Route::post('programs/{program}/archive', [\App\Domain\Admin\ProgramController::class, 'archive']);
+        Route::post('programs/{program}/restore', [\App\Domain\Admin\ProgramController::class, 'restore']);
+        Route::post('programs/{program}/clone', [\App\Domain\Admin\ProgramController::class, 'clone']);
+        Route::apiResource('programs', \App\Domain\Admin\ProgramController::class);
+
         // Users & Roles
         Route::get('branches', [\App\Domain\Admin\UserController::class, 'branches']);
         Route::apiResource('users', \App\Domain\Admin\UserController::class)->middleware('permission:manage_users_global|manage_users_branch');
         Route::apiResource('roles', \App\Domain\Admin\RoleController::class)->middleware('permission:manage_roles');
         Route::get('permissions', [\App\Domain\Admin\RoleController::class, 'permissions'])->middleware('permission:view_permissions');
-        
+
         // Dashboard
         Route::get('dashboard/stats', [\App\Domain\Admin\DashboardController::class, 'stats'])->middleware('permission:view_dashboard_admin|view_dashboard_finance|view_dashboard_learning');
 
         // Menu Management
         Route::apiResource('menus', \App\Domain\Admin\MenuController::class)->middleware('permission:manage_menus');
-
-        // Program Master Management
-        Route::apiResource(
-            'master/program-levels',
-            \App\Domain\Admin\ProgramLevelController::class
-        )->middleware('permission:manage_program_masters');
-        Route::apiResource(
-            'master/program-types',
-            \App\Domain\Admin\ProgramTypeController::class
-        )->middleware('permission:manage_program_masters');
 
         // Color Palette Management
         Route::prefix('theme')->middleware('permission:manage_global_settings')->group(function () {
@@ -109,7 +150,7 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('mentors', \App\Domain\Learning\MentorController::class)
             ->only(['store', 'update', 'destroy'])
             ->middleware('permission:manage_learning_content');
-        
+
         // Schedules
         Route::get('schedules', [\App\Domain\Learning\ScheduleController::class, 'studentSchedules']);
         Route::get('mentors/{mentor}/schedules', [\App\Domain\Learning\ScheduleController::class, 'index']);
@@ -119,7 +160,7 @@ Route::prefix('v1')->group(function () {
 
         // Curriculum
         Route::get('programs/{program}/curriculum', [\App\Domain\Learning\CurriculumController::class, 'index']);
-        
+
         // Modules
         Route::post('programs/{program}/modules', [\App\Domain\Learning\CurriculumController::class, 'storeModule'])->middleware('permission:manage_learning_content');
         Route::put('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'updateModule'])->middleware('permission:manage_learning_content');
@@ -135,7 +176,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('finance')->middleware(['auth:sanctum', 'permission:view_dashboard_finance|view_finance_reports|view_finance_analytics'])->group(function () {
         Route::apiResource('transactions', \App\Domain\Finance\TransactionController::class);
         Route::get('transactions/stats/summary', [\App\Domain\Finance\TransactionController::class, 'stats']);
-        
+
         Route::apiResource('invoices', \App\Domain\Finance\InvoiceController::class);
 
         // Reports

@@ -243,12 +243,12 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                        <BookOpen className="h-6 w-6 text-primary" />
                     </div>
                     <div>
-                      <p className="font-bold text-lg group-hover:text-primary transition-colors">{item.program?.name || 'Program Name'}</p>
-                      <p className="text-muted-foreground">Qty: {item.quantity}</p>
+                      <p className="font-bold text-lg group-hover:text-primary transition-colors">{item.program_name}</p>
+                      <p className="text-muted-foreground">{item.batch_name ? `${item.batch_name} · ` : ''}Qty: {item.quantity}</p>
                     </div>
                   </div>
                   <p className="font-bold text-lg">
-                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
+                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(item.unit_price))}
                   </p>
                 </div>
               ))}
@@ -258,7 +258,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Total Pembayaran</span>
                 <span className="font-bold text-2xl text-primary">
-                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(currentOrder.total)}
+                  {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(currentOrder.total))}
                 </span>
               </div>
             </div>

@@ -2,10 +2,12 @@
 
 namespace App\Domain\Sales;
 
+use App\Actions\Access\ConfirmPaidOrder;
+use App\Exceptions\PaymentSignatureException;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Access\PaymentWebhookRequest;
 use App\Models\Order;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use OpenApi\Attributes as OA;
 
@@ -34,50 +36,32 @@ class PaymentWebhookController extends Controller
             new OA\Response(response: 400, description: 'Invalid signature or order not found'),
         ]
     )]
-    public function handle(Request $request): JsonResponse
+    public function handle(PaymentWebhookRequest $request, ConfirmPaidOrder $action): JsonResponse
     {
-        // Log the incoming request for debugging
-        Log::info('Payment Webhook Received', $request->all());
-
-        $payload = $request->all();
-
-        // NOTE: In a real implementation (e.g., Midtrans), you must verify the signature key here.
-        // $signatureKey = $payload['signature_key'];
-        // $mySignature = hash('sha512', $payload['order_id'] . $payload['status_code'] . $payload['gross_amount'] . config('services.midtrans.server_key'));
-        // if ($signatureKey !== $mySignature) {
-        //     return response()->json(['message' => 'Invalid signature'], 400);
-        // }
-
-        // Strategy: We try to find the order by payment_reference
-        // Assuming payment_reference matches 'order_id' from the payload.
-        $paymentReference = $payload['order_id'] ?? null;
-        $transactionStatus = $payload['transaction_status'] ?? null;
-
-        if (!$paymentReference || !$transactionStatus) {
-            return response()->json(['message' => 'Invalid payload'], 400);
+        if (! $request->hasValidSignature()) {
+            throw new PaymentSignatureException;
         }
 
-        $order = Order::where('payment_reference', $paymentReference)->first();
+        $payload = $request->validated();
+        Log::info('Payment webhook received.', [
+            'order_id' => $payload['order_id'],
+            'status_code' => $payload['status_code'],
+            'transaction_status' => $payload['transaction_status'],
+            'fraud_status' => $payload['fraud_status'] ?? null,
+        ]);
+        $order = Order::query()->where('payment_reference', $payload['order_id'])->firstOrFail();
+        $isPaid = $payload['transaction_status'] === 'settlement'
+            || ($payload['transaction_status'] === 'capture'
+                && ($payload['fraud_status'] ?? 'accept') === 'accept');
 
-        if (!$order) {
-            return response()->json(['message' => 'Order not found'], 404);
+        if ($isPaid) {
+            $action->handle($order, (string) $payload['gross_amount']);
+        } elseif (in_array($payload['transaction_status'], ['deny', 'expire', 'cancel'], true)) {
+            $action->mark($order, 'failed');
+        } else {
+            $action->mark($order, 'pending');
         }
 
-        switch ($transactionStatus) {
-            case 'capture':
-            case 'settlement':
-                $order->update(['status' => 'paid']);
-                break;
-            case 'deny':
-            case 'expire':
-            case 'cancel':
-                $order->update(['status' => 'failed']);
-                break;
-            case 'pending':
-                $order->update(['status' => 'pending']);
-                break;
-        }
-
-        return response()->json(['message' => 'Notification processed']);
+        return $this->successResponse(null, 'Notification processed');
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
 abstract class BaseFormRequest extends FormRequest
@@ -46,7 +46,6 @@ abstract class BaseFormRequest extends FormRequest
     /**
      * Handle a failed validation attempt.
      *
-     * @param  \Illuminate\Contracts\Validation\Validator  $validator
      * @return void
      *
      * @throws \Illuminate\Http\Exceptions\HttpResponseException
@@ -57,6 +56,7 @@ abstract class BaseFormRequest extends FormRequest
             response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
+                'code' => 'VALIDATION_FAILED',
                 'errors' => $validator->errors(),
             ], 422)
         );
@@ -70,4 +70,3 @@ abstract class BaseFormRequest extends FormRequest
         // Override in child classes if needed
     }
 }
-

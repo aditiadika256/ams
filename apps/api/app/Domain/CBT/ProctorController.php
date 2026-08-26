@@ -5,6 +5,7 @@ namespace App\Domain\CBT;
 use App\Http\Controllers\Controller;
 use App\Models\ExamAttempt;
 use App\Models\ProctorEvent;
+use App\Support\Access\AssessmentAccessAuthorizer;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
 
@@ -14,6 +15,8 @@ use OpenApi\Attributes as OA;
 )]
 class ProctorController extends Controller
 {
+    public function __construct(private readonly AssessmentAccessAuthorizer $assessmentAccess) {}
+
     #[OA\Post(
         path: '/api/v1/exams/{attempt}/log',
         summary: 'Log a proctoring event',
@@ -26,30 +29,36 @@ class ProctorController extends Controller
                 required: ['type'],
                 properties: [
                     new OA\Property(property: 'type', type: 'string', example: 'focus_lost'),
-                    new OA\Property(property: 'meta', type: 'object', example: ['reason' => 'User switched tab'])
+                    new OA\Property(property: 'meta', type: 'object', example: ['reason' => 'User switched tab']),
                 ]
             )
         ),
         responses: [
             new OA\Response(response: 200, description: 'Event logged'),
-            new OA\Response(response: 404, description: 'Attempt not found')
+            new OA\Response(response: 404, description: 'Attempt not found'),
         ]
     )]
     public function logEvent(Request $request, $attemptId)
     {
         $user = $request->user();
-        
-        $attempt = ExamAttempt::with('session')
+
+        $attempt = ExamAttempt::with('session.programAccess')
             ->where('id', $attemptId)
             ->first();
 
-        if (!$attempt) {
+        if (! $attempt) {
             return $this->notFoundResponse('Exam attempt not found');
         }
 
         if ($attempt->session->user_id !== $user->id) {
             return $this->unauthorizedResponse();
         }
+
+        $this->assessmentAccess->authorize(
+            $user,
+            $attempt->session->programAccess,
+            $attempt->session->package_id,
+        );
 
         if ($attempt->submitted_at) {
             return $this->errorResponse('Exam already submitted', 400);
@@ -72,24 +81,30 @@ class ProctorController extends Controller
         security: [['bearerAuth' => []]],
         responses: [
             new OA\Response(response: 200, description: 'Heartbeat received'),
-            new OA\Response(response: 404, description: 'Attempt not found')
+            new OA\Response(response: 404, description: 'Attempt not found'),
         ]
     )]
     public function heartbeat(Request $request, $attemptId)
     {
         $user = $request->user();
-        
-        $attempt = ExamAttempt::with('session')
+
+        $attempt = ExamAttempt::with('session.programAccess')
             ->where('id', $attemptId)
             ->first();
 
-        if (!$attempt) {
+        if (! $attempt) {
             return $this->notFoundResponse('Exam attempt not found');
         }
 
         if ($attempt->session->user_id !== $user->id) {
             return $this->unauthorizedResponse();
         }
+
+        $this->assessmentAccess->authorize(
+            $user,
+            $attempt->session->programAccess,
+            $attempt->session->package_id,
+        );
 
         if ($attempt->submitted_at) {
             return $this->errorResponse('Exam already submitted', 400);

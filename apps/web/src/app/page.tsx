@@ -28,7 +28,7 @@ export default function HomePage() {
     if (!fetchedRef.current) {
       console.log('[HomePage] Fetching programs...');
       fetchedRef.current = true;
-      fetchPrograms({ active: true });
+      fetchPrograms();
     }
   }, []);  // Empty deps - run only once
 

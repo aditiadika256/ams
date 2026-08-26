@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Database\Seeders\RolesSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,7 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         // Seed roles and demo superadmin
         $this->call(RolesSeeder::class);
-        $this->call(ProgramMasterSeeder::class);
+        $this->call(ComponentDefinitionSeeder::class);
         $this->call(ProgramSeeder::class);
         $this->call(CbtSeeder::class);
         $this->call(ColorPaletteSeeder::class);
@@ -30,5 +29,7 @@ class DatabaseSeeder extends Seeder
                 'password' => bcrypt('password'),
             ]
         );
+
+        $this->call(ProgramWorkspaceSeeder::class);
     }
 }

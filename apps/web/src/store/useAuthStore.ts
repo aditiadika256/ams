@@ -236,7 +236,7 @@ export const useAuthStore = create<AuthState>()(
                 getErrorMessage(logoutError, 'Sesi lokal telah ditutup, tetapi server tidak merespons.')
               );
             } else {
-              alertActions.success('Logout berhasil', 'Sesi Anda telah berakhir dengan aman.');
+              alertActions.success('Logout berhasil', 'Anda telah berhasil keluar.');
             }
           }
         }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Menu, Bell, Search, User, LogOut, Settings, UserCircle, LayoutDashboard } from 'lucide-react';
+import { PanelLeftOpen, Bell, Search, User, LogOut, Settings, UserCircle, LayoutDashboard } from 'lucide-react';
 import { useAdminStore } from '@/store/useAdminStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Button } from '@/components/ui/button';
@@ -42,10 +42,17 @@ export function AdminHeader() {
   return (
     <header className="sticky top-0 z-30 flex flex-col w-full glass border-b border-white/10 shadow-sm">
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 h-16">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={toggleSidebar}>
-            <Menu className="h-5 w-5" />
+      <div className="flex h-16 items-center justify-between px-3 sm:px-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="size-11 rounded-xl border-border/70 bg-background/80 shadow-sm md:hidden"
+            aria-label="Buka navigasi admin"
+            onClick={toggleSidebar}
+          >
+            <PanelLeftOpen className="size-5" />
           </Button>
 
           <div className="hidden md:flex relative w-96">
