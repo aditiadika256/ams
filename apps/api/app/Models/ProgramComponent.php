@@ -7,10 +7,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProgramComponent extends Model
 {
-    use HasFactory, UserStamps;
+    use HasFactory, SoftDeletes, UserStamps;
 
     protected $fillable = [
         'program_id', 'component_definition_id', 'is_enabled', 'label',
@@ -23,6 +25,7 @@ class ProgramComponent extends Model
         'is_enabled' => 'boolean',
         'sort_order' => 'integer',
         'configuration' => 'array',
+        'deleted_at' => 'datetime',
     ];
 
     public function program(): BelongsTo
@@ -32,7 +35,12 @@ class ProgramComponent extends Model
 
     public function definition(): BelongsTo
     {
-        return $this->belongsTo(ComponentDefinition::class, 'component_definition_id');
+        return $this->belongsTo(ComponentDefinition::class, 'component_definition_id')->withTrashed();
+    }
+
+    public function contents(): HasMany
+    {
+        return $this->hasMany(ProgramComponentContent::class);
     }
 
     public function scopeEnabled(Builder $query): Builder

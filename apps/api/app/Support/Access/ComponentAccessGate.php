@@ -6,6 +6,7 @@ use App\Enums\AccessStatus;
 use App\Models\ProgramAccess;
 use App\Models\ProgramComponent;
 use App\Models\User;
+use Illuminate\Support\Collection;
 
 class ComponentAccessGate
 {
@@ -28,12 +29,37 @@ class ComponentAccessGate
 
         if ($access->user_id !== $user->id
             || $access->status !== AccessStatus::Completed
-            || ! in_array($componentCode, ['material', 'assessment', 'certificate'], true)
             || ! $this->hasValidParentChain($user, $access, true)) {
             return false;
         }
 
         return $this->hasAvailableComponent($access, $componentCode);
+    }
+
+    /**
+     * @param  Collection<int, ProgramComponent>  $components
+     * @return Collection<int, ProgramComponent>
+     */
+    public function readableComponents(User $user, ProgramAccess $access, Collection $components): Collection
+    {
+        if ($access->status === AccessStatus::Active) {
+            $canRead = $access->user_id === $user->id
+                && $this->isUsable($access)
+                && $this->hasValidParentChain($user, $access, false);
+        } else {
+            $canRead = $access->user_id === $user->id
+                && $access->status === AccessStatus::Completed
+                && $this->hasValidParentChain($user, $access, true);
+        }
+
+        if (! $canRead) {
+            return $components->take(0);
+        }
+
+        return $components->filter(fn (ProgramComponent $component): bool => $component->is_enabled
+            && $component->definition !== null
+            && ! $component->definition->trashed()
+            && $component->definition->is_available)->values();
     }
 
     private function hasAvailableComponent(ProgramAccess $access, string $componentCode): bool

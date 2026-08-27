@@ -92,3 +92,91 @@ test('delivery UI exposes mentor selection and acknowledged reschedule updates',
   assert.match(api, /mentor-assignments/);
   assert.match(delivery, /ProgramMentorAssignments/);
 });
+
+test('component catalog is wired to guarded CRUD navigation', async () => {
+  const [types, api, store, layout, sidebar, view, menuSeeder] = await Promise.all([
+    readFile('src/types/sales.ts', 'utf8'),
+    readFile('src/lib/api.ts', 'utf8'),
+    readFile('src/store/useAdminStore.ts', 'utf8'),
+    readFile('src/components/admin/layout/AdminLayout.tsx', 'utf8'),
+    readFile('src/components/admin/layout/AdminSidebar.tsx', 'utf8'),
+    readFile('src/components/admin/views/Components/view.tsx', 'utf8'),
+    readFile('../api/database/seeders/MenuSeeder.php', 'utf8'),
+  ]);
+
+  assert.match(types, /ComponentHandlerTemplate/);
+  assert.match(api, /component-definitions\/\$\{id\}\/restore/);
+  assert.match(api, /component-definitions\/\$\{id\}\/force/);
+  assert.match(store, /'components'/);
+  assert.match(layout, /'components': ComponentsView/);
+  assert.match(layout, /component-definition\.view/);
+  assert.match(sidebar, /Blocks/);
+  assert.match(view, /include_archived/);
+  assert.match(view, /handler_template/);
+  assert.match(menuSeeder, /admin:\/\/view\/components/);
+  assert.doesNotMatch(menuSeeder, /admin:\/\/view\/curriculum-builder/);
+});
+
+test('program content management is contextual and covers every handler template', async () => {
+  const [programs, contentView, genericEditor, materialEditor, contentForm, api] = await Promise.all([
+    readFile('src/components/admin/views/Programs/view.tsx', 'utf8'),
+    readFile('src/components/admin/views/ProgramContent/view.tsx', 'utf8'),
+    readFile('src/components/admin/views/ProgramContent/GenericContentEditor.tsx', 'utf8'),
+    readFile('src/components/admin/views/ProgramContent/MaterialEditor.tsx', 'utf8'),
+    readFile('src/components/admin/views/ProgramContent/ContentForm.tsx', 'utf8'),
+    readFile('src/lib/api.ts', 'utf8'),
+  ]);
+
+  assert.match(programs, /Kelola isi/);
+  assert.match(programs, /view: 'program-content'/);
+  assert.match(programs, /programId: program\.id/);
+  for (const handler of ['INFORMATION', 'EXTERNAL_LINK', 'FILE_DOWNLOAD', 'EMBEDDED_PAGE', 'VIDEO', 'FORM', 'IFRAME', 'NATIVE']) {
+    assert.match(contentView + genericEditor + materialEditor + contentForm, new RegExp(handler));
+  }
+  assert.match(api, /media-assets/);
+  assert.match(api, /onUploadProgress/);
+  assert.match(api, /programContents/);
+  assert.doesNotMatch(contentView + genericEditor + materialEditor, /object_key|content_url/);
+});
+
+test('program content authoring only exposes publish and upload controls to permitted roles', async () => {
+  const [contentView, genericEditor, materialEditor, contentForm] = await Promise.all([
+    readFile('src/components/admin/views/ProgramContent/view.tsx', 'utf8'),
+    readFile('src/components/admin/views/ProgramContent/GenericContentEditor.tsx', 'utf8'),
+    readFile('src/components/admin/views/ProgramContent/MaterialEditor.tsx', 'utf8'),
+    readFile('src/components/admin/views/ProgramContent/ContentForm.tsx', 'utf8'),
+  ]);
+
+  assert.match(contentView, /program-content\.publish/);
+  assert.match(contentView, /media-asset\.upload/);
+  assert.match(genericEditor + materialEditor, /canPublish/);
+  assert.match(genericEditor + materialEditor, /canUpload/);
+  assert.match(contentForm, /canPublish/);
+  assert.match(contentForm, /canUpload/);
+  assert.match(materialEditor, /state\?\.module\?\.is_published && !canPublish/);
+  assert.match(materialEditor, /state\?\.lesson\?\.is_published && !canPublish/);
+});
+
+test('workspace renders published generic and material content without exposing storage paths', async () => {
+  const [detail, renderer, form, api, types, nextConfig] = await Promise.all([
+    readFile('src/app/workspace/accesses/[accessId]/page.tsx', 'utf8'),
+    readFile('src/components/workspace/ComponentContentRenderer.tsx', 'utf8'),
+    readFile('src/components/workspace/WorkspaceForm.tsx', 'utf8'),
+    readFile('src/lib/api.ts', 'utf8'),
+    readFile('src/types/workspace.ts', 'utf8'),
+    readFile('next.config.ts', 'utf8'),
+  ]);
+
+  for (const handler of ['INFORMATION', 'EXTERNAL_LINK', 'FILE_DOWNLOAD', 'EMBEDDED_PAGE', 'VIDEO', 'FORM', 'IFRAME', 'NATIVE']) {
+    assert.match(detail + renderer + types, new RegExp(handler));
+  }
+  assert.match(api, /componentContents/);
+  assert.match(api, /submitComponentForm/);
+  assert.match(api, /responseType: 'blob'/);
+  assert.match(renderer, /sandbox="allow-forms allow-popups allow-scripts"/);
+  assert.match(nextConfig, /COMPONENT_IFRAME_ALLOWED_HOSTS/);
+  assert.match(nextConfig, /frame-src 'self'/);
+  assert.match(form, /WorkspaceFormField/);
+  assert.match(detail, /content_kind/);
+  assert.doesNotMatch(detail + renderer, /content_type|dangerouslySetInnerHTML|object_key/);
+});

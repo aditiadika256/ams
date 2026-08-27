@@ -16,7 +16,7 @@ class ProgramComponentsUpdateRequest extends BaseFormRequest
     public function rules(): array
     {
         return [
-            'components' => ['required', 'array', 'max:50'],
+            'components' => ['present', 'array', 'max:50'],
             'components.*.component_definition_id' => [
                 'required', 'integer', 'distinct',
                 Rule::exists(ComponentDefinition::class, 'id'),

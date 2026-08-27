@@ -123,7 +123,7 @@ class WorkspaceQuery
                             ])
                             ->enabled()
                             ->whereHas('definition', fn (Builder $definitions) => $definitions->available())
-                            ->with('definition:id,code,name')
+                            ->with('definition:id,code,name,handler_template,handler_key,icon,is_available,deleted_at')
                             ->orderBy('sort_order')
                             ->orderBy('id'),
                     ]),

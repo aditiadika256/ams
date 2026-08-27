@@ -3,6 +3,7 @@
 import React from 'react';
 import {
   BarChart3,
+  Blocks,
   BookOpen,
   ChevronRight,
   FileText,
@@ -41,6 +42,7 @@ import {
 
 const IconMap: Record<string, LucideIcon> = {
   BarChart3,
+  Blocks,
   BookOpen,
   FileText,
   GraduationCap,

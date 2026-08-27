@@ -15,7 +15,10 @@ class ProgramLesson extends Model
         'title',
         'slug',
         'content_type', // 'video', 'text', 'quiz', 'assignment'
+        'content_kind',
         'content_url',
+        'external_url',
+        'media_asset_id',
         'content_body',
         'duration_minutes',
         'order',
@@ -33,5 +36,10 @@ class ProgramLesson extends Model
     public function module(): BelongsTo
     {
         return $this->belongsTo(ProgramModule::class, 'module_id');
+    }
+
+    public function mediaAsset(): BelongsTo
+    {
+        return $this->belongsTo(MediaAsset::class)->withTrashed();
     }
 }

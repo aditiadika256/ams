@@ -290,7 +290,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
   fetchCurriculum: async (programId) => {
     try {
       const response = await api.get(`/learning/programs/${programId}/curriculum`);
-      return response.data;
+      return response.data?.data ?? [];
     } catch (error: any) {
       console.error(error);
       return [];
@@ -325,7 +325,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   deleteModule: async (moduleId, moduleTitle) => {
     try {
-      await apiClient.learning.curriculum.modules.remove(moduleId);
+      await apiClient.learning.curriculum.modules.remove(moduleId, `Mengarsipkan ${moduleTitle || `modul #${moduleId}`} melalui editor kurikulum`);
       alertActions.success(
         'Modul berhasil dihapus',
         `${moduleTitle || `Modul #${moduleId}`} telah dihapus dari kurikulum.`
@@ -364,7 +364,7 @@ export const useLearningStore = create<LearningState>((set, get) => ({
 
   deleteLesson: async (lessonId, lessonTitle) => {
     try {
-      await apiClient.learning.curriculum.lessons.remove(lessonId);
+      await apiClient.learning.curriculum.lessons.remove(lessonId, `Mengarsipkan ${lessonTitle || `materi #${lessonId}`} melalui editor kurikulum`);
       alertActions.success(
         'Materi berhasil dihapus',
         `${lessonTitle || `Materi #${lessonId}`} telah dihapus dari modul.`

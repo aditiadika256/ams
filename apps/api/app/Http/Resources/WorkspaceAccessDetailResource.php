@@ -13,9 +13,13 @@ class WorkspaceAccessDetailResource extends WorkspaceAccessResource
 
         $data['program']['description'] = $program?->description;
         $data['components'] = $program?->components->map(fn ($component): array => [
+            'id' => $component->id,
             'code' => $component->definition->code,
             'name' => $component->definition->name,
             'label' => $component->label,
+            'handler_template' => $component->definition->handler_template->value,
+            'handler_key' => $component->definition->handler_key,
+            'icon' => $component->definition->icon,
             'sort_order' => $component->sort_order,
         ])->values() ?? [];
 

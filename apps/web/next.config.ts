@@ -2,10 +2,18 @@ import type { NextConfig } from "next";
 import path from 'path';
 
 const isDev = process.env.NODE_ENV !== 'production';
+const iframeSources = (process.env.COMPONENT_IFRAME_ALLOWED_HOSTS || '')
+  .split(',')
+  .map((host) => host.trim().toLowerCase())
+  .filter((host) => /^[a-z0-9.-]+$/.test(host))
+  .map((host) => `https://${host}`)
+  .join(' ');
 const csp = [
   "default-src 'self'",
   "connect-src 'self' https://ams-lc58.onrender.com http://localhost:8000 http://127.0.0.1:8000 ws: http://localhost:3000 http://localhost:3001",
   "img-src 'self' data: https:",
+  "media-src 'self' blob: https:",
+  `frame-src 'self'${iframeSources ? ` ${iframeSources}` : ''}`,
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval' blob:" : ""}`,
   "style-src 'self' 'unsafe-inline'",
 ].join('; ');

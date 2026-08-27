@@ -46,7 +46,7 @@ class AdminProgramQuery
         return [
             'tags:id,code,name,sort_order,is_active,archived_at',
             'components' => fn ($query) => $query
-                ->with('definition:id,code,name,is_available')
+                ->with('definition:id,code,name,handler_template,handler_key,icon,is_available')
                 ->orderBy('sort_order')
                 ->orderBy('id'),
             'children:id,name,slug',
