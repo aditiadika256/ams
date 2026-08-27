@@ -4,6 +4,7 @@ namespace App\Domain\Workspace;
 
 use App\Exceptions\DomainAuthorizationException;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProgramModuleResource;
 use App\Models\ProgramAccess;
 use App\Support\Access\ComponentAccessGate;
 use Illuminate\Http\JsonResponse;
@@ -30,10 +31,11 @@ class WorkspaceCurriculumController extends Controller
             ->where('is_published', true)
             ->with(['lessons' => fn ($lessons) => $lessons
                 ->where('is_published', true)
+                ->with('mediaAsset')
                 ->orderBy('order')])
             ->orderBy('order')
             ->get();
 
-        return $this->successResponse($modules, 'Curriculum retrieved successfully');
+        return $this->successResponse(ProgramModuleResource::collection($modules), 'Curriculum retrieved successfully');
     }
 }

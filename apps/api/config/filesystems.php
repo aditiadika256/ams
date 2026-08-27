@@ -60,6 +60,27 @@ return [
             'report' => false,
         ],
 
+        'component-media-local' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/components'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'component-media-s3' => [
+            'driver' => 's3',
+            'key' => env('COMPONENT_MEDIA_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('COMPONENT_MEDIA_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('COMPONENT_MEDIA_REGION', env('AWS_DEFAULT_REGION', 'us-east-1')),
+            'bucket' => env('COMPONENT_MEDIA_BUCKET', env('AWS_BUCKET')),
+            'endpoint' => env('COMPONENT_MEDIA_ENDPOINT', env('AWS_ENDPOINT')),
+            'use_path_style_endpoint' => env('COMPONENT_MEDIA_PATH_STYLE', env('AWS_USE_PATH_STYLE_ENDPOINT', false)),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
     ],
 
     /*

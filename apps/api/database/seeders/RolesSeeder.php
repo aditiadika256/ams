@@ -47,6 +47,17 @@ class RolesSeeder extends Seeder
             'program.clone',
             'program-tag.manage',
             'program-component.manage',
+            'component-definition.view',
+            'component-definition.create',
+            'component-definition.update',
+            'component-definition.delete',
+            'component-definition.restore',
+            'component-definition.force-delete',
+            'program-content.view',
+            'program-content.manage',
+            'program-content.publish',
+            'media-asset.upload',
+            'media-asset.delete',
             'program-batch.manage',
             'program-session.manage',
             'mentor-assignment.manage',
@@ -154,13 +165,26 @@ class RolesSeeder extends Seeder
         ];
 
         foreach ($rolesStructure as $roleName => $rolePermissions) {
-            // Web Guard
-            $roleWeb = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
-            $roleWeb->syncPermissions($rolePermissions);
+            foreach (['web', 'sanctum'] as $guardName) {
+                $role = Role::firstOrCreate(['name' => $roleName, 'guard_name' => $guardName]);
 
-            // Sanctum Guard
-            $roleSanctum = Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'sanctum']);
-            $roleSanctum->syncPermissions($rolePermissions);
+                // Role assignments are managed dynamically through RoleController after creation.
+                // Reseeding may register new capabilities, but must never reset an existing matrix.
+                if ($role->wasRecentlyCreated) {
+                    $baselinePermissions = Permission::query()
+                        ->where('guard_name', $guardName)
+                        ->whereIn('name', $rolePermissions)
+                        ->get();
+                    $role->syncPermissions($baselinePermissions);
+                }
+            }
+        }
+
+        foreach (['web', 'sanctum'] as $guardName) {
+            $superadmin = Role::findByName('superadmin', $guardName);
+            $superadmin->givePermissionTo(
+                Permission::query()->where('guard_name', $guardName)->get()
+            );
         }
 
         // 4. Create Demo Users

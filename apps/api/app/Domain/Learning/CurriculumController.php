@@ -2,233 +2,103 @@
 
 namespace App\Domain\Learning;
 
+use App\Actions\Audit\RecordDomainAudit;
+use App\Actions\Learning\SaveProgramLesson;
+use App\Actions\Learning\SaveProgramModule;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Learning\ProgramContentDeleteRequest;
+use App\Http\Requests\Learning\ProgramCurriculumIndexRequest;
+use App\Http\Requests\Learning\ProgramLessonStoreRequest;
+use App\Http\Requests\Learning\ProgramLessonUpdateRequest;
+use App\Http\Requests\Learning\ProgramModuleStoreRequest;
+use App\Http\Requests\Learning\ProgramModuleUpdateRequest;
+use App\Http\Resources\ProgramLessonResource;
+use App\Http\Resources\ProgramModuleResource;
 use App\Models\Program;
 use App\Models\ProgramLesson;
 use App\Models\ProgramModule;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
-/**
- * @OA\Tag(
- *     name="Learning - Curriculum",
- *     description="Curriculum, Module & Lesson Management"
- * )
- */
 class CurriculumController extends Controller
 {
-    /**
-     * @OA\Get(
-     *     path="/api/v1/learning/programs/{program}/curriculum",
-     *     summary="Get program curriculum",
-     *     tags={"Learning - Curriculum"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="program", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Curriculum structure")
-     * )
-     */
-    public function index(Program $program)
+    public function index(ProgramCurriculumIndexRequest $request, Program $program): JsonResponse
     {
-        return response()->json($program->modules()->with('lessons')->get());
+        $modules = $program->modules()
+            ->with('lessons.mediaAsset')
+            ->orderBy('order')
+            ->get();
+
+        return $this->successResponse(ProgramModuleResource::collection($modules), 'Curriculum retrieved successfully');
     }
 
-    // --- Modules ---
+    public function storeModule(
+        ProgramModuleStoreRequest $request,
+        Program $program,
+        SaveProgramModule $action,
+    ): JsonResponse {
+        $module = $action->handle($program, $request->validated(), $request->user());
 
-    /**
-     * @OA\Post(
-     *     path="/api/v1/learning/programs/{program}/modules",
-     *     summary="Create a module for a program",
-     *     tags={"Learning - Curriculum"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="program", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"title"},
-     *             @OA\Property(property="title", type="string", example="Module 1: Introduction"),
-     *             @OA\Property(property="description", type="string", nullable=true),
-     *             @OA\Property(property="order", type="integer", example=1),
-     *             @OA\Property(property="is_published", type="boolean", example=true)
-     *         )
-     *     ),
-     *     @OA\Response(response=201, description="Module created"),
-     *     @OA\Response(response=422, description="Validation error")
-     * )
-     */
-    public function storeModule(Request $request, Program $program)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'order' => 'integer',
-            'is_published' => 'boolean',
-        ]);
-
-        $module = $program->modules()->create($request->all());
-
-        return response()->json($module, 201);
+        return $this->createdResponse(new ProgramModuleResource($module), 'Program module created successfully');
     }
 
-    /**
-     * @OA\Put(
-     *     path="/api/v1/learning/modules/{module}",
-     *     summary="Update a module",
-     *     tags={"Learning - Curriculum"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="module", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\RequestBody(
-     *         @OA\JsonContent(
-     *             @OA\Property(property="title", type="string"),
-     *             @OA\Property(property="description", type="string", nullable=true),
-     *             @OA\Property(property="order", type="integer"),
-     *             @OA\Property(property="is_published", type="boolean")
-     *         )
-     *     ),
-     *     @OA\Response(response=200, description="Module updated"),
-     *     @OA\Response(response=404, description="Module not found")
-     * )
-     */
-    public function updateModule(Request $request, ProgramModule $module)
-    {
-        $request->validate([
-            'title' => 'string|max:255',
-            'description' => 'nullable|string',
-            'order' => 'integer',
-            'is_published' => 'boolean',
-        ]);
+    public function updateModule(
+        ProgramModuleUpdateRequest $request,
+        ProgramModule $module,
+        SaveProgramModule $action,
+    ): JsonResponse {
+        $saved = $action->handle($module->program, $request->validated(), $request->user(), $module);
 
-        $module->update($request->all());
-
-        return response()->json($module);
+        return $this->successResponse(new ProgramModuleResource($saved), 'Program module updated successfully');
     }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/v1/learning/modules/{module}",
-     *     summary="Delete a module",
-     *     tags={"Learning - Curriculum"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="module", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Module deleted"),
-     *     @OA\Response(response=404, description="Module not found")
-     * )
-     */
-    public function destroyModule(ProgramModule $module)
-    {
-        $module->delete();
-        return response()->json(['message' => 'Module deleted']);
+    public function destroyModule(
+        ProgramContentDeleteRequest $request,
+        ProgramModule $module,
+        RecordDomainAudit $audit,
+    ): JsonResponse {
+        DB::transaction(function () use ($request, $module, $audit): void {
+            $model = ProgramModule::query()->lockForUpdate()->findOrFail($module->id);
+            $before = $model->getAttributes();
+            $audit->handle($model, 'program_module.deleted', $request->user(), $request->validated('reason'), $before);
+            $model->delete();
+        });
+
+        return $this->noContentResponse();
     }
 
-    // --- Lessons ---
+    public function storeLesson(
+        ProgramLessonStoreRequest $request,
+        ProgramModule $module,
+        SaveProgramLesson $action,
+    ): JsonResponse {
+        $lesson = $action->handle($module, $request->validated(), $request->user());
 
-    /**
-     * @OA\Post(
-     *     path="/api/v1/learning/modules/{module}/lessons",
-     *     summary="Create a lesson in a module",
-     *     tags={"Learning - Curriculum"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="module", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"title", "content_type"},
-     *             @OA\Property(property="title", type="string", example="Lesson 1: Getting Started"),
-     *             @OA\Property(property="content_type", type="string", enum={"video", "text", "quiz", "assignment"}),
-     *             @OA\Property(property="content_url", type="string", nullable=true),
-     *             @OA\Property(property="content_body", type="string", nullable=true),
-     *             @OA\Property(property="duration_minutes", type="integer", example=30),
-     *             @OA\Property(property="order", type="integer", example=1),
-     *             @OA\Property(property="is_published", type="boolean", example=true),
-     *             @OA\Property(property="is_preview", type="boolean", example=false)
-     *         )
-     *     ),
-     *     @OA\Response(response=201, description="Lesson created"),
-     *     @OA\Response(response=422, description="Validation error")
-     * )
-     */
-    public function storeLesson(Request $request, ProgramModule $module)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'content_type' => 'required|in:video,text,quiz,assignment',
-            'content_url' => 'nullable|string',
-            'content_body' => 'nullable|string',
-            'duration_minutes' => 'integer',
-            'order' => 'integer',
-            'is_published' => 'boolean',
-            'is_preview' => 'boolean',
-        ]);
-
-        $data = $request->all();
-        if (!isset($data['slug'])) {
-            $data['slug'] = Str::slug($data['title']);
-        }
-
-        $lesson = $module->lessons()->create($data);
-
-        return response()->json($lesson, 201);
+        return $this->createdResponse(new ProgramLessonResource($lesson), 'Program lesson created successfully');
     }
 
-    /**
-     * @OA\Put(
-     *     path="/api/v1/learning/lessons/{lesson}",
-     *     summary="Update a lesson",
-     *     tags={"Learning - Curriculum"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="lesson", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\RequestBody(
-     *         @OA\JsonContent(
-     *             @OA\Property(property="title", type="string"),
-     *             @OA\Property(property="content_type", type="string", enum={"video", "text", "quiz", "assignment"}),
-     *             @OA\Property(property="content_url", type="string", nullable=true),
-     *             @OA\Property(property="content_body", type="string", nullable=true),
-     *             @OA\Property(property="duration_minutes", type="integer"),
-     *             @OA\Property(property="order", type="integer"),
-     *             @OA\Property(property="is_published", type="boolean"),
-     *             @OA\Property(property="is_preview", type="boolean")
-     *         )
-     *     ),
-     *     @OA\Response(response=200, description="Lesson updated"),
-     *     @OA\Response(response=404, description="Lesson not found")
-     * )
-     */
-    public function updateLesson(Request $request, ProgramLesson $lesson)
-    {
-        $request->validate([
-            'title' => 'string|max:255',
-            'content_type' => 'in:video,text,quiz,assignment',
-            'content_url' => 'nullable|string',
-            'content_body' => 'nullable|string',
-            'duration_minutes' => 'integer',
-            'order' => 'integer',
-            'is_published' => 'boolean',
-            'is_preview' => 'boolean',
-        ]);
+    public function updateLesson(
+        ProgramLessonUpdateRequest $request,
+        ProgramLesson $lesson,
+        SaveProgramLesson $action,
+    ): JsonResponse {
+        $saved = $action->handle($lesson->module, $request->validated(), $request->user(), $lesson);
 
-        $data = $request->all();
-        if (isset($data['title']) && !isset($data['slug'])) {
-            $data['slug'] = Str::slug($data['title']);
-        }
-
-        $lesson->update($data);
-
-        return response()->json($lesson);
+        return $this->successResponse(new ProgramLessonResource($saved), 'Program lesson updated successfully');
     }
 
-    /**
-     * @OA\Delete(
-     *     path="/api/v1/learning/lessons/{lesson}",
-     *     summary="Delete a lesson",
-     *     tags={"Learning - Curriculum"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Parameter(name="lesson", in="path", required=true, @OA\Schema(type="integer")),
-     *     @OA\Response(response=200, description="Lesson deleted"),
-     *     @OA\Response(response=404, description="Lesson not found")
-     * )
-     */
-    public function destroyLesson(ProgramLesson $lesson)
-    {
-        $lesson->delete();
-        return response()->json(['message' => 'Lesson deleted']);
+    public function destroyLesson(
+        ProgramContentDeleteRequest $request,
+        ProgramLesson $lesson,
+        RecordDomainAudit $audit,
+    ): JsonResponse {
+        DB::transaction(function () use ($request, $lesson, $audit): void {
+            $model = ProgramLesson::query()->lockForUpdate()->findOrFail($lesson->id);
+            $before = $model->getAttributes();
+            $audit->handle($model, 'program_lesson.deleted', $request->user(), $request->validated('reason'), $before);
+            $model->delete();
+        });
+
+        return $this->noContentResponse();
     }
 }

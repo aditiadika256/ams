@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Menu;
 use Database\Seeders\MenuSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 class MenuSeederTest extends TestCase
@@ -14,6 +15,7 @@ class MenuSeederTest extends TestCase
     public function test_rerunning_the_seeder_is_stable_and_preserves_custom_menus(): void
     {
         $this->seed(MenuSeeder::class);
+        $firstCacheVersion = Cache::get('menus:cache_version');
         $canonicalCount = Menu::query()->count();
         $customMenu = Menu::query()->create([
             'name' => 'Custom Operations',
@@ -32,6 +34,7 @@ class MenuSeederTest extends TestCase
             $canonicalCount,
             Menu::query()->whereNotNull('seed_key')->distinct()->count('seed_key')
         );
+        $this->assertNotSame($firstCacheVersion, Cache::get('menus:cache_version'));
     }
 
     public function test_seeder_creates_workspace_and_program_management_navigation(): void
@@ -51,8 +54,17 @@ class MenuSeederTest extends TestCase
             'seed_key' => 'admin.sidebar.education.tags',
             'url' => 'admin://view/tags',
         ]);
+        $this->assertDatabaseHas('menus', [
+            'seed_key' => 'admin.sidebar.education.components',
+            'name' => 'Component Catalog',
+            'icon' => 'Blocks',
+            'url' => 'admin://view/components',
+            'required_permission' => 'component-definition.view',
+            'order' => 3,
+        ]);
 
         $this->assertDatabaseMissing('menus', ['seed_key' => 'users.topbar.blog']);
+        $this->assertDatabaseMissing('menus', ['seed_key' => 'admin.sidebar.education.curriculum']);
         $this->assertDatabaseMissing('menus', ['url' => 'admin://view/program-levels']);
         $this->assertDatabaseMissing('menus', ['url' => 'admin://view/program-types']);
     }
@@ -65,7 +77,7 @@ class MenuSeederTest extends TestCase
             'cms-pages',
             'cms-posts',
             'colorpalette',
-            'curriculum-builder',
+            'components',
             'dashboard',
             'finance',
             'mentors',

@@ -17,6 +17,7 @@ class MenuResource extends BaseResource
             'section' => $this->section,
             'parent_id' => $this->parent_id,
             'order' => $this->order,
+            'required_permission' => $this->required_permission,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
             'children' => MenuResource::collection($this->whenLoaded('children')),

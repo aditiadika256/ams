@@ -97,6 +97,11 @@ class ProgramAccess extends Model
         return $this->hasMany(SessionMentorReservation::class);
     }
 
+    public function componentSubmissions(): HasMany
+    {
+        return $this->hasMany(ProgramComponentSubmission::class);
+    }
+
     public function scopeForUser(Builder $query, int $userId): Builder
     {
         return $query->where('user_id', $userId);

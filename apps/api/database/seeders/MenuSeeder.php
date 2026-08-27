@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Menu;
 use Illuminate\Database\QueryException;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class MenuSeeder extends Seeder
 {
@@ -34,8 +36,8 @@ class MenuSeeder extends Seeder
         $education = $this->createMenu('admin.sidebar.education', 'Education', 'GraduationCap', 'admin://view/programs', 'admin', 'sidebar', null, 3);
         $this->createMenu('admin.sidebar.education.programs', 'Programs', 'BookOpen', 'admin://view/programs', 'admin', 'sidebar', $education->id, 1);
         $this->createMenu('admin.sidebar.education.tags', 'Tags', 'Tags', 'admin://view/tags', 'admin', 'sidebar', $education->id, 2);
-        $this->createMenu('admin.sidebar.education.mentors', 'Mentors', 'GraduationCap', 'admin://view/mentors', 'admin', 'sidebar', $education->id, 3);
-        $this->createMenu('admin.sidebar.education.curriculum', 'Curriculum Builder', 'BookOpen', 'admin://view/curriculum-builder', 'admin', 'sidebar', $education->id, 4);
+        $this->createMenu('admin.sidebar.education.components', 'Component Catalog', 'Blocks', 'admin://view/components', 'admin', 'sidebar', $education->id, 3, 'component-definition.view');
+        $this->createMenu('admin.sidebar.education.mentors', 'Mentors', 'GraduationCap', 'admin://view/mentors', 'admin', 'sidebar', $education->id, 4);
 
         $content = $this->createMenu('admin.sidebar.content', 'Content', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', null, 5);
         $this->createMenu('admin.sidebar.content.posts', 'Blog Posts', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', $content->id, 1);
@@ -50,6 +52,7 @@ class MenuSeeder extends Seeder
         $this->createMenu('admin.header.settings', 'Settings', 'Settings', 'admin://view/settings', 'admin', 'header', null, 2);
 
         $this->pruneObsoleteSeededMenus();
+        Cache::forever('menus:cache_version', Str::uuid()->toString());
     }
 
     protected function createMenu(
@@ -60,7 +63,8 @@ class MenuSeeder extends Seeder
         string $layout,
         string $section,
         ?int $parentId,
-        int $order
+        int $order,
+        ?string $requiredPermission = null,
     ): Menu {
         $this->seededKeys[] = $seedKey;
         $this->adoptLegacyMenu($seedKey, $url, $layout, $section, $parentId);
@@ -75,9 +79,10 @@ class MenuSeeder extends Seeder
                 'section' => $section,
                 'parent_id' => $parentId,
                 'order' => $order,
+                'required_permission' => $requiredPermission,
             ]],
             ['seed_key'],
-            ['name', 'icon', 'url', 'layout', 'section', 'parent_id', 'order']
+            ['name', 'icon', 'url', 'layout', 'section', 'parent_id', 'order', 'required_permission']
         );
 
         return Menu::query()->where('seed_key', $seedKey)->firstOrFail();

@@ -64,11 +64,22 @@ class Program extends Model
         return $this->hasMany(ProgramComponent::class)->orderBy('sort_order');
     }
 
+    public function programComponents(): HasMany
+    {
+        return $this->hasMany(ProgramComponent::class);
+    }
+
     public function componentDefinitions(): BelongsToMany
     {
         return $this->belongsToMany(ComponentDefinition::class, 'program_components')
             ->withPivot(['is_enabled', 'label', 'sort_order', 'configuration'])
+            ->wherePivotNull('deleted_at')
             ->withTimestamps();
+    }
+
+    public function mediaAssets(): HasMany
+    {
+        return $this->hasMany(MediaAsset::class);
     }
 
     public function outgoingRelations(): HasMany

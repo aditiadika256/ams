@@ -6,9 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\MenuResource;
 use App\Models\Menu;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -89,6 +90,12 @@ class MenuController extends Controller
             'section' => ['sometimes', 'nullable', 'string', 'in:topbar,bottomnavigation,sidebar,header'],
             'parent_id' => ['nullable', 'integer', 'exists:menus,id'],
             'order' => ['nullable', 'integer', 'min:0'],
+            'required_permission' => [
+                'nullable',
+                'string',
+                'max:120',
+                Rule::exists('permissions', 'name')->where('guard_name', 'web'),
+            ],
         ]);
 
         // Set default section based on layout if not provided
@@ -96,10 +103,10 @@ class MenuController extends Controller
             $validated['section'] = $validated['layout'] === 'admin' ? 'sidebar' : 'topbar';
         }
 
-        if ($validated['layout'] === 'admin' && !in_array($validated['section'], ['sidebar', 'header'])) {
+        if ($validated['layout'] === 'admin' && ! in_array($validated['section'], ['sidebar', 'header'])) {
             return $this->validationErrorResponse(['section' => ['Section harus sidebar atau header untuk layout admin']]);
         }
-        if ($validated['layout'] === 'users' && !in_array($validated['section'], ['topbar', 'bottomnavigation'])) {
+        if ($validated['layout'] === 'users' && ! in_array($validated['section'], ['topbar', 'bottomnavigation'])) {
             return $this->validationErrorResponse(['section' => ['Section harus topbar atau bottomnavigation untuk layout users']]);
         }
 
@@ -108,6 +115,7 @@ class MenuController extends Controller
 
         $menu = Menu::create($validated);
         $this->flushCaches();
+
         return $this->createdResponse(new MenuResource($menu), 'Menu created successfully');
     }
 
@@ -128,7 +136,7 @@ class MenuController extends Controller
     public function update(Request $request, int $id)
     {
         $menu = Menu::find($id);
-        if (!$menu) {
+        if (! $menu) {
             return $this->notFoundResponse('Menu not found');
         }
 
@@ -140,6 +148,12 @@ class MenuController extends Controller
             'section' => ['sometimes', 'nullable', 'string', 'in:topbar,bottomnavigation,sidebar,header'],
             'parent_id' => ['nullable', 'integer', 'exists:menus,id'],
             'order' => ['nullable', 'integer', 'min:0'],
+            'required_permission' => [
+                'nullable',
+                'string',
+                'max:120',
+                Rule::exists('permissions', 'name')->where('guard_name', 'web'),
+            ],
         ]);
 
         // Set default section based on layout if not provided
@@ -147,10 +161,10 @@ class MenuController extends Controller
             $validated['section'] = $validated['layout'] === 'admin' ? 'sidebar' : 'topbar';
         }
 
-        if (isset($validated['layout']) && $validated['layout'] === 'admin' && isset($validated['section']) && !in_array($validated['section'], ['sidebar', 'header'])) {
+        if (isset($validated['layout']) && $validated['layout'] === 'admin' && isset($validated['section']) && ! in_array($validated['section'], ['sidebar', 'header'])) {
             return $this->validationErrorResponse(['section' => ['Section harus sidebar atau header untuk layout admin']]);
         }
-        if (isset($validated['layout']) && $validated['layout'] === 'users' && isset($validated['section']) && !in_array($validated['section'], ['topbar', 'bottomnavigation'])) {
+        if (isset($validated['layout']) && $validated['layout'] === 'users' && isset($validated['section']) && ! in_array($validated['section'], ['topbar', 'bottomnavigation'])) {
             return $this->validationErrorResponse(['section' => ['Section harus topbar atau bottomnavigation untuk layout users']]);
         }
 
@@ -158,6 +172,7 @@ class MenuController extends Controller
 
         $menu->update($validated);
         $this->flushCaches();
+
         return $this->successResponse(new MenuResource($menu->refresh()), 'Menu updated successfully');
     }
 
@@ -177,7 +192,7 @@ class MenuController extends Controller
     public function destroy(int $id)
     {
         $menu = Menu::find($id);
-        if (!$menu) {
+        if (! $menu) {
             return $this->notFoundResponse('Menu not found');
         }
 

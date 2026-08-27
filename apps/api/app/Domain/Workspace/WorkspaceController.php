@@ -82,13 +82,7 @@ class WorkspaceController extends Controller
         $user = request()->user();
         $access->program->setRelation(
             'components',
-            $access->program->components
-                ->filter(fn ($component) => $this->componentGate->allowsRead(
-                    $user,
-                    $access,
-                    $component->definition->code,
-                ))
-                ->values(),
+            $this->componentGate->readableComponents($user, $access, $access->program->components),
         );
 
         if ($access->nextSession !== null && ! $this->componentGate->allows($user, $access, 'meeting')) {

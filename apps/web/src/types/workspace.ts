@@ -25,7 +25,27 @@ export interface WorkspaceSessionUpdate {
   payload: { title: string; starts_at: string; ends_at: string; timezone: string; reason?: string | null };
   occurred_at: string; acknowledged_at?: string | null;
 }
-export interface WorkspaceComponent { code: string; name: string; label?: string | null; sort_order: number }
+export type WorkspaceHandlerTemplate = 'INFORMATION' | 'EXTERNAL_LINK' | 'FILE_DOWNLOAD' | 'EMBEDDED_PAGE' | 'VIDEO' | 'FORM' | 'IFRAME' | 'NATIVE';
+export interface WorkspaceComponent {
+  id: number; code: string; name: string; label?: string | null;
+  handler_template: WorkspaceHandlerTemplate; handler_key?: string | null; icon?: string | null; sort_order: number;
+}
+export interface WorkspaceMediaAsset {
+  id: number; original_name: string; mime_type: string; size_bytes: number; download_url: string;
+}
+export interface WorkspaceFormField {
+  key: string; label: string; type: 'text' | 'textarea' | 'email' | 'number' | 'select' | 'checkbox' | 'date';
+  required?: boolean; options?: string[];
+}
+export interface WorkspaceComponentContent {
+  id: number; title: string; slug: string; summary?: string | null; body?: string | null;
+  external_url?: string | null; payload?: { fields?: WorkspaceFormField[] } | null;
+  sort_order: number; published_at?: string | null; media_asset?: WorkspaceMediaAsset | null;
+}
+export interface WorkspaceComponentSubmission {
+  id: number; program_component_content_id: number; program_access_id: number;
+  answers: Record<string, unknown>; submitted_at: string;
+}
 export interface WorkspaceCertificate { certificate_number: string; issued_at: string; revoked_at?: string | null }
 export interface WorkspaceProgress {
   percent: number; content_count: number;
@@ -51,5 +71,10 @@ export interface WorkspacePage {
   meta: { current_page: number; last_page: number; per_page: number; total: number; from: number | null; to: number | null };
   summary: Partial<WorkspaceSummary>;
 }
-export interface CurriculumLesson { id: number; title: string; slug: string; content_type: string; order: number }
+export interface CurriculumLesson {
+  id: number; title: string; slug: string;
+  content_kind: Exclude<WorkspaceHandlerTemplate, 'FORM' | 'IFRAME' | 'NATIVE'>;
+  content_body?: string | null; external_url?: string | null; duration_minutes: number;
+  order: number; is_published: boolean; is_preview: boolean; media_asset?: WorkspaceMediaAsset | null;
+}
 export interface CurriculumModule { id: number; title: string; description?: string | null; order: number; lessons: CurriculumLesson[] }

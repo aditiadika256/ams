@@ -42,7 +42,10 @@ Route::prefix('v1')->group(function () {
         Route::post('accesses/{programAccess}/archive', [\App\Domain\Workspace\WorkspaceController::class, 'archive']);
         Route::post('accesses/{programAccess}/restore', [\App\Domain\Workspace\WorkspaceController::class, 'restore']);
         Route::get('accesses/{programAccess}/curriculum', \App\Domain\Workspace\WorkspaceCurriculumController::class);
+        Route::get('accesses/{programAccess}/components/{programComponent}/contents', [\App\Domain\Workspace\WorkspaceComponentContentController::class, 'index']);
+        Route::post('accesses/{programAccess}/components/{programComponent}/contents/{content}/submissions', [\App\Domain\Workspace\WorkspaceComponentContentController::class, 'submit']);
         Route::post('accesses/{programAccess}/lessons/{lesson}/complete', [\App\Domain\Workspace\WorkspaceActivityController::class, 'completeLesson']);
+        Route::get('accesses/{programAccess}/media-assets/{mediaAsset}', [\App\Domain\Workspace\WorkspaceMediaController::class, 'show']);
         Route::post('accesses/{programAccess}/sessions/{session}/mentor-reservations', [\App\Domain\Workspace\WorkspaceMentorReservationController::class, 'store']);
         Route::get('session-updates', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'index']);
         Route::post('session-updates/{sessionUpdate}/acknowledge', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'acknowledge']);
@@ -88,9 +91,26 @@ Route::prefix('v1')->group(function () {
         Route::post('program-accesses/{programAccess}/revoke', [\App\Domain\Admin\ProgramAccessController::class, 'revoke']);
         Route::post('program-accesses/{programAccess}/extend', [\App\Domain\Admin\ProgramAccessController::class, 'extend']);
         Route::apiResource('tags', \App\Domain\Admin\TagController::class);
-        Route::get('component-definitions', [\App\Domain\Admin\ComponentDefinitionController::class, 'index']);
+        Route::post('component-definitions/{componentDefinition}/restore', [\App\Domain\Admin\ComponentDefinitionController::class, 'restore'])
+            ->withTrashed();
+        Route::delete('component-definitions/{componentDefinition}/force', [\App\Domain\Admin\ComponentDefinitionController::class, 'forceDelete'])
+            ->withTrashed();
+        Route::apiResource('component-definitions', \App\Domain\Admin\ComponentDefinitionController::class)
+            ->parameters(['component-definitions' => 'componentDefinition']);
+        Route::post('programs/{program}/media-assets', [\App\Domain\Admin\MediaAssetController::class, 'store']);
+        Route::scopeBindings()->delete('programs/{program}/media-assets/{mediaAsset}', [\App\Domain\Admin\MediaAssetController::class, 'destroy']);
         Route::put('programs/{program}/tags', [\App\Domain\Admin\ProgramTagController::class, 'update']);
         Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
+        Route::scopeBindings()->group(function () {
+            Route::post('programs/{program}/components/{programComponent}/contents/{content}/restore', [\App\Domain\Admin\ProgramComponentContentController::class, 'restore'])
+                ->withTrashed();
+            Route::apiResource('programs.components.contents', \App\Domain\Admin\ProgramComponentContentController::class)
+                ->parameters([
+                    'programs' => 'program',
+                    'components' => 'programComponent',
+                    'contents' => 'content',
+                ]);
+        });
         Route::put('programs/{program}/relations', [\App\Domain\Admin\ProgramRelationController::class, 'update']);
         Route::scopeBindings()->group(function () {
             Route::get('programs/{program}/batches', [\App\Domain\Admin\ProgramBatchController::class, 'index']);
@@ -141,7 +161,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Learning
-    Route::prefix('learning')->middleware(['auth:sanctum', 'permission:view_dashboard_learning|manage_learning_content'])->group(function () {
+    Route::prefix('learning')->middleware(['auth:sanctum', 'permission:view_dashboard_learning|manage_learning_content|program-content.view|program-content.manage'])->group(function () {
         // Mentors
         Route::get('mentor-candidates', [\App\Domain\Learning\MentorController::class, 'candidates'])
             ->middleware('permission:manage_learning_content');
@@ -162,14 +182,14 @@ Route::prefix('v1')->group(function () {
         Route::get('programs/{program}/curriculum', [\App\Domain\Learning\CurriculumController::class, 'index']);
 
         // Modules
-        Route::post('programs/{program}/modules', [\App\Domain\Learning\CurriculumController::class, 'storeModule'])->middleware('permission:manage_learning_content');
-        Route::put('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'updateModule'])->middleware('permission:manage_learning_content');
-        Route::delete('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'destroyModule'])->middleware('permission:manage_learning_content');
+        Route::post('programs/{program}/modules', [\App\Domain\Learning\CurriculumController::class, 'storeModule'])->middleware('permission:program-content.manage');
+        Route::put('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'updateModule'])->middleware('permission:program-content.manage');
+        Route::delete('modules/{module}', [\App\Domain\Learning\CurriculumController::class, 'destroyModule'])->middleware('permission:program-content.manage');
 
         // Lessons
-        Route::post('modules/{module}/lessons', [\App\Domain\Learning\CurriculumController::class, 'storeLesson'])->middleware('permission:manage_learning_content');
-        Route::put('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'updateLesson'])->middleware('permission:manage_learning_content');
-        Route::delete('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'destroyLesson'])->middleware('permission:manage_learning_content');
+        Route::post('modules/{module}/lessons', [\App\Domain\Learning\CurriculumController::class, 'storeLesson'])->middleware('permission:program-content.manage');
+        Route::put('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'updateLesson'])->middleware('permission:program-content.manage');
+        Route::delete('lessons/{lesson}', [\App\Domain\Learning\CurriculumController::class, 'destroyLesson'])->middleware('permission:program-content.manage');
     });
 
     // Finance
