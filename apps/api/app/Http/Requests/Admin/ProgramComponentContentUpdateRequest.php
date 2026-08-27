@@ -14,7 +14,10 @@ class ProgramComponentContentUpdateRequest extends BaseFormRequest
         $user = $this->user();
         $content = $this->route('content');
         $canUpdate = $content !== null && ($user?->can('update', $content) ?? false);
-        $canPublish = $this->input('status') !== ComponentContentStatus::Published->value
+        $effectiveStatus = $this->has('status')
+            ? $this->input('status')
+            : $content?->status?->value;
+        $canPublish = $effectiveStatus !== ComponentContentStatus::Published->value
             || ($user?->can('publish', $content) ?? false);
 
         return $canUpdate && $canPublish;

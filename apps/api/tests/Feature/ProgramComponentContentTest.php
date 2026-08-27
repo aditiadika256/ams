@@ -144,6 +144,30 @@ it('manages, scopes, publishes, archives and restores generic content', function
     ]);
 });
 
+it('does not let a content manager edit already published content without publish permission', function (): void {
+    $component = componentFor($this->program, ComponentHandlerTemplate::Information);
+    $content = ProgramComponentContent::query()->create([
+        'program_component_id' => $component->id,
+        'title' => 'Published guide',
+        'slug' => 'published-guide',
+        'body' => 'Original member-visible content.',
+        'status' => 'PUBLISHED',
+        'published_at' => now(),
+    ]);
+    $manager = User::factory()->create();
+    foreach (['program-content.view', 'program-content.manage'] as $permission) {
+        $manager->givePermissionTo(Permission::findOrCreate($permission, 'web'));
+    }
+    Sanctum::actingAs($manager);
+
+    $this->putJson(contentUrl($this->program, $component)."/{$content->id}", [
+        'body' => 'Unapproved member-visible change.',
+        'reason' => 'Attempt to alter published content.',
+    ])->assertForbidden();
+
+    expect($content->refresh()->body)->toBe('Original member-visible content.');
+});
+
 function componentFor(
     Program $program,
     ComponentHandlerTemplate $template,

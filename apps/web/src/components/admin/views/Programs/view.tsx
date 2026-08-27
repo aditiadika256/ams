@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Archive, BookOpen, CalendarDays, Edit3, MoreHorizontal, Plus, Search, Tags } from 'lucide-react';
+import { Archive, BookOpen, CalendarDays, Edit3, Files, MoreHorizontal, Plus, Search, Tags } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ import { getErrorMessage } from '@/lib/get-error-message';
 import { alertActions } from '@/store/useAlertStore';
 import { useSalesStore } from '@/store/useSalesStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useAdminStore } from '@/store/useAdminStore';
 import type { ComponentDefinition, Program, ProgramBatch, ProgramTag, ProgramWizardPayload } from '@/types/sales';
 import { ProgramForm } from './form';
 import { ProgramDeliveryDialog } from './ProgramDeliveryDialog';
@@ -51,6 +52,9 @@ export default function ProgramsView() {
   const canArchive = hasPermission('program.archive');
   const canManageSessions = hasPermission('program-session.manage');
   const canManageMentors = hasPermission('mentor-assignment.manage');
+  const canManageContent = hasPermission(['program-content.view', 'program-content.manage']);
+  const canViewDefinitions = hasPermission('component-definition.view');
+  const addTab = useAdminStore((state) => state.addTab);
   const {
     adminPrograms,
     fetchAdminPrograms,
@@ -76,9 +80,11 @@ export default function ProgramsView() {
     void Promise.all([
       fetchAdminPrograms({ per_page: 100 }),
       apiClient.admin.tags.list().then((response) => setTags(unwrapArray<ProgramTag>(response.data))),
-      apiClient.admin.componentDefinitions.list().then((response) => setDefinitions(unwrapArray<ComponentDefinition>(response.data))),
+      canViewDefinitions
+        ? apiClient.admin.componentDefinitions.list().then((response) => setDefinitions(unwrapArray<ComponentDefinition>(response.data)))
+        : Promise.resolve(),
     ]).catch(() => undefined);
-  }, [fetchAdminPrograms]);
+  }, [canViewDefinitions, fetchAdminPrograms]);
 
   const filtered = useMemo(() => {
     const query = search.trim().toLocaleLowerCase('id-ID');
@@ -206,6 +212,7 @@ export default function ProgramsView() {
                     <DropdownMenuContent align="end" className="w-52">
                       <DropdownMenuLabel>Aksi program</DropdownMenuLabel>
                       {canUpdate && <DropdownMenuItem onClick={() => void openEdit(program)}><Edit3 className="mr-2 size-4" />Edit konfigurasi</DropdownMenuItem>}
+                      {canManageContent && <DropdownMenuItem onClick={() => addTab({ title: `Isi · ${program.name}`, view: 'program-content', icon: 'Files', data: { programId: program.id, programName: program.name } })}><Files className="mr-2 size-4" />Kelola isi</DropdownMenuItem>}
                       {canManageSessions && <DropdownMenuItem onClick={() => setDeliveryProgram(program)}><CalendarDays className="mr-2 size-4" />Kelola Batch & sesi</DropdownMenuItem>}
                       <DropdownMenuSeparator />
                       {canPublish && (program.status === 'DRAFT' || program.status === 'UNPUBLISHED') && <DropdownMenuItem onClick={() => void transition(program, 'publish')}>Publikasikan</DropdownMenuItem>}

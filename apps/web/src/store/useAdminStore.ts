@@ -11,6 +11,7 @@ export type AdminViewKey =
   | 'programs'
   | 'tags'
   | 'components'
+  | 'program-content'
   | 'curriculum-builder'
   | 'menus'
   | 'roles'

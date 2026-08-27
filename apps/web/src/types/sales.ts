@@ -62,10 +62,41 @@ export interface ProgramComponent {
   component_definition_id?: number;
   code: string;
   name: string;
+  handler_template?: ComponentHandlerTemplate;
+  handler_key?: string | null;
+  icon?: string | null;
   is_enabled: boolean;
   label?: string | null;
   sort_order: number;
   configuration: Record<string, unknown>;
+}
+
+export type ComponentContentStatus = 'DRAFT' | 'PUBLISHED';
+export interface MediaAsset {
+  id: number; program_id: number; original_name: string; mime_type: string;
+  extension: string; size_bytes: number; checksum_sha256: string; deleted_at?: string | null;
+}
+export interface ProgramComponentContent {
+  id: number; program_component_id: number; title: string; slug: string;
+  summary?: string | null; body?: string | null; external_url?: string | null;
+  payload?: Record<string, unknown> | null; status: ComponentContentStatus;
+  published_at?: string | null; sort_order: number; media_asset?: MediaAsset | null;
+  deleted_at?: string | null;
+}
+export interface ProgramComponentContentPayload {
+  title: string; slug?: string; summary?: string | null; body?: string | null;
+  external_url?: string | null; media_asset_id?: number | null;
+  payload?: Record<string, unknown> | null; status: ComponentContentStatus;
+  sort_order?: number; reason: string;
+}
+export interface ProgramModule {
+  id: number; program_id: number; title: string; description?: string | null;
+  order: number; is_published: boolean; lessons: ProgramLesson[];
+}
+export interface ProgramLesson {
+  id: number; title: string; slug: string; content_kind: Exclude<ComponentHandlerTemplate, 'FORM' | 'IFRAME' | 'NATIVE'>;
+  content_body?: string | null; external_url?: string | null; duration_minutes: number;
+  order: number; is_published: boolean; is_preview: boolean; media_asset?: MediaAsset | null;
 }
 
 export interface ProgramChild {

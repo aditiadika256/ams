@@ -3,6 +3,11 @@ import { ApiResponse, User, RegisterData } from '../types/auth';
 import {
   ComponentDefinition,
   ComponentDefinitionPayload,
+  ProgramComponentContent,
+  ProgramComponentContentPayload,
+  MediaAsset,
+  ProgramModule,
+  ProgramLesson,
   CreateOrderPayload,
   Order,
   PaginatedResponse,
@@ -16,7 +21,7 @@ import {
   ProgramWizardPayload,
 } from '../types/sales';
 import { ExamSession, Question, ExamResult } from '../types/cbt';
-import { CurriculumModule, WorkspaceAccess, WorkspacePage, WorkspaceSessionUpdate } from '../types/workspace';
+import { CurriculumModule, WorkspaceAccess, WorkspaceComponentContent, WorkspaceComponentSubmission, WorkspacePage, WorkspaceSessionUpdate } from '../types/workspace';
 import { Menu } from '../types/system';
 import { ColorPalette, ColorPaletteFormData } from '../types/theme';
 import { clearBrowserSession } from './session';
@@ -262,6 +267,18 @@ export const apiClient = {
       const response = await api.get<ApiResponse<CurriculumModule[]>>(`/workspace/accesses/${accessId}/curriculum`);
       return response.data;
     },
+    componentContents: async (accessId: number, componentId: number) => {
+      const response = await api.get<ApiResponse<WorkspaceComponentContent[]>>(`/workspace/accesses/${accessId}/components/${componentId}/contents`);
+      return response.data;
+    },
+    submitComponentForm: async (accessId: number, componentId: number, contentId: number, answers: Record<string, unknown>) => {
+      const response = await api.post<ApiResponse<WorkspaceComponentSubmission>>(`/workspace/accesses/${accessId}/components/${componentId}/contents/${contentId}/submissions`, { answers });
+      return response.data;
+    },
+    downloadMedia: async (downloadUrl: string) => {
+      const path = downloadUrl.replace(/^\/api\/v1/, '');
+      return api.get<Blob>(path, { responseType: 'blob' });
+    },
     completeLesson: async (accessId: number, lessonId: number, idempotencyKey: string) => {
       const response = await api.post(`/workspace/accesses/${accessId}/lessons/${lessonId}/complete`, {
         idempotency_key: idempotencyKey,
@@ -411,15 +428,35 @@ export const apiClient = {
       },
     },
     curriculum: {
+      list: async (programId: number) => {
+        const response = await api.get<ApiResponse<ProgramModule[]>>(`/learning/programs/${programId}/curriculum`);
+        return response.data;
+      },
       modules: {
-        remove: async (id: number) => {
-          const response = await api.delete(`/learning/modules/${id}`);
+        create: async (programId: number, payload: { title: string; description?: string | null; order?: number; is_published?: boolean; reason: string }) => {
+          const response = await api.post<ApiResponse<ProgramModule>>(`/learning/programs/${programId}/modules`, payload);
+          return response.data;
+        },
+        update: async (id: number, payload: { title?: string; description?: string | null; order?: number; is_published?: boolean; reason: string }) => {
+          const response = await api.put<ApiResponse<ProgramModule>>(`/learning/modules/${id}`, payload);
+          return response.data;
+        },
+        remove: async (id: number, reason: string) => {
+          const response = await api.delete(`/learning/modules/${id}`, { data: { reason } });
           return response.data;
         },
       },
       lessons: {
-        remove: async (id: number) => {
-          const response = await api.delete(`/learning/lessons/${id}`);
+        create: async (moduleId: number, payload: Record<string, unknown>) => {
+          const response = await api.post<ApiResponse<ProgramLesson>>(`/learning/modules/${moduleId}/lessons`, payload);
+          return response.data;
+        },
+        update: async (id: number, payload: Record<string, unknown>) => {
+          const response = await api.put<ApiResponse<ProgramLesson>>(`/learning/lessons/${id}`, payload);
+          return response.data;
+        },
+        remove: async (id: number, reason: string) => {
+          const response = await api.delete(`/learning/lessons/${id}`, { data: { reason } });
           return response.data;
         },
       },
@@ -631,6 +668,42 @@ export const apiClient = {
       },
       forceDelete: async (id: number, reason: string) => {
         await api.delete(`/admin/component-definitions/${id}/force`, { data: { reason } });
+      },
+    },
+    programContents: {
+      list: async (programId: number, componentId: number, params?: { include_archived?: boolean }) => {
+        const response = await api.get<ApiResponse<ProgramComponentContent[]>>(`/admin/programs/${programId}/components/${componentId}/contents`, { params });
+        return response.data;
+      },
+      create: async (programId: number, componentId: number, payload: ProgramComponentContentPayload) => {
+        const response = await api.post<ApiResponse<ProgramComponentContent>>(`/admin/programs/${programId}/components/${componentId}/contents`, payload);
+        return response.data;
+      },
+      update: async (programId: number, componentId: number, contentId: number, payload: Partial<ProgramComponentContentPayload>) => {
+        const response = await api.put<ApiResponse<ProgramComponentContent>>(`/admin/programs/${programId}/components/${componentId}/contents/${contentId}`, payload);
+        return response.data;
+      },
+      archive: async (programId: number, componentId: number, contentId: number, reason: string) => {
+        await api.delete(`/admin/programs/${programId}/components/${componentId}/contents/${contentId}`, { data: { reason } });
+      },
+      restore: async (programId: number, componentId: number, contentId: number, reason: string) => {
+        const response = await api.post<ApiResponse<ProgramComponentContent>>(`/admin/programs/${programId}/components/${componentId}/contents/${contentId}/restore`, { reason });
+        return response.data;
+      },
+    },
+    mediaAssets: {
+      upload: async (programId: number, file: File, reason: string, onProgress?: (percent: number) => void) => {
+        const form = new FormData();
+        form.append('file', file);
+        form.append('reason', reason);
+        const response = await api.post<ApiResponse<MediaAsset>>(`/admin/programs/${programId}/media-assets`, form, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (event) => onProgress?.(event.total ? Math.round((event.loaded / event.total) * 100) : 0),
+        });
+        return response.data;
+      },
+      remove: async (programId: number, mediaAssetId: number, reason: string) => {
+        await api.delete(`/admin/programs/${programId}/media-assets/${mediaAssetId}`, { data: { reason } });
       },
     },
     branches: {
