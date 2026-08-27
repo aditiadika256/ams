@@ -52,6 +52,45 @@ it('creates and updates modules using validated data and immutable Program owner
     $this->assertDatabaseHas('audit_logs', ['entity_id' => $id, 'action' => 'program_module.updated']);
 });
 
+it('does not let a content manager edit an already published module without publish permission', function (): void {
+    $module = $this->program->modules()->create([
+        'title' => 'Published module',
+        'is_published' => true,
+    ]);
+    $manager = User::factory()->create();
+    $manager->givePermissionTo(Permission::findOrCreate('program-content.manage', 'web'));
+    Sanctum::actingAs($manager);
+
+    $this->putJson("/api/v1/learning/modules/{$module->id}", [
+        'title' => 'Unapproved published module change',
+        'reason' => 'Attempt to alter a published module.',
+    ])->assertForbidden();
+
+    expect($module->refresh()->title)->toBe('Published module');
+});
+
+it('does not let a content manager edit an already published lesson without publish permission', function (): void {
+    $module = $this->program->modules()->create(['title' => 'Module']);
+    $lesson = $module->lessons()->create([
+        'title' => 'Published lesson',
+        'slug' => 'published-lesson',
+        'content_kind' => ComponentHandlerTemplate::Information->value,
+        'content_type' => 'text',
+        'content_body' => 'Original member-visible content.',
+        'is_published' => true,
+    ]);
+    $manager = User::factory()->create();
+    $manager->givePermissionTo(Permission::findOrCreate('program-content.manage', 'web'));
+    Sanctum::actingAs($manager);
+
+    $this->putJson("/api/v1/learning/lessons/{$lesson->id}", [
+        'content_body' => 'Unapproved member-visible change.',
+        'reason' => 'Attempt to alter a published lesson.',
+    ])->assertForbidden();
+
+    expect($lesson->refresh()->content_body)->toBe('Original member-visible content.');
+});
+
 it('allows incomplete lesson drafts but validates the selected kind at publication', function (): void {
     $module = $this->program->modules()->create(['title' => 'Draft Module']);
 

@@ -11,9 +11,12 @@ class ProgramLessonUpdateRequest extends BaseFormRequest
     public function authorize(): bool
     {
         $user = $this->user();
+        $lesson = $this->route('lesson');
+        $requiresPublishPermission = ($lesson?->is_published ?? false)
+            || $this->boolean('is_published');
 
         return ($user?->checkPermissionTo('program-content.manage', 'web') ?? false)
-            && (! $this->boolean('is_published') || ($user?->checkPermissionTo('program-content.publish', 'web') ?? false));
+            && (! $requiresPublishPermission || ($user?->checkPermissionTo('program-content.publish', 'web') ?? false));
     }
 
     public function rules(): array

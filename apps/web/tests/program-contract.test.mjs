@@ -153,6 +153,8 @@ test('program content authoring only exposes publish and upload controls to perm
   assert.match(genericEditor + materialEditor, /canUpload/);
   assert.match(contentForm, /canPublish/);
   assert.match(contentForm, /canUpload/);
+  assert.match(materialEditor, /state\?\.module\?\.is_published && !canPublish/);
+  assert.match(materialEditor, /state\?\.lesson\?\.is_published && !canPublish/);
 });
 
 test('workspace renders published generic and material content without exposing storage paths', async () => {
