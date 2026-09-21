@@ -60,8 +60,20 @@ Route::prefix('v1')->group(function () {
         Route::post('session-updates/{sessionUpdate}/acknowledge', [\App\Domain\Workspace\WorkspaceSessionUpdateController::class, 'acknowledge']);
     });
 
-    Route::get('mentor/sessions/{session}/participants', \App\Domain\Learning\MentorSessionParticipantController::class)
-        ->middleware('auth:sanctum');
+    // Mentor Application Public Form
+    Route::post('mentor-applications', [\App\Domain\Learning\MentorApplicationController::class, 'apply']);
+
+    // Mentor Operations (A-Teams Workspace)
+    Route::prefix('mentor')->middleware('auth:sanctum')->group(function () {
+        Route::get('schedules', [\App\Domain\Learning\SessionAttendanceController::class, 'mentorSchedules']);
+        Route::get('session-logs', [\App\Domain\Learning\SessionAttendanceController::class, 'sessionLogs']);
+        Route::get('payslips/{id}', [\App\Domain\Learning\SessionAttendanceController::class, 'digitalPayslip']);
+        Route::get('sessions/{session}/attendances', [\App\Domain\Learning\SessionAttendanceController::class, 'index']);
+        Route::post('sessions/{session}/attendances', [\App\Domain\Learning\SessionAttendanceController::class, 'recordAttendance']);
+        Route::post('sessions/{session}/complete-and-log', [\App\Domain\Learning\SessionAttendanceController::class, 'completeAndLog']);
+        Route::get('sessions/{session}/participants', \App\Domain\Learning\MentorSessionParticipantController::class);
+    });
+
 
     // CBT
     Route::get('exams/packages', [\App\Domain\CBT\ExamController::class, 'index'])->middleware('auth:sanctum');
@@ -174,7 +186,14 @@ Route::prefix('v1')->group(function () {
         Route::get('withdrawals', [\App\Domain\Finance\WalletController::class, 'adminWithdrawals']);
         Route::post('withdrawals/{id}/approve', [\App\Domain\Finance\WalletController::class, 'adminApproveWithdrawal']);
         Route::post('withdrawals/{id}/reject', [\App\Domain\Finance\WalletController::class, 'adminRejectWithdrawal']);
+
+        // Mentor Recruitment & Attendance Management
+        Route::get('mentor-applications', [\App\Domain\Learning\MentorApplicationController::class, 'index']);
+        Route::get('mentor-applications/{id}', [\App\Domain\Learning\MentorApplicationController::class, 'show']);
+        Route::patch('mentor-applications/{id}/status', [\App\Domain\Learning\MentorApplicationController::class, 'updateStatus']);
+        Route::post('sessions/{session}/attendances', [\App\Domain\Learning\SessionAttendanceController::class, 'recordAttendance']);
     });
+
 
 
 

@@ -352,8 +352,64 @@ export const apiClient = {
     },
   },
 
+  // Mentor A-Teams endpoints
+  mentor: {
+    schedules: async () => {
+      const response = await api.get<ApiResponse<any[]>>('/mentor/schedules');
+      return response.data;
+    },
+    sessionLogs: async () => {
+      const response = await api.get<ApiResponse<any>>('/mentor/session-logs');
+      return response.data;
+    },
+    payslip: async (id: number) => {
+      const response = await api.get<ApiResponse<any>>(`/mentor/payslips/${id}`);
+      return response.data;
+    },
+    getAttendances: async (sessionId: number) => {
+      const response = await api.get<ApiResponse<any>>(`/mentor/sessions/${sessionId}/attendances`);
+      return response.data;
+    },
+    recordAttendance: async (sessionId: number, attendances: Array<{
+      program_access_id: number;
+      user_id: number;
+      status: string;
+      notes?: string;
+    }>) => {
+      const response = await api.post<ApiResponse<any>>(`/mentor/sessions/${sessionId}/attendances`, { attendances });
+      return response.data;
+    },
+    completeAndLog: async (sessionId: number, payload: {
+      topic: string;
+      notes?: string;
+      duration_minutes?: number;
+      hourly_rate?: number;
+    }) => {
+      const response = await api.post<ApiResponse<any>>(`/mentor/sessions/${sessionId}/complete-and-log`, payload);
+      return response.data;
+    },
+  },
+
+  // Public Mentor Application
+  mentorApplications: {
+    apply: async (payload: {
+      name: string;
+      email: string;
+      phone: string;
+      specialization: string;
+      ktp_number?: string;
+      cv_url?: string;
+      certificate_url?: string;
+      teaching_video_url?: string;
+    }) => {
+      const response = await api.post<ApiResponse<any>>('/mentor-applications', payload);
+      return response.data;
+    },
+  },
+
   // CBT endpoints
   cbt: {
+
 
     getPackages: async (programAccessId: number) => {
       const response = await api.get<ApiResponse<any[]>>('/exams/packages', { params: { program_access_id: programAccessId } });
@@ -837,8 +893,28 @@ export const apiClient = {
         return response.data;
       },
     },
+    mentorApplications: {
+      list: async (params?: { status?: string; search?: string; page?: number }) => {
+        const response = await api.get<ApiResponse<any>>('/admin/mentor-applications', { params });
+        return response.data;
+      },
+      get: async (id: number) => {
+        const response = await api.get<ApiResponse<any>>(`/admin/mentor-applications/${id}`);
+        return response.data;
+      },
+      updateStatus: async (id: number, payload: {
+        status: string;
+        written_test_score?: number;
+        interview_notes?: string;
+        assigned_role?: string;
+      }) => {
+        const response = await api.patch<ApiResponse<any>>(`/admin/mentor-applications/${id}/status`, payload);
+        return response.data;
+      },
+    },
   },
 };
+
 
 
 export default api;

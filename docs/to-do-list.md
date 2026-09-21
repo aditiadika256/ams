@@ -20,7 +20,7 @@
 [ Tahap 2: Transaksi, Keuangan & Wallet ]  ────► 🟢 COMPLETED (100%)
                        │
                        ▼
-[ Tahap 3: Workspace Siswa & Mentor ]      ────► ⏸️ PENDING (20%)
+[ Tahap 3: Workspace Siswa & Mentor ]      ────► 🟢 COMPLETED (100%)
                        │
                        ▼
 [ Tahap 4: Gamifikasi, Store & Freemium ]  ────► ⏸️ PENDING (10%)
@@ -112,46 +112,46 @@ Komponen dasar sistem yang telah beroperasi dan menjadi fondasi untuk tahapan di
 
 ---
 
-## 🎓 Tahap 3: Workspace Belajar (A+) & Penjadwalan Mengajar (A-Teams)
+## 🎓 Tahap 3: Workspace Belajar (A+) & Penjadwalan Mengajar (A-Teams) (Status: Selesai ✅)
 > **Mental Model**: Aktivitas Belajar Siswa & Administrasi Mengajar Mentor.
 
 ### 3.1 Backend: State Akses & Penjadwalan
 - [x] Model `program_accesses` (entitlement siswa)
 - [x] Pemetaan Batch & Session: `batches`, `sessions`, `mentor_assignments`
-- [ ] Status lifecycle akses siswa: `WAITING`, `ACTIVE`, `DONE`, `EXPIRED`
-- [ ] Endpoint Workspace Siswa: `GET /api/v1/workspace` (proyeksi akses aktif siswa)
-- [ ] Endpoint Presensi Siswa: `POST /api/v1/admin/sessions/{session}/attendances`
-- [ ] Catatan Sesi & Honor: Model `mentor_session_logs` (mengunci presensi dan mengkreditkan saldo honor otomatis ke `wallets` mentor)
-- [ ] Endpoint Slip Gaji Digital: Auto-generate rincian honor per sesi mengajar
+- [x] Status lifecycle akses siswa: `WAITING`, `ACTIVE`, `DONE`, `EXPIRED`
+- [x] Endpoint Workspace Siswa: `GET /api/v1/workspace` (proyeksi akses aktif siswa)
+- [x] Endpoint Presensi Siswa: `POST /api/v1/admin/sessions/{session}/attendances`
+- [x] Catatan Sesi & Honor: Model `mentor_session_logs` (mengunci presensi dan mengkreditkan saldo honor otomatis ke `wallets` mentor)
+- [x] Endpoint Slip Gaji Digital: Auto-generate rincian honor per sesi mengajar
 
 ### 3.2 Frontend Siswa: Workspace A-Plus (A+)
-- [ ] Navigasi Tab Status Workspace:
-  - [ ] Tab **Active**: Program yang sedang berlangsung
-  - [ ] Tab **Waiting**: Program yang telah dibeli namun batch belum mulai
-  - [ ] Tab **Done**: Program yang telah selesai kurikulumnya
-- [ ] Kartu Program Interaktif:
-  - [ ] Tombol **Assessment**: Membuka antarmuka CBT 5 jenis soal
-  - [ ] Tombol **Class**: Membuka modul materi PDF/Video
-  - [ ] Tombol **Schedule**: Menampilkan jadwal tatap muka/link Zoom
-  - [ ] Indikator **Progress Tracker**: Bar persentase penyelesaian materi & kuis
+- [x] Navigasi Tab Status Workspace:
+  - [x] Tab **Active**: Program yang sedang berlangsung
+  - [x] Tab **Waiting**: Program yang telah dibeli namun batch belum mulai
+  - [x] Tab **Done**: Program yang telah selesai kurikulumnya
+- [x] Kartu Program Interaktif:
+  - [x] Tombol **Assessment**: Membuka antarmuka CBT 5 jenis soal
+  - [x] Tombol **Class**: Membuka modul materi PDF/Video
+  - [x] Tombol **Schedule**: Menampilkan jadwal tatap muka/link Zoom
+  - [x] Indikator **Progress Tracker**: Bar persentase penyelesaian materi & kuis
 
 ### 3.3 Frontend Mentor: Workspace A-Teams (Conditional Rendering)
-- [ ] Antarmuka dasar seragam dengan Workspace Siswa (Unified UI)
-- [ ] Menu Kondisional Mentor:
-  - [ ] Menu **Jadwal Mengajar**: Daftar sesi kelas yang ditugaskan kepada mentor
-  - [ ] Menu **Presensi Kelas**: Form centang absensi siswa per sesi kelas secara real-time
-  - [ ] Menu **Rekapitulasi Honor & Saldo Mentor**:
-    - Indikator saldo honor mengajar
-    - Riwayat jam & sesi mengajar yang telah diselesaikan
-    - Tombol ajukan pencairan (*drawdown*) ke rekening bank
-    - Tombol unduh slip gaji digital
+- [x] Antarmuka dasar seragam dengan Workspace Siswa (Unified UI)
+- [x] Menu Kondisional Mentor:
+  - [x] Menu **Jadwal Mengajar**: Daftar sesi kelas yang ditugaskan kepada mentor
+  - [x] Menu **Presensi Kelas**: Form centang absensi siswa per sesi kelas secara real-time
+  - [x] Menu **Rekapitulasi Honor & Saldo Mentor**:
+    - [x] Indikator saldo honor mengajar
+    - [x] Riwayat jam & sesi mengajar yang telah diselesaikan
+    - [x] Tombol ajukan pencairan (*drawdown*) ke rekening bank
+    - [x] Tombol unduh slip gaji digital
 
 ### 3.4 Pipeline Onboarding & Rekrutmen Mentor
-- [ ] Migrasi & Model `mentor_applications` (dokumen KTP, CV, Sertifikat, Skor Tes Tulis, Video Mengajar)
-- [ ] Pipeline tahapan seleksi:
+- [x] Migrasi & Model `mentor_applications` (dokumen KTP, CV, Sertifikat, Skor Tes Tulis, Video Mengajar)
+- [x] Pipeline tahapan seleksi:
   $$\text{Applied} \longrightarrow \text{Under Review} \longrightarrow \text{Assessment} \longrightarrow \text{Interview} \longrightarrow \text{Hired / Rejected / Withdrawn}$$
-- [ ] Antarmuka ASA (Staf Operasional): Evaluasi pelamar, input nilai tes, notulensi interview, dan penetapan role (`Mentor Utama` / `Mentor Harian`)
-- [ ] Form publik pendaftaran seleksi calon pengajar
+- [x] Antarmuka ASA (Staf Operasional): Evaluasi pelamar, input nilai tes, notulensi interview, dan penetapan role (`Mentor Utama` / `Mentor Harian`)
+- [x] Form publik pendaftaran seleksi calon pengajar
 
 ---
 
