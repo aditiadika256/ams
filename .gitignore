@@ -44,3 +44,5 @@ yarn-error.log*
 .kiro/*
 .opencode/*
 .worktrees/
+.claude/*
+docs/ui-wireframe-design/*

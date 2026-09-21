@@ -1,4 +1,11 @@
-# Program Master LoV Implementation Plan
+# [SUPERSEDED] Program Master LoV Implementation Plan
+
+> [!WARNING]
+> **DOKUMEN INI TELAH DIGANTIKAN (SUPERSEDED)**
+> Rencana implementasi ini tidak lagi valid karena model `ProgramLevel` dan `ProgramType` telah dieliminasi dari sistem Arkanin.
+> Silakan merujuk ke rencana kerja terkini pada:
+> - **[2026-09-21-PRD-ekosistem-dan-mekanisme-baru.md](file:///d:/project/ams/docs/plans/2026-09-21-PRD-ekosistem-dan-mekanisme-baru.md)**
+> - **[Master To-Do List (2026-09-21)](file:///d:/project/ams/docs/to-do-list.md)**
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task.
 

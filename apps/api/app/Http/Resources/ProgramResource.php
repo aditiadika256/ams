@@ -32,6 +32,18 @@ class ProgramResource extends BaseResource
                 'label' => $component->label,
                 'sort_order' => $component->sort_order,
             ])->values()),
+            'batches' => $this->whenLoaded('batches', fn () => $this->batches->map(fn ($batch): array => [
+                'id' => $batch->id,
+                'name' => $batch->name,
+                'code' => $batch->code,
+                'starts_at' => $batch->starts_at?->toIso8601String(),
+                'ends_at' => $batch->ends_at?->toIso8601String(),
+                'capacity' => $batch->capacity,
+                'enrolled_count' => $batch->enrolled_count,
+                'mode' => $batch->mode->value,
+                'status' => $batch->status->value,
+                'price_override' => $batch->price_override,
+            ])->values()),
         ];
     }
 

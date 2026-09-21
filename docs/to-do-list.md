@@ -1,255 +1,234 @@
-# Edutech Platform - To-Do List
-**Status**: In Progress | **Last Updated**: 2025-12-19
+# Arkanin Education Platform - Master To-Do List
 
-## 📋 Phase 1: Foundation (Week 1-2) - CRITICAL
-**Goal**: Setup infrastructure & basic auth
-
-### 1.1 Infrastructure Setup ✅ (100% DONE)
-- [x] Docker compose setup (postgres, redis, api, web, nginx)
-- [x] Environment files (.env.example)
-- [x] Database migrations (users, roles, permissions)
-- [x] Session migration & table creation
-- [x] Storage link creation
-- [x] Verify all containers running
-
-### 1.2 Backend Authentication & RBAC ✅ (COMPLETED - 2025-10-27)
-- [x] Install packages (Sanctum, Spatie Permission)
-- [x] Create User model with HasApiTokens & HasRoles
-- [x] Create AuthController (login, logout, me)
-- [x] Create seeders (roles, permissions, superadmin user)
-- [x] **FIX**: Register API routes in bootstrap/app.php
-- [x] **FIX**: Add Sanctum guard in config/auth.php
-- [x] **FIX**: Configure CORS for frontend
-- [x] **ADD**: API response helper/formatter (ApiResponse trait)
-- [x] **ADD**: Google OAuh Integration & Password Hardening (2026-02-15)
-- [x] Test login flow with superadmin credentials
-- [x] **UPDATE**: Add Branch/Instansi support (Migration & Model) (2025-12-23)
-- [x] **UPDATE**: Enhance Roles & Permissions for specific roles (Direktur, Manajer Cabang, etc.) (2025-12-23)
-- [x] **UPDATE**: Add branch_id to Users table (2025-12-23)
-
-### 1.3 API Structure Setup ✅ (COMPLETED)
-- [x] Create base Controller with helper methods
-- [x] Create API response trait/formatter (ApiResponse trait - DONE in 1.2)
-- [x] Setup route versioning (/api/v1) (Already configured)
-- [x] Create Form Request classes (BaseFormRequest, LoginRequest, RegisterRequest)
-- [x] Create API Resource classes (BaseResource, UserResource)
-- [x] Add API documentation structure (Swagger/OpenAPI with L5-Swagger)
+| Metadata | Nilai |
+| --- | --- |
+| **Status** | In Progress (Active Sprint) |
+| **Versi To-Do** | 2.0 (Ekosistem & Mekanisme Baru) |
+| **Tanggal Pembaruan** | 21 September 2026 |
+| **Target Host** | `lms.arkanin.my.id` (Single Entry Portal) |
+| **Referensi PRD Utama** | [2026-09-21-PRD-ekosistem-dan-mekanisme-baru.md](file:///d:/project/ams/docs/plans/2026-09-21-PRD-ekosistem-dan-mekanisme-baru.md) |
+| **Referensi Arsitektur** | [2026-08-20-PRD-refactor-programs-workspace.md](file:///d:/project/ams/docs/plans/2026-08-20-PRD-refactor-programs-workspace.md) |
 
 ---
 
-## 📋 Phase 2: Core Features (Week 3-4)
-**Goal**: Business logic - Auth flows, Programs, Orders
+## 🧭 Peta Progres & Urutan Prioritas 5 Tahap
 
-### 2.1 Frontend Auth Integration ✅ (COMPLETED - 2025-10-28)
-- [x] Setup API client with interceptors (axios dengan token injection & error handling)
-- [x] Create auth context/store (Zustand dengan persist)
-- [x] Build login page (dengan react-hook-form & zod validation)
-- [x] Build register page (dengan react-hook-form & zod validation)
-- [x] Implement token refresh logic (optional - akan diimplement nanti jika diperlukan)
-- [x] Add protected route middleware (ProtectedRoute component)
-- [x] Test login/logout flow end-to-end ✅ (COMPLETED - Login & logout tested successfully)
-
-### 2.2 Programs & Orders (Backend) ✅ (COMPLETED - 2025-12-19)
-- [x] Create Program model & migration
-- [x] Create Order model & migration
-- [x] Create ProgramController
-- [x] Create OrderController
-- [x] Add payment status webhook endpoint
-- [x] Create ProgramSeeder
-- [x] Test CRUD operations
-
-### 2.3 Programs & Orders (Frontend) ✅ (COMPLETED - 2025-12-19)
-- [x] Build program list page
-- [x] Build program detail page
-- [x] Build checkout flow
-- [x] Integrate with payment gateway
-- [x] Build order history page
+```text
+[ Tahap 1: Pondasi Master Data & Katalog ] ────► 🟢 COMPLETED (100%)
+                       │
+                       ▼
+[ Tahap 2: Transaksi, Keuangan & Wallet ]  ────► 🟡 IN PROGRESS (40%)
+                       │
+                       ▼
+[ Tahap 3: Workspace Siswa & Mentor ]      ────► ⏸️ PENDING (20%)
+                       │
+                       ▼
+[ Tahap 4: Gamifikasi, Store & Freemium ]  ────► ⏸️ PENDING (10%)
+                       │
+                       ▼
+[ Tahap 5: Sertifikasi & Multi-Cabang ]    ────► ⏸️ PENDING (30%)
+```
 
 ---
 
-## 📋 Phase 3: CBT System (Week 5-6)
-**Goal**: Computer-based testing implementation
+## 🏗️ Fondasi Infrastruktur & Core Auth (Status: Selesai ✅)
 
-### 3.1 CBT Backend 🟡
-- [x] Create question_banks & questions tables
-- [x] Create exam_packages & exam_sessions tables
-- [x] Create exam_attempts & exam_answers tables
-- [x] Create QuestionBank & Question models
-- [x] Create ExamPackage & ExamSession models
-- [x] Create ExamAttempt & ExamAnswer models
-- [x] Build start exam endpoint
-- [x] Build fetch questions endpoint
-- [x] Build autosave answer endpoint
-- [x] Build submit exam endpoint
-- [x] Implement scoring logic
-- [x] Build exam results endpoint
-
-### 3.2 CBT Frontend 🟡
-- [x] Build exam start page
-- [x] Build exam interface (questions, timer, navigation)
-- [x] Implement autosave functionality
-- [x] Build question navigation
-- [x] Build submit confirmation modal
-- [x] Build results page
-- [x] Add timer countdown
-- [x] Add exam instructions page
-
-### 3.3 CBT Anti-Cheat (Basic) �
-- [x] Add focus/blur event logging
-- [x] Create proctor_events table
-- [x] Add heartbeat endpoint
-- [x] Add multi-tab detection
-- [x] Create suspicious activity log
+Komponen dasar sistem yang telah beroperasi dan menjadi fondasi untuk tahapan di bawah:
+- [x] Docker compose setup (PostgreSQL, Redis, Laravel API, Next.js Web, Nginx)
+- [x] Backend Auth & Sanctum Bearer Token (`/api/v1/auth/*`)
+- [x] Spatie Laravel Permission (RBAC: Superadmin, Branch Roles, User)
+- [x] Google OAuth Integration (Socialite & token exchange)
+- [x] Dukungan entitas `branches` dan kolom `branch_id` pada tabel `users`
+- [x] Frontend Auth Context & Store (Zustand persist + Axios interceptor)
+- [x] Base layout dialog & Form modal glassmorphism
 
 ---
 
-## 📋 Phase 4: Admin & Management (Week 7-8)
-**Goal**: Content management & analytics
+## 📋 Tahap 1: Pondasi Master Data & Katalog Program (Status: Selesai ✅)
+> **Mental Model**: Katalog Program Modular & Bank Soal 5 Tipe. Selesaikan ini sebelum transaksi dan jadwal.
 
-### 4.1 Admin Backend ✅ (COMPLETED - 2025-12-23)
-- [x] Create CMS models (posts, pages, media)
-- [x] Create CMS controllers
-- [x] Build admin dashboard API
-- [x] Create finance reports API
-- [x] Create user management API
-- [x] Create role assignment API
-- [x] Create Swagger documentation for all APIs
-- [x] Create Postman documentation (`docs/api/admin-cms.md`)
+### 1.1 Backend: Master Program Modular & Content Management
+- [x] Bersihkan dependensi legacy `ProgramLevel` & `ProgramType` dari model `Program`
+- [x] Implementasi skema modular: `programs`, `tags`, `program_components`, `program_relations` (Collection)
+- [x] API Katalog Publik: `GET /api/v1/programs` (hanya status `PUBLISHED`) dan `GET /api/v1/programs/{slug-or-id}`
+- [x] API Admin Program: CRUD draft, lifecycle toggle (`publish`, `unpublish`, `archive`, `restore`) dengan audit trail
+- [x] Modul Materi Pembelajaran: Relasi `modules` dan `lessons` (PDF terproteksi & Video embed)
+- [x] Endpoint klaim kode pendaftaran promosi: `POST /api/v1/access/redeem-enrollment-code`
 
-### 4.2 Admin Frontend ✅ (COMPLETED - 2025-12-24)
-- [x] Build admin dashboard layout
-- [x] Build user management page
-- [x] Build finance reports page
-- [x] Build CMS editor
-- [x] Build analytics dashboard
+### 1.2 Backend: Bank Soal & Engine CBT 5 Jenis Pertanyaan
+- [x] Tabel `question_banks`, `questions`, `exam_packages`, `exam_sessions`
+- [x] Refactor skema `questions` untuk mendukung 5 jenis tipe pertanyaan terstandarisasi:
+  - [x] `single_choice` (Pilihan Ganda Tunggal)
+  - [x] `multiple_choice` (Pilihan Ganda Kompleks / Checkbox)
+  - [x] `true_false` (Benar / Salah bertingkat)
+  - [x] `matching` (Menjodohkan / Pasangan Konsep)
+  - [x] `short_answer` (Esai Singkat / Isian Kata Kunci)
+- [x] Endpoint mulai ujian: `POST /api/v1/exams/start`
+- [x] Endpoint autosave jawaban: `POST /api/v1/exams/autosave`
+- [x] Endpoint submit ujian & kalkulasi passing grade: `POST /api/v1/exams/submit`
+- [x] Endpoint fetch daftar butir soal teracak sesuai 5 jenis format render
 
-### 4.3 Mentor Module ✅
-- [x] Create mentor model & migration
-- [x] Create schedule management
-- [x] Create curriculum builder
-- [x] Build mentor dashboard
-
----
-
-## 📋 Phase 5: Finance & Analytics (Week 9-10)
-**Goal**: Financial tracking & business intelligence
-
-### 5.1 Finance Backend ✅ (COMPLETED - 2025-12-24)
-- [x] Create transactions table
-- [x] Build transaction tracking
-- [x] Create invoicing system
-- [x] Build financial reports (Stats API)
-- [x] Add export functionality (CSV/PDF)
-
-### 5.2 Analytics Backend ✅ (COMPLETED - 2025-12-24)
-- [x] Build exam analytics API
-- [x] Create user progress tracking
-- [x] Build recommendation engine
-- [x] Create performance metrics
-
-### 5.3 Reports Frontend ✅ (COMPLETED - 2025-12-24)
-- [x] Build finance dashboard (FinanceView)
-- [x] Build analytics charts
-- [x] Add export functionality (CSV/PDF)
-- [x] Build custom report builder
+### 1.3 Frontend: Katalog & Antarmuka Program
+- [x] Halaman Katalog Program (`/programs`) dengan kartu program responsif
+- [x] Halaman Detail Program (`/programs/[slug]`) menampilkan ringkasan materi, mentor, dan fasilitas
+- [x] Filter kategori & pencarian berbasis `tags`
+- [x] Modal dialog input klaim **Enrollment Code** promosi/gratis
+- [x] Integrasi state seleksi batch pelaksanaan pada halaman detail program
 
 ---
 
-## 📋 Phase 6: Polish & Launch (Week 11-12)
-**Goal**: Testing, security, documentation
+## 💳 Tahap 2: Transaksi, Keuangan & Pembuatan Enrollment
+> **Mental Model**: Checkout, Invoicing, Approval, dan Dual-Wallet Engine.
 
-### 6.1 Testing 🟡
-- [ ] Backend unit tests (Models, Actions)
-- [ ] Backend feature tests (Endpoints)
-- [ ] Frontend component tests
-- [ ] E2E tests (Playwright)
-- [ ] Load testing
+### 2.1 Backend: Transaksi & Payment Gateway
+- [x] Tabel `orders`, `order_items`, `transactions`
+- [x] Integrasi Payment Gateway (Virtual Account, E-Wallet, QRIS)
+- [x] Endpoint Webhook pembayaran: `POST /api/v1/payments/webhook` dengan verifikasi signature
+- [x] Auto-generate Invoice terstandarisasi (nomor unik per cabang)
+- [ ] Pemicu notifikasi tagihan & kuitansi via WhatsApp (Fonnte/Wablas)
+- [ ] Workflow Approval Transaksi: Endpoint `POST /api/v1/admin/transactions/{id}/approve` dan `reject` oleh Admin Keuangan (ASD)
+- [ ] Auto-grant `ProgramAccess` seketika saat pembayaran lunas atau transaksi di-approve
 
-### 6.2 Security Hardening ✅
-- [x] Rate limiting setup (Throttle middleware)
-- [x] Input validation enhancement (Password complexity)
-- [ ] SQL injection prevention audit
-- [ ] XSS prevention audit
-- [ ] CSRF protection verification
-- [ ] Security headers configuration
-- [x] API key rotation setup (Sanctum Tokens)
+### 2.2 Backend: Dual-Wallet Engine (Saldo Siswa & Saldo Mentor)
+- [ ] Migrasi & Model `wallets` (`user_id`, `type` [`student`, `mentor`], `balance`, `pending_balance`)
+- [ ] Migrasi & Model `wallet_transactions` (ledger double-entry: `type` [`credit`, `debit`], `reference_type`, `amount`, `balance_after`)
+- [ ] Event Auto-Rollback: Jika transaksi program ditolak/batal, dana dikreditkan otomatis ke `wallets` siswa (Student Wallet)
+- [ ] Migrasi & Model `withdrawals` (tiket pengajuan penarikan dana ke rekening bank)
+- [ ] Fitur Keamanan: Hashing PIN Transaksi 6-digit pada `users` (`pin_hash`) dan rate-limiting proteksi brute-force (3x salah lockout 30 menit)
+- [ ] Endpoint Dompet Siswa: `GET /api/v1/wallet/me`, `POST /api/v1/wallet/pay-order`
+- [ ] Endpoint Pengajuan Pencairan: `POST /api/v1/wallet/withdraw` (validasi PIN)
+- [ ] Endpoint Manajemen ASD: Verifikasi pencairan saldo, input nomor referensi transfer bank, dan unggah bukti transfer
 
-### 6.3 Documentation ✅
-- [x] API documentation (OpenAPI/Swagger)
-- [x] API documentation (Postman/Markdown) (`docs/api/*.md`)
-- [x] Architecture documentation (`docs/auth/development-guide.md`)
-- [x] Setup guide (`docs/auth/google-integration.md`)
-- [x] Deployment guide (`docs/deployment.md`)
-- [ ] User manual
-- [ ] Developer onboarding guide
-
-### 6.4 CI/CD & DevOps 🟡
-- [ ] Setup GitHub Actions
-- [ ] Lint & test automation
-- [ ] Docker image builds
-- [ ] Deployment automation
-- [ ] Monitoring setup
-- [ ] Backup strategy
-
-### 6.5 Seed Data & Demo 🟡
-- [ ] Create comprehensive seeders
-- [ ] Build demo scenarios
-- [ ] Create sample exam packages
-- [ ] Add test users for all roles
-- [ ] Prepare demo data script
+### 2.3 Frontend: Checkout, Invoicing & User Wallet
+- [x] Halaman Checkout program & pemilihan metode pembayaran
+- [x] Halaman Riwayat Order dengan tab status (Menunggu Pembayaran, Diproses, Selesai, Dibatalkan)
+- [ ] Halaman Saldo Akun (*User Wallet View*):
+  - [ ] Widget informasi total saldo aktif & saldo dalam proses penarikan
+  - [ ] Riwayat mutasi kredit/debit dompet
+  - [ ] Modal dialog setelan & ganti PIN Transaksi 6-digit
+  - [ ] Modal dialog form pengajuan penarikan dana (Withdrawal) ke bank
+  - [ ] Opsi bayar cepat menggunakan Saldo Dompet saat checkout
 
 ---
 
-## 🚨 Immediate Actions (Next 2 Days)
-**Priority 1**: ✅ Fix backend authentication (COMPLETED)
-1. ✅ Register API routes in bootstrap/app.php
-2. ✅ Add Sanctum guard to config/auth.php
-3. ✅ Setup CORS configuration
-4. ✅ Test login endpoint
-5. ✅ Verify token generation
+## 🎓 Tahap 3: Workspace Belajar (A+) & Penjadwalan Mengajar (A-Teams)
+> **Mental Model**: Aktivitas Belajar Siswa & Administrasi Mengajar Mentor.
 
-**Priority 2**: Complete infrastructure
-1. Create session migration
-2. Run all migrations
-3. Create storage link
-4. Verify database connectivity
-5. Test all containers
+### 3.1 Backend: State Akses & Penjadwalan
+- [x] Model `program_accesses` (entitlement siswa)
+- [x] Pemetaan Batch & Session: `batches`, `sessions`, `mentor_assignments`
+- [ ] Status lifecycle akses siswa: `WAITING`, `ACTIVE`, `DONE`, `EXPIRED`
+- [ ] Endpoint Workspace Siswa: `GET /api/v1/workspace` (proyeksi akses aktif siswa)
+- [ ] Endpoint Presensi Siswa: `POST /api/v1/admin/sessions/{session}/attendances`
+- [ ] Catatan Sesi & Honor: Model `mentor_session_logs` (mengunci presensi dan mengkreditkan saldo honor otomatis ke `wallets` mentor)
+- [ ] Endpoint Slip Gaji Digital: Auto-generate rincian honor per sesi mengajar
 
-**Priority 3**: Setup frontend API client
-1. Create API client with interceptors
-2. Setup environment variables
-3. Create auth store
-4. Test API connectivity
+### 3.2 Frontend Siswa: Workspace A-Plus (A+)
+- [ ] Navigasi Tab Status Workspace:
+  - [ ] Tab **Active**: Program yang sedang berlangsung
+  - [ ] Tab **Waiting**: Program yang telah dibeli namun batch belum mulai
+  - [ ] Tab **Done**: Program yang telah selesai kurikulumnya
+- [ ] Kartu Program Interaktif:
+  - [ ] Tombol **Assessment**: Membuka antarmuka CBT 5 jenis soal
+  - [ ] Tombol **Class**: Membuka modul materi PDF/Video
+  - [ ] Tombol **Schedule**: Menampilkan jadwal tatap muka/link Zoom
+  - [ ] Indikator **Progress Tracker**: Bar persentase penyelesaian materi & kuis
 
----
+### 3.3 Frontend Mentor: Workspace A-Teams (Conditional Rendering)
+- [ ] Antarmuka dasar seragam dengan Workspace Siswa (Unified UI)
+- [ ] Menu Kondisional Mentor:
+  - [ ] Menu **Jadwal Mengajar**: Daftar sesi kelas yang ditugaskan kepada mentor
+  - [ ] Menu **Presensi Kelas**: Form centang absensi siswa per sesi kelas secara real-time
+  - [ ] Menu **Rekapitulasi Honor & Saldo Mentor**:
+    - Indikator saldo honor mengajar
+    - Riwayat jam & sesi mengajar yang telah diselesaikan
+    - Tombol ajukan pencairan (*drawdown*) ke rekening bank
+    - Tombol unduh slip gaji digital
 
-## 📊 Progress Tracker
-- **Phase 1**: 100% ✅
-- **Phase 2**: 90% ✅
-- **Phase 3**: 0% ⏸️
-- **Phase 4**: 0% ⏸️
-- **Phase 5**: 0% ⏸️
-- **Phase 6**: 40% 🟡 (Security & Documentation mostly done)
-
-**Overall Progress**: 45%
-
----
-
-## 🎯 Success Criteria
-- [x] Users can login and receive valid tokens ✅ (COMPLETED - 2025-10-28)
-- [ ] RBAC working (roles/permissions enforced)
-- [ ] API versioning implemented
-- [ ] CBT exam flow complete
-- [ ] Payment integration working
-- [ ] Admin dashboard functional
-- [ ] All tests passing
-- [ ] Production deployment ready
+### 3.4 Pipeline Onboarding & Rekrutmen Mentor
+- [ ] Migrasi & Model `mentor_applications` (dokumen KTP, CV, Sertifikat, Skor Tes Tulis, Video Mengajar)
+- [ ] Pipeline tahapan seleksi:
+  $$\text{Applied} \longrightarrow \text{Under Review} \longrightarrow \text{Assessment} \longrightarrow \text{Interview} \longrightarrow \text{Hired / Rejected / Withdrawn}$$
+- [ ] Antarmuka ASA (Staf Operasional): Evaluasi pelamar, input nilai tes, notulensi interview, dan penetapan role (`Mentor Utama` / `Mentor Harian`)
+- [ ] Form publik pendaftaran seleksi calon pengajar
 
 ---
 
-## 📝 Notes
-- Focus on MVP features first (auth, CBT, basic admin)
-- Defer non-critical features (advanced analytics, SMS, etc)
-- Keep security as top priority throughout
-- Document as you build
-- Test incrementally
+## 🏆 Tahap 4: Gamifikasi, Store Reward & Freemium Funnel
+> **Mental Model**: Insentif Motivasi Belajar & Retensi Pengguna.
+
+### 4.1 Backend: Gamification Point Engine & Store
+- [ ] Model `gamification_points` dan `point_transactions`
+- [ ] Pemicu Perolehan Poin:
+  - [ ] Cashback poin atas pembelian program tertentu
+  - [ ] Bonus poin atas kelulusan TryOut CBT (passing grade terpenuhi)
+  - [ ] Bonus poin atas kehadiran presensi 100% pada sesi kelas
+- [ ] Endpoint Top-up Poin langsung di Store
+- [ ] Model `store_products`, `store_orders`, `store_order_items` untuk produk fisik (buku materi, merchandise)
+- [ ] Aturan Kebijakan Finansial (ASD): Konfigurasi rasio nilai tukar poin ke Rupiah dan masa berlaku poin
+
+### 4.2 Frontend: Store & Freemium Marketing Funnel
+- [ ] Halaman Store (`/store`): Etalase buku fisik, modul belajar, dan merchandise
+- [ ] Opsi Pembayaran Store: Pembayaran penuh dengan poin, kombinasi poin + saldo dompet, atau e-payment
+- [ ] Halaman Riwayat & Peringkat Gamifikasi (Leaderboard & Achievement badge)
+- [ ] Implementasi Funnel Marketing Lapisan 1:
+  - Member daftar gratis $\rightarrow$ Input Enrollment Code promo $\rightarrow$ Kerjakan TryOut di Workspace $\rightarrow$ Dapat Poin $\rightarrow$ Tukar Merchandise di Store
+
+---
+
+## 🏛️ Tahap 5: Sertifikasi Otomatis & Sistem Multi-Cabang
+> **Mental Model**: Multi-Tenant Isolation & Konsolidasi Manajemen Pusat.
+
+### 5.1 Backend: Multi-Tenant Scoping (`branch_id`) & Sertifikat
+- [x] Kolom `branch_id` pada tabel `users` dan master `branches`
+- [ ] Tambahkan `BranchScope` (Global Scope Eloquent) pada seluruh model operasional & finansial cabang:
+  - Model `orders`, `transactions`, `wallets`, `batches`, `sessions`, `mentor_applications`
+- [ ] Master Certificate Engine:
+  - Evaluasi otomatis syarat penerbitan sertifikat (Passing grade CBT lulus DAN Presensi $\ge 80\%$)
+  - Auto-generate PDF sertifikat dengan nomor seri unik terverifikasi
+- [ ] Endpoint konsolidasi Super Admin AMS: Agregasi arus kas global, metrik retensi lintas cabang
+
+### 5.2 Frontend: Area Management & Dinamika Branding
+- [ ] **Dinamika Logo "A" (Header Bar)**:
+  - Klik logo selalu menuju domain induk `arkanin.my.id`
+  - Siswa login $\rightarrow$ Logo **A+**
+  - Mentor login $\rightarrow$ Logo **A-team**
+  - Admin Cabang login $\rightarrow$ Logo **Arkanin Super App (ASA)**
+  - Keuangan Cabang login $\rightarrow$ Logo **Arkanin Super Diamond (ASD)**
+  - Super Admin login $\rightarrow$ Logo **Arkanin Management System (AMS)**
+  - Pengaturan logo dinamis & warna di panel *Appearance*
+- [ ] **Dinamika Mobile Navigation**:
+  - *Guest*: Beranda, Program, Login/Register (center), Store, Activity (promo)
+  - *Logged-In*: Tombol tengah menjadi **Workspace**, Activity menjadi **Announcement**, Avatar dropdown (Profile, Achievement, Setting, Logout)
+- [ ] Dashboard Back-Office:
+  - Dashboard AMS: Kontrol master data pusat, pembuatan cabang baru, laporan keuangan global
+  - Dashboard ASA: Manajemen jadwal bimbingan cabang, verifikasi profil siswa, kurasi mentor
+  - Dashboard ASD: Verifikasi pembayaran, persetujuan penarikan saldo, arus kas cabang
+
+---
+
+## 🔒 Tahap 6: Quality Assurance, Security & Deployment
+
+### 6.1 Testing & Audit Kualitas
+- [ ] Feature tests untuk proteksi saldo dompet (uji *race-condition* / concurrency locking)
+- [ ] Feature tests untuk isolasi multi-cabang (memastikan staf Cabang A tidak dapat melihat data Cabang B)
+- [ ] Test engine penilaian CBT 5 jenis soal
+- [ ] End-to-end test alur pendaftaran siswa hingga pembukaan akses Workspace
+
+### 6.2 Security Hardening
+- [ ] Enkripsi PIN Transaksi dengan algoritma Bcrypt/Argon2Id
+- [ ] Anti-cheat CBT: Event listener *focus/blur*, penguncian full-screen, deteksi multi-tab
+- [ ] Sanitasi berkas upload pelamar mentor (tipe MIME & scan ukuran file)
+
+---
+
+## 🎯 Ringkasan Status Progres
+
+| Tahap | Fokus Area | Status | Estimasi Penyelesaian |
+| --- | --- | --- | --- |
+| **Tahap 1** | Master Program, Bank Soal 5 Tipe, & Katalog | 🟡 70% | Sprint 1 (Minggu 1-2) |
+| **Tahap 2** | E-Payment, Invoicing, Approval, & Dual-Wallet | 🟡 40% | Sprint 2 (Minggu 3-4) |
+| **Tahap 3** | Workspace Siswa (A+) & Mentor (A-Teams) | ⏸️ 20% | Sprint 3 (Minggu 5-6) |
+| **Tahap 4** | Gamifikasi Poin & Penukaran Store Reward | ⏸️ 10% | Sprint 4 (Minggu 7-8) |
+| **Tahap 5** | Sertifikasi Otomatis, Multi-Branch, & Branding | ⏸️ 30% | Sprint 5 (Minggu 9-10) |
+| **Tahap 6** | QA, Anti-Cheat, Concurrency Lock, & Go-Live | ⏸️ 15% | Sprint 6 (Minggu 11-12) |

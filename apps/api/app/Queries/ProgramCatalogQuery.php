@@ -51,6 +51,12 @@ class ProgramCatalogQuery
             ->where(fn (Builder $query) => $query
                 ->where('slug', $identifier)
                 ->when(ctype_digit($identifier), fn (Builder $byId) => $byId->orWhereKey((int) $identifier)))
+            ->with(['batches' => fn ($query) => $query
+                ->where('status', \App\Enums\BatchStatus::Open->value)
+                ->select(['id', 'program_id', 'name', 'code', 'starts_at', 'ends_at', 'capacity', 'enrolled_count', 'mode', 'status', 'price_override'])
+                ->orderBy('starts_at')
+                ->orderBy('id'),
+            ])
             ->firstOrFail();
     }
 

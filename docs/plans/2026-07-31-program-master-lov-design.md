@@ -1,4 +1,12 @@
-# Program Master LoV Design
+# [SUPERSEDED] Program Master LoV Design
+
+> [!WARNING]
+> **DOKUMEN INI TELAH DIGANTIKAN (SUPERSEDED)**
+> Keputusan penambahan tabel lookup `program_levels` dan `program_types` pada dokumen ini telah dibatalkan secara resmi oleh arsitektur modular pada:
+> - **[2026-08-20-PRD-refactor-programs-workspace.md](file:///d:/project/ams/docs/plans/2026-08-20-PRD-refactor-programs-workspace.md)**
+> - **[2026-09-21-PRD-ekosistem-dan-mekanisme-baru.md](file:///d:/project/ams/docs/plans/2026-09-21-PRD-ekosistem-dan-mekanisme-baru.md)**
+>
+> Sistem Arkanin telah beralih penuh menggunakan `tags` dan `program_components`. Dokumen ini dipertahankan hanya sebagai arsip histori keputusan.
 
 ## Goal
 
