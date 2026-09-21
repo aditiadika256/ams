@@ -2,8 +2,11 @@
 
 namespace App\Domain\Finance;
 
+use App\Actions\Access\ConfirmPaidOrder;
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Transaction;
+use App\Support\Notification\WhatsAppNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +18,12 @@ use Illuminate\Support\Facades\DB;
  */
 class TransactionController extends Controller
 {
+    public function __construct(
+        private readonly ConfirmPaidOrder $confirmPaidOrder,
+        private readonly WalletService $walletService,
+        private readonly WhatsAppNotifier $notifier,
+    ) {}
+
     /**
      * @OA\Get(
      *     path="/api/v1/finance/transactions",
@@ -176,4 +185,93 @@ class TransactionController extends Controller
             'recent_transactions' => Transaction::latest()->take(5)->get()
         ]);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/admin/transactions/{id}/approve",
+     *     tags={"Finance - Transactions"},
+     *     summary="Approve transaction by ASD",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Transaction approved and access granted")
+     * )
+     */
+    public function approve(Request $request, int $id)
+    {
+        $transaction = Transaction::findOrFail($id);
+        if ($transaction->status !== 'pending') {
+            return response()->json(['message' => 'Transaksi sudah diproses sebelumnya.'], 422);
+        }
+
+        DB::transaction(function () use ($transaction) {
+            $transaction->update(['status' => 'completed']);
+
+            // If related to an Order, confirm the order and grant access
+            if ($transaction->related_id) {
+                $order = Order::find($transaction->related_id);
+                if ($order && $order->status !== 'paid') {
+                    $this->confirmPaidOrder->handle($order, (string) $order->total);
+                    $this->notifier->sendPaymentReceipt($order);
+                }
+            }
+        });
+
+        $this->notifier->sendTransactionApproval($transaction, true);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaksi berhasil disetujui dan akses telah aktif.',
+            'data' => $transaction->fresh(),
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/admin/transactions/{id}/reject",
+     *     tags={"Finance - Transactions"},
+     *     summary="Reject transaction by ASD",
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Transaction rejected and refunded if applicable")
+     * )
+     */
+    public function reject(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'reason' => 'nullable|string',
+        ]);
+
+        $transaction = Transaction::findOrFail($id);
+        if ($transaction->status !== 'pending') {
+            return response()->json(['message' => 'Transaksi sudah diproses sebelumnya.'], 422);
+        }
+
+        DB::transaction(function () use ($transaction, $validated, $request) {
+            $reason = $validated['reason'] ?? 'Ditolak oleh Admin Keuangan';
+            $transaction->update([
+                'status' => 'cancelled',
+                'description' => $transaction->description . " (Ditolak: {$reason})",
+            ]);
+
+            // If related to an Order, cancel order & auto-rollback to student wallet
+            if ($transaction->related_id) {
+                $order = Order::find($transaction->related_id);
+                if ($order) {
+                    $order->update(['status' => 'cancelled']);
+                    if ($request->boolean('refund_to_wallet', true) && (float) $transaction->amount > 0) {
+                        $this->walletService->refundOrderToWallet($order, $reason);
+                    }
+                }
+            }
+        });
+
+        $this->notifier->sendTransactionApproval($transaction, false);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaksi berhasil ditolak dan dana dikembalikan ke dompet jika relevan.',
+            'data' => $transaction->fresh(),
+        ]);
+    }
 }
+

@@ -17,7 +17,7 @@
 [ Tahap 1: Pondasi Master Data & Katalog ] ────► 🟢 COMPLETED (100%)
                        │
                        ▼
-[ Tahap 2: Transaksi, Keuangan & Wallet ]  ────► 🟡 IN PROGRESS (40%)
+[ Tahap 2: Transaksi, Keuangan & Wallet ]  ────► 🟢 COMPLETED (100%)
                        │
                        ▼
 [ Tahap 3: Workspace Siswa & Mentor ]      ────► ⏸️ PENDING (20%)
@@ -77,7 +77,7 @@ Komponen dasar sistem yang telah beroperasi dan menjadi fondasi untuk tahapan di
 
 ---
 
-## 💳 Tahap 2: Transaksi, Keuangan & Pembuatan Enrollment
+## 💳 Tahap 2: Transaksi, Keuangan & Pembuatan Enrollment (Status: Selesai ✅)
 > **Mental Model**: Checkout, Invoicing, Approval, dan Dual-Wallet Engine.
 
 ### 2.1 Backend: Transaksi & Payment Gateway
@@ -85,29 +85,30 @@ Komponen dasar sistem yang telah beroperasi dan menjadi fondasi untuk tahapan di
 - [x] Integrasi Payment Gateway (Virtual Account, E-Wallet, QRIS)
 - [x] Endpoint Webhook pembayaran: `POST /api/v1/payments/webhook` dengan verifikasi signature
 - [x] Auto-generate Invoice terstandarisasi (nomor unik per cabang)
-- [ ] Pemicu notifikasi tagihan & kuitansi via WhatsApp (Fonnte/Wablas)
-- [ ] Workflow Approval Transaksi: Endpoint `POST /api/v1/admin/transactions/{id}/approve` dan `reject` oleh Admin Keuangan (ASD)
-- [ ] Auto-grant `ProgramAccess` seketika saat pembayaran lunas atau transaksi di-approve
+- [x] Pemicu notifikasi tagihan & kuitansi via WhatsApp (Fonnte/Wablas)
+- [x] Workflow Approval Transaksi: Endpoint `POST /api/v1/admin/transactions/{id}/approve` dan `reject` oleh Admin Keuangan (ASD)
+- [x] Auto-grant `ProgramAccess` seketika saat pembayaran lunas atau transaksi di-approve
 
 ### 2.2 Backend: Dual-Wallet Engine (Saldo Siswa & Saldo Mentor)
-- [ ] Migrasi & Model `wallets` (`user_id`, `type` [`student`, `mentor`], `balance`, `pending_balance`)
-- [ ] Migrasi & Model `wallet_transactions` (ledger double-entry: `type` [`credit`, `debit`], `reference_type`, `amount`, `balance_after`)
-- [ ] Event Auto-Rollback: Jika transaksi program ditolak/batal, dana dikreditkan otomatis ke `wallets` siswa (Student Wallet)
-- [ ] Migrasi & Model `withdrawals` (tiket pengajuan penarikan dana ke rekening bank)
-- [ ] Fitur Keamanan: Hashing PIN Transaksi 6-digit pada `users` (`pin_hash`) dan rate-limiting proteksi brute-force (3x salah lockout 30 menit)
-- [ ] Endpoint Dompet Siswa: `GET /api/v1/wallet/me`, `POST /api/v1/wallet/pay-order`
-- [ ] Endpoint Pengajuan Pencairan: `POST /api/v1/wallet/withdraw` (validasi PIN)
-- [ ] Endpoint Manajemen ASD: Verifikasi pencairan saldo, input nomor referensi transfer bank, dan unggah bukti transfer
+- [x] Migrasi & Model `wallets` (`user_id`, `type` [`student`, `mentor`], `balance`, `pending_balance`)
+- [x] Migrasi & Model `wallet_transactions` (ledger double-entry: `type` [`credit`, `debit`], `reference_type`, `amount`, `balance_after`)
+- [x] Event Auto-Rollback: Jika transaksi program ditolak/batal, dana dikreditkan otomatis ke `wallets` siswa (Student Wallet)
+- [x] Migrasi & Model `withdrawals` (tiket pengajuan penarikan dana ke rekening bank)
+- [x] Fitur Keamanan: Hashing PIN Transaksi 6-digit pada `users` (`pin_hash`) dan rate-limiting proteksi brute-force (3x salah lockout 30 menit)
+- [x] Endpoint Dompet Siswa: `GET /api/v1/wallet/me`, `POST /api/v1/wallet/pay-order`
+- [x] Endpoint Pengajuan Pencairan: `POST /api/v1/wallet/withdraw` (validasi PIN)
+- [x] Endpoint Manajemen ASD: Verifikasi pencairan saldo, input nomor referensi transfer bank, dan unggah bukti transfer
 
 ### 2.3 Frontend: Checkout, Invoicing & User Wallet
 - [x] Halaman Checkout program & pemilihan metode pembayaran
 - [x] Halaman Riwayat Order dengan tab status (Menunggu Pembayaran, Diproses, Selesai, Dibatalkan)
-- [ ] Halaman Saldo Akun (*User Wallet View*):
-  - [ ] Widget informasi total saldo aktif & saldo dalam proses penarikan
-  - [ ] Riwayat mutasi kredit/debit dompet
-  - [ ] Modal dialog setelan & ganti PIN Transaksi 6-digit
-  - [ ] Modal dialog form pengajuan penarikan dana (Withdrawal) ke bank
-  - [ ] Opsi bayar cepat menggunakan Saldo Dompet saat checkout
+- [x] Halaman Saldo Akun (*User Wallet View*):
+  - [x] Widget informasi total saldo aktif & saldo dalam proses penarikan
+  - [x] Riwayat mutasi kredit/debit dompet
+  - [x] Modal dialog setelan & ganti PIN Transaksi 6-digit
+  - [x] Modal dialog form pengajuan penarikan dana (Withdrawal) ke bank
+  - [x] Opsi bayar cepat menggunakan Saldo Dompet saat checkout
+
 
 ---
 

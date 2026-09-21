@@ -319,8 +319,42 @@ export const apiClient = {
     },
   },
 
+  // Wallet endpoints (Student & Mentor)
+  wallet: {
+    me: async () => {
+      const response = await api.get<ApiResponse<{
+        has_pin: boolean;
+        is_pin_locked: boolean;
+        student_wallet: { id: number; balance: string; pending_balance: string };
+        mentor_wallet: { id: number; balance: string; pending_balance: string };
+        recent_transactions: any[];
+      }>>('/wallet/me');
+      return response.data;
+    },
+    setPin: async (pin: string) => {
+      const response = await api.post<ApiResponse<null>>('/wallet/pin', { pin });
+      return response.data;
+    },
+    payOrder: async (orderId: number, pin: string) => {
+      const response = await api.post<ApiResponse<Order>>('/wallet/pay-order', { order_id: orderId, pin });
+      return response.data;
+    },
+    withdraw: async (payload: {
+      amount: number;
+      bank_name: string;
+      bank_account_number: string;
+      bank_account_name: string;
+      pin: string;
+      notes?: string;
+    }) => {
+      const response = await api.post<ApiResponse<any>>('/wallet/withdraw', payload);
+      return response.data;
+    },
+  },
+
   // CBT endpoints
   cbt: {
+
     getPackages: async (programAccessId: number) => {
       const response = await api.get<ApiResponse<any[]>>('/exams/packages', { params: { program_access_id: programAccessId } });
       return response.data;
@@ -775,9 +809,37 @@ export const apiClient = {
           return response.data;
         }
       }
-    }
+    },
+    transactions: {
+      approve: async (id: number) => {
+        const response = await api.post<ApiResponse<any>>(`/admin/transactions/${id}/approve`);
+        return response.data;
+      },
+      reject: async (id: number, reason?: string, refundToWallet: boolean = true) => {
+        const response = await api.post<ApiResponse<any>>(`/admin/transactions/${id}/reject`, {
+          reason,
+          refund_to_wallet: refundToWallet,
+        });
+        return response.data;
+      },
+    },
+    withdrawals: {
+      list: async (params?: { status?: string; page?: number }) => {
+        const response = await api.get<ApiResponse<any>>('/admin/withdrawals', { params });
+        return response.data;
+      },
+      approve: async (id: number, payload: { transfer_reference: string; proof_url?: string }) => {
+        const response = await api.post<ApiResponse<any>>(`/admin/withdrawals/${id}/approve`, payload);
+        return response.data;
+      },
+      reject: async (id: number, reason: string) => {
+        const response = await api.post<ApiResponse<any>>(`/admin/withdrawals/${id}/reject`, { reason });
+        return response.data;
+      },
+    },
   },
 };
+
 
 export default api;
 

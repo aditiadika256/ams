@@ -36,6 +36,15 @@ Route::prefix('v1')->group(function () {
         Route::post('redeem-enrollment-code', [\App\Domain\Access\CodeRedemptionController::class, 'enrollment']);
     });
 
+    // Wallets (Student & Mentor)
+    Route::prefix('wallet')->middleware('auth:sanctum')->group(function () {
+        Route::get('me', [\App\Domain\Finance\WalletController::class, 'me']);
+        Route::post('pin', [\App\Domain\Finance\WalletController::class, 'setPin']);
+        Route::post('pay-order', [\App\Domain\Finance\WalletController::class, 'payOrder']);
+        Route::post('withdraw', [\App\Domain\Finance\WalletController::class, 'withdraw']);
+    });
+
+
     Route::prefix('workspace')->middleware('auth:sanctum')->group(function () {
         Route::get('/', [\App\Domain\Workspace\WorkspaceController::class, 'index']);
         Route::get('accesses/{programAccess}', [\App\Domain\Workspace\WorkspaceController::class, 'show']);
@@ -158,7 +167,16 @@ Route::prefix('v1')->group(function () {
             Route::post('palettes/{id}/default', [\App\Domain\System\ColorPaletteController::class, 'setDefault']);
             Route::delete('palettes/{id}', [\App\Domain\System\ColorPaletteController::class, 'destroy']);
         });
+
+        // Financial ASD Approvals & Withdrawals
+        Route::post('transactions/{id}/approve', [\App\Domain\Finance\TransactionController::class, 'approve']);
+        Route::post('transactions/{id}/reject', [\App\Domain\Finance\TransactionController::class, 'reject']);
+        Route::get('withdrawals', [\App\Domain\Finance\WalletController::class, 'adminWithdrawals']);
+        Route::post('withdrawals/{id}/approve', [\App\Domain\Finance\WalletController::class, 'adminApproveWithdrawal']);
+        Route::post('withdrawals/{id}/reject', [\App\Domain\Finance\WalletController::class, 'adminRejectWithdrawal']);
     });
+
+
 
     // Learning
     Route::prefix('learning')->middleware(['auth:sanctum', 'permission:view_dashboard_learning|manage_learning_content|program-content.view|program-content.manage'])->group(function () {
@@ -196,8 +214,14 @@ Route::prefix('v1')->group(function () {
     Route::prefix('finance')->middleware(['auth:sanctum', 'permission:view_dashboard_finance|view_finance_reports|view_finance_analytics'])->group(function () {
         Route::apiResource('transactions', \App\Domain\Finance\TransactionController::class);
         Route::get('transactions/stats/summary', [\App\Domain\Finance\TransactionController::class, 'stats']);
+        Route::post('transactions/{id}/approve', [\App\Domain\Finance\TransactionController::class, 'approve']);
+        Route::post('transactions/{id}/reject', [\App\Domain\Finance\TransactionController::class, 'reject']);
+        Route::get('withdrawals', [\App\Domain\Finance\WalletController::class, 'adminWithdrawals']);
+        Route::post('withdrawals/{id}/approve', [\App\Domain\Finance\WalletController::class, 'adminApproveWithdrawal']);
+        Route::post('withdrawals/{id}/reject', [\App\Domain\Finance\WalletController::class, 'adminRejectWithdrawal']);
 
         Route::apiResource('invoices', \App\Domain\Finance\InvoiceController::class);
+
 
         // Reports
         Route::get('reports/custom', [\App\Domain\Finance\ReportController::class, 'custom'])->middleware('permission:view_finance_reports');
