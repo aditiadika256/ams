@@ -33,7 +33,8 @@ class MenuController extends Controller
         ]);
         $layout = $validated['layout'] ?? null;
         $section = $validated['section'] ?? null;
-        $permissionNames = $this->permissionNames($request->user());
+        $user = $this->resolveUser($request);
+        $permissionNames = $this->permissionNames($user);
         $cacheVersion = Cache::get('menus:cache_version', 'initial');
         if ($layout && $section) {
             $key = "menus:{$cacheVersion}:{$layout}:{$section}";
@@ -87,9 +88,19 @@ class MenuController extends Controller
     /** @param array<int, string> $permissionNames */
     private function canView(Menu $menu, array $permissionNames): bool
     {
-        return $menu->required_permission === null
-            || in_array('*', $permissionNames, true)
-            || in_array($menu->required_permission, $permissionNames, true);
+        if ($menu->required_permission === null || in_array('*', $permissionNames, true)) {
+            return true;
+        }
+
+        $required = explode('|', $menu->required_permission);
+        foreach ($required as $permission) {
+            $permission = trim($permission);
+            if ($permission !== '' && in_array($permission, $permissionNames, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** @return array<int, string> */
@@ -99,14 +110,52 @@ class MenuController extends Controller
             return [];
         }
 
-        if ($user->hasRole('superadmin', 'web')) {
+        if ($user->hasRole(['superadmin', 'super_admin'])
+            || $user->hasRole('superadmin', 'web')
+            || $user->hasRole('superadmin', 'sanctum')) {
             return ['*'];
         }
 
         return $user->getAllPermissions()
-            ->where('guard_name', 'web')
             ->pluck('name')
             ->values()
             ->all();
+    }
+
+    private function resolveUser(Request $request): ?User
+    {
+        if ($user = $request->user()) {
+            return $user;
+        }
+
+        try {
+            if ($user = $request->user('sanctum')) {
+                return $user;
+            }
+        } catch (\Throwable) {
+            // ignore
+        }
+
+        try {
+            if ($user = auth('sanctum')->user()) {
+                return $user;
+            }
+        } catch (\Throwable) {
+            // ignore
+        }
+
+        $token = $request->bearerToken();
+        if ($token) {
+            try {
+                $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if ($accessToken && $accessToken->tokenable instanceof User) {
+                    return $accessToken->tokenable;
+                }
+            } catch (\Throwable) {
+                // ignore
+            }
+        }
+
+        return null;
     }
 }
