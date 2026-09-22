@@ -192,6 +192,16 @@ Route::prefix('v1')->group(function () {
         Route::get('mentor-applications/{id}', [\App\Domain\Learning\MentorApplicationController::class, 'show']);
         Route::patch('mentor-applications/{id}/status', [\App\Domain\Learning\MentorApplicationController::class, 'updateStatus']);
         Route::post('sessions/{session}/attendances', [\App\Domain\Learning\SessionAttendanceController::class, 'recordAttendance']);
+
+        // Store Admin (Products CRUD & Order Management)
+        Route::prefix('store')->group(function () {
+            Route::get('products', [\App\Domain\Store\StoreAdminController::class, 'productIndex']);
+            Route::post('products', [\App\Domain\Store\StoreAdminController::class, 'productStore']);
+            Route::put('products/{id}', [\App\Domain\Store\StoreAdminController::class, 'productUpdate']);
+            Route::delete('products/{id}', [\App\Domain\Store\StoreAdminController::class, 'productDestroy']);
+            Route::get('orders', [\App\Domain\Store\StoreAdminController::class, 'orderIndex']);
+            Route::patch('orders/{id}/status', [\App\Domain\Store\StoreAdminController::class, 'orderUpdateStatus']);
+        });
     });
 
 
@@ -254,5 +264,35 @@ Route::prefix('v1')->group(function () {
         Route::get('user/progress', [\App\Domain\Analytics\AnalyticsController::class, 'userProgress']);
         Route::get('user/performance', [\App\Domain\Analytics\AnalyticsController::class, 'performanceMetrics']);
         Route::get('recommendations', [\App\Domain\Analytics\AnalyticsController::class, 'recommendations']);
+    });
+
+    // Store (Public catalog)
+    Route::prefix('store')->group(function () {
+        Route::get('products', [\App\Domain\Store\StoreController::class, 'products']);
+        Route::get('products/{slug}', [\App\Domain\Store\StoreController::class, 'showProduct']);
+    });
+
+    // Store (Authenticated orders) & Points
+    Route::prefix('store')->middleware('auth:sanctum')->group(function () {
+        Route::post('orders', [\App\Domain\Store\StoreController::class, 'createOrder']);
+        Route::get('orders', [\App\Domain\Store\StoreController::class, 'orders']);
+        Route::get('orders/{id}', [\App\Domain\Store\StoreController::class, 'showOrder']);
+    });
+
+    Route::prefix('points')->middleware('auth:sanctum')->group(function () {
+        Route::get('me', [\App\Domain\Gamification\PointController::class, 'me']);
+        Route::get('leaderboard', [\App\Domain\Gamification\PointController::class, 'leaderboard']);
+    });
+
+    // Certificates (Public Verification & Workspace Access)
+    Route::get('certificates/verify/{certificateNumber}', [\App\Domain\Certificate\CertificateController::class, 'verify']);
+    Route::prefix('workspace')->middleware('auth:sanctum')->group(function () {
+        Route::get('certificates/{accessId}', [\App\Domain\Certificate\CertificateController::class, 'showOrClaim']);
+        Route::get('my-certificates', [\App\Domain\Certificate\CertificateController::class, 'myCertificates']);
+    });
+
+    // Super Admin AMS Consolidation
+    Route::prefix('admin/ams')->middleware('auth:sanctum')->group(function () {
+        Route::get('consolidation', [\App\Domain\Admin\AmsConsolidationController::class, 'index']);
     });
 });

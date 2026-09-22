@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
 #[OA\Tag(
@@ -18,7 +19,7 @@ use OpenApi\Attributes as OA;
 class MentorApplicationController extends Controller
 {
     /**
-     * Public submission of teacher application form.
+     * Public submission of teacher application form with file sanitization.
      */
     public function apply(Request $request): JsonResponse
     {
@@ -31,11 +32,34 @@ class MentorApplicationController extends Controller
             'cv_url' => 'nullable|string|max:500',
             'certificate_url' => 'nullable|string|max:500',
             'teaching_video_url' => 'nullable|string|max:500',
+            // File sanitization rules
+            'cv_file' => 'nullable|file|mimes:pdf|max:10240', // Max 10MB PDF
+            'certificate_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240', // Max 10MB
+            'teaching_video_file' => 'nullable|file|mimes:mp4,webm,mov|max:102400', // Max 100MB
         ]);
 
         $user = $request->user('sanctum');
         if (! $user) {
             $user = User::where('email', $validated['email'])->first();
+        }
+
+        // Process and store sanitized uploads
+        $cvUrl = $validated['cv_url'] ?? null;
+        if ($request->hasFile('cv_file')) {
+            $cvPath = $request->file('cv_file')->store('mentor_docs/cv', 'public');
+            $cvUrl = Storage::url($cvPath);
+        }
+
+        $certificateUrl = $validated['certificate_url'] ?? null;
+        if ($request->hasFile('certificate_file')) {
+            $certPath = $request->file('certificate_file')->store('mentor_docs/certificates', 'public');
+            $certificateUrl = Storage::url($certPath);
+        }
+
+        $videoUrl = $validated['teaching_video_url'] ?? null;
+        if ($request->hasFile('teaching_video_file')) {
+            $videoPath = $request->file('teaching_video_file')->store('mentor_docs/videos', 'public');
+            $videoUrl = Storage::url($videoPath);
         }
 
         $application = MentorApplication::create([
@@ -45,9 +69,9 @@ class MentorApplicationController extends Controller
             'phone' => $validated['phone'],
             'specialization' => $validated['specialization'],
             'ktp_number' => $validated['ktp_number'] ?? null,
-            'cv_url' => $validated['cv_url'] ?? null,
-            'certificate_url' => $validated['certificate_url'] ?? null,
-            'teaching_video_url' => $validated['teaching_video_url'] ?? null,
+            'cv_url' => $cvUrl,
+            'certificate_url' => $certificateUrl,
+            'teaching_video_url' => $videoUrl,
             'status' => 'applied',
         ]);
 

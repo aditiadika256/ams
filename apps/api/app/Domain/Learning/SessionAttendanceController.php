@@ -178,6 +178,23 @@ class SessionAttendanceController extends Controller
 
             $session->update(['status' => 'COMPLETED']);
 
+            // Auto-award attendance points to present students
+            try {
+                $presentAttendances = SessionAttendance::with('user')
+                    ->where('program_session_id', $session->id)
+                    ->where('status', 'present')
+                    ->get();
+
+                $pointService = app(\App\Domain\Gamification\PointService::class);
+                foreach ($presentAttendances as $att) {
+                    if ($att->user) {
+                        $pointService->awardAttendancePerfect($att->user, $session->id);
+                    }
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Failed awarding attendance points: {$e->getMessage()}");
+            }
+
             return $log;
         });
 

@@ -21,6 +21,17 @@ class ProgramComponent extends Model
 
     protected $attributes = ['is_enabled' => true, 'sort_order' => 0];
 
+    public static function bootSoftDeletes(): void
+    {
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasColumn('program_components', 'deleted_at')) {
+                static::addGlobalScope(new \Illuminate\Database\Eloquent\SoftDeletingScope);
+            }
+        } catch (\Throwable) {
+            static::addGlobalScope(new \Illuminate\Database\Eloquent\SoftDeletingScope);
+        }
+    }
+
     protected $casts = [
         'is_enabled' => 'boolean',
         'sort_order' => 'integer',

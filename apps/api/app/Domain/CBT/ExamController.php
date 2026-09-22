@@ -531,6 +531,12 @@ class ExamController extends Controller
 
         $attempt->refresh();
 
+        try {
+            app(\App\Domain\Gamification\PointService::class)->awardCbtAchievement($user, $attempt);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed awarding CBT achievement points: {$e->getMessage()}");
+        }
+
         return $this->successResponse([
             'score' => $totalScore,
             'submitted_at' => $attempt->submitted_at,

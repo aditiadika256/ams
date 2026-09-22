@@ -28,6 +28,7 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  reactStrictMode: false,
   transpilePackages: ['@theme-toggles/react'],
   turbopack: {
     root: __dirname,

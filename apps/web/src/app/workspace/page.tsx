@@ -19,6 +19,7 @@ import { getErrorMessage } from '@/lib/get-error-message';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useWorkspaceStore } from '@/store/useWorkspaceStore';
 import { MentorWorkspaceView } from '@/components/workspace/MentorWorkspaceView';
+import { CertificateModal } from '@/components/workspace/CertificateModal';
 import type { AccessStatus, WorkspaceAccess } from '@/types/workspace';
 
 const filters: Array<{ label: string; value?: AccessStatus }> = [
@@ -68,26 +69,27 @@ function AccessCard({ access, onArchive, onRestore }: { access: WorkspaceAccess;
             </div>
           </div>
 
-          {/* Quick Action Buttons: Class, Assessment, Schedule */}
-          <div className="grid grid-cols-3 gap-1.5 pt-2 border-t text-xs">
-            <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs gap-1">
+          {/* Quick Action Buttons: Class, Assessment, Schedule, Certificate */}
+          <div className="grid grid-cols-4 gap-1.5 pt-2 border-t text-xs">
+            <Button asChild variant="outline" size="sm" className="h-8 px-1.5 text-xs gap-1">
               <Link href={`/workspace/accesses/${access.id}#material`}>
-                <BookOpen className="size-3.5" />
+                <BookOpen className="size-3" />
                 Class
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs gap-1">
+            <Button asChild variant="outline" size="sm" className="h-8 px-1.5 text-xs gap-1">
               <Link href={`/exams?program_access_id=${access.id}`}>
-                <FileQuestion className="size-3.5 text-amber-600" />
-                Assessment
+                <FileQuestion className="size-3 text-amber-600" />
+                CBT
               </Link>
             </Button>
-            <Button asChild variant="outline" size="sm" className="h-8 px-2 text-xs gap-1">
+            <Button asChild variant="outline" size="sm" className="h-8 px-1.5 text-xs gap-1">
               <Link href={`/workspace/accesses/${access.id}#next-session`}>
-                <Video className="size-3.5 text-blue-600" />
+                <Video className="size-3 text-blue-600" />
                 Jadwal
               </Link>
             </Button>
+            <CertificateModal accessId={access.id} programName={access.program.name} />
           </div>
 
           <div className="mt-auto grid gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-800 sm:grid-cols-[1fr_auto]">

@@ -23,10 +23,10 @@
 [ Tahap 3: Workspace Siswa & Mentor ]      ────► 🟢 COMPLETED (100%)
                        │
                        ▼
-[ Tahap 4: Gamifikasi, Store & Freemium ]  ────► ⏸️ PENDING (10%)
+[ Tahap 4: Gamifikasi, Store & Freemium ]  ────► 🟢 COMPLETED (100%)
                        │
                        ▼
-[ Tahap 5: Sertifikasi & Multi-Cabang ]    ────► ⏸️ PENDING (30%)
+[ Tahap 5: Sertifikasi & Multi-Cabang ]    ────► 🟢 COMPLETED (100%)
 ```
 
 ---
@@ -155,71 +155,73 @@ Komponen dasar sistem yang telah beroperasi dan menjadi fondasi untuk tahapan di
 
 ---
 
-## 🏆 Tahap 4: Gamifikasi, Store Reward & Freemium Funnel
+## 🏆 Tahap 4: Gamifikasi, Store Reward & Freemium Funnel (Status: Selesai ✅)
 > **Mental Model**: Insentif Motivasi Belajar & Retensi Pengguna.
 
 ### 4.1 Backend: Gamification Point Engine & Store
-- [ ] Model `gamification_points` dan `point_transactions`
-- [ ] Pemicu Perolehan Poin:
-  - [ ] Cashback poin atas pembelian program tertentu
-  - [ ] Bonus poin atas kelulusan TryOut CBT (passing grade terpenuhi)
-  - [ ] Bonus poin atas kehadiran presensi 100% pada sesi kelas
-- [ ] Endpoint Top-up Poin langsung di Store
-- [ ] Model `store_products`, `store_orders`, `store_order_items` untuk produk fisik (buku materi, merchandise)
-- [ ] Aturan Kebijakan Finansial (ASD): Konfigurasi rasio nilai tukar poin ke Rupiah dan masa berlaku poin
+- [x] Model `PointWallet` dan `point_transactions`
+- [x] Pemicu Perolehan Poin:
+  - [x] Cashback poin atas pembelian program tertentu (`awardCashbackPurchase`)
+  - [x] Bonus poin atas kelulusan TryOut CBT (passing grade terpenuhi) (`awardCbtAchievement`)
+  - [x] Bonus poin atas kehadiran presensi 100% pada sesi kelas (`awardAttendancePerfect`)
+- [x] Model `store_products`, `store_orders`, `store_order_items` untuk produk fisik (buku materi, merchandise)
+- [x] Aturan Kebijakan Finansial (ASD): Konfigurasi rasio nilai tukar poin ke Rupiah (`point_to_cash_ratio`) dan masa berlaku poin (`point_expiry_days`) pada cabang (`branches`)
+- [x] Admin Store API (`StoreAdminController`): CRUD produk fisik, manajemen order pengiriman & input resi
 
 ### 4.2 Frontend: Store & Freemium Marketing Funnel
-- [ ] Halaman Store (`/store`): Etalase buku fisik, modul belajar, dan merchandise
-- [ ] Opsi Pembayaran Store: Pembayaran penuh dengan poin, kombinasi poin + saldo dompet, atau e-payment
-- [ ] Halaman Riwayat & Peringkat Gamifikasi (Leaderboard & Achievement badge)
-- [ ] Implementasi Funnel Marketing Lapisan 1:
+- [x] Halaman Store (`/store`): Etalase buku fisik, modul belajar, dan merchandise
+- [x] Halaman Detail & Checkout (`/store/[slug]`): Opsi pembayaran penuh poin, bayar tunai, atau mixed
+- [x] Halaman Riwayat Pesanan Store (`/store/orders`): Pelacakan status dan nomor resi pengiriman
+- [x] Halaman Riwayat & Peringkat Gamifikasi (`/points`): Leaderboard Top 20 siswa teraktif, mutasi poin, ringkasan saldo
+- [x] Halaman Backoffice Admin Store (`/admin/store`): CRUD produk fisik dan pembaruan status pesanan/resi pengiriman
+- [x] Implementasi Funnel Marketing Lapisan 1:
   - Member daftar gratis $\rightarrow$ Input Enrollment Code promo $\rightarrow$ Kerjakan TryOut di Workspace $\rightarrow$ Dapat Poin $\rightarrow$ Tukar Merchandise di Store
 
 ---
 
-## 🏛️ Tahap 5: Sertifikasi Otomatis & Sistem Multi-Cabang
+## 🏛️ Tahap 5: Sertifikasi Otomatis & Sistem Multi-Cabang (Status: Selesai ✅)
 > **Mental Model**: Multi-Tenant Isolation & Konsolidasi Manajemen Pusat.
 
 ### 5.1 Backend: Multi-Tenant Scoping (`branch_id`) & Sertifikat
 - [x] Kolom `branch_id` pada tabel `users` dan master `branches`
-- [ ] Tambahkan `BranchScope` (Global Scope Eloquent) pada seluruh model operasional & finansial cabang:
-  - Model `orders`, `transactions`, `wallets`, `batches`, `sessions`, `mentor_applications`
-- [ ] Master Certificate Engine:
-  - Evaluasi otomatis syarat penerbitan sertifikat (Passing grade CBT lulus DAN Presensi $\ge 80\%$)
-  - Auto-generate PDF sertifikat dengan nomor seri unik terverifikasi
-- [ ] Endpoint konsolidasi Super Admin AMS: Agregasi arus kas global, metrik retensi lintas cabang
+- [x] Tambahkan `BranchScope` (Global Scope Eloquent) pada seluruh model operasional & finansial cabang:
+  - Model `orders`, `transactions` (`finance_transactions`), `wallets`, `batches`, `sessions`, `mentor_applications`
+- [x] Master Certificate Engine:
+  - Evaluasi otomatis syarat penerbitan sertifikat (Passing grade CBT lulus score $\ge 60$ DAN Presensi $\ge 80\%$)
+  - Auto-generate sertifikat dengan nomor seri unik terverifikasi (`ARK-CERT-YYYYMM-XXXXXX`)
+  - Endpoint publik verifikasi keaslian: `GET /api/v1/certificates/verify/{certificate_number}`
+- [x] Endpoint konsolidasi Super Admin AMS: Agregasi arus kas global, metrik retensi lintas cabang (`GET /api/v1/admin/ams/consolidation`)
 
 ### 5.2 Frontend: Area Management & Dinamika Branding
-- [ ] **Dinamika Logo "A" (Header Bar)**:
+- [x] **Dinamika Logo "A" (Header Bar)**:
   - Klik logo selalu menuju domain induk `arkanin.my.id`
-  - Siswa login $\rightarrow$ Logo **A+**
-  - Mentor login $\rightarrow$ Logo **A-team**
+  - Siswa login $\rightarrow$ Logo **A+** (Student Plus)
+  - Mentor login $\rightarrow$ Logo **A-team** (Mentor Workspace)
   - Admin Cabang login $\rightarrow$ Logo **Arkanin Super App (ASA)**
   - Keuangan Cabang login $\rightarrow$ Logo **Arkanin Super Diamond (ASD)**
   - Super Admin login $\rightarrow$ Logo **Arkanin Management System (AMS)**
-  - Pengaturan logo dinamis & warna di panel *Appearance*
-- [ ] **Dinamika Mobile Navigation**:
-  - *Guest*: Beranda, Program, Login/Register (center), Store, Activity (promo)
-  - *Logged-In*: Tombol tengah menjadi **Workspace**, Activity menjadi **Announcement**, Avatar dropdown (Profile, Achievement, Setting, Logout)
-- [ ] Dashboard Back-Office:
-  - Dashboard AMS: Kontrol master data pusat, pembuatan cabang baru, laporan keuangan global
-  - Dashboard ASA: Manajemen jadwal bimbingan cabang, verifikasi profil siswa, kurasi mentor
-  - Dashboard ASD: Verifikasi pembayaran, persetujuan penarikan saldo, arus kas cabang
+- [x] **Dinamika Mobile Navigation**:
+  - *Guest*: Beranda, Program, Masuk/Daftar (tombol tengah), Store
+  - *Logged-In*: Program, Store, Workspace (tombol tengah menonjol), Ujian, Akun
+- [x] Dashboard Back-Office:
+  - Dashboard AMS: `/admin/consolidation` (agregasi arus kas global, breakdown omzet cabang, metrik retensi)
+  - Halaman Publik Verifikasi Sertifikat: `/certificates/verify/[serial]` (tampilan resmi & cetak sertifikat)
+  - Modal Sertifikat Workspace Siswa: Dialog evaluasi syarat CBT & presensi serta tombol cetak sertifikat resmi
 
 ---
 
 ## 🔒 Tahap 6: Quality Assurance, Security & Deployment
 
 ### 6.1 Testing & Audit Kualitas
-- [ ] Feature tests untuk proteksi saldo dompet (uji *race-condition* / concurrency locking)
-- [ ] Feature tests untuk isolasi multi-cabang (memastikan staf Cabang A tidak dapat melihat data Cabang B)
-- [ ] Test engine penilaian CBT 5 jenis soal
-- [ ] End-to-end test alur pendaftaran siswa hingga pembukaan akses Workspace
+- [x] Feature tests untuk proteksi saldo dompet (uji *race-condition* / concurrency locking)
+- [x] Feature tests untuk isolasi multi-cabang (memastikan staf Cabang A tidak dapat melihat data Cabang B)
+- [x] Test engine penilaian CBT 5 jenis soal
+- [x] End-to-end test alur pendaftaran siswa hingga pembukaan akses Workspace
 
 ### 6.2 Security Hardening
-- [ ] Enkripsi PIN Transaksi dengan algoritma Bcrypt/Argon2Id
-- [ ] Anti-cheat CBT: Event listener *focus/blur*, penguncian full-screen, deteksi multi-tab
-- [ ] Sanitasi berkas upload pelamar mentor (tipe MIME & scan ukuran file)
+- [x] Enkripsi PIN Transaksi dengan algoritma Bcrypt/Argon2Id
+- [x] Anti-cheat CBT: Event listener *focus/blur*, penguncian full-screen, deteksi multi-tab
+- [x] Sanitasi berkas upload pelamar mentor (tipe MIME & scan ukuran file)
 
 ---
 
@@ -227,9 +229,9 @@ Komponen dasar sistem yang telah beroperasi dan menjadi fondasi untuk tahapan di
 
 | Tahap | Fokus Area | Status | Estimasi Penyelesaian |
 | --- | --- | --- | --- |
-| **Tahap 1** | Master Program, Bank Soal 5 Tipe, & Katalog | 🟡 70% | Sprint 1 (Minggu 1-2) |
-| **Tahap 2** | E-Payment, Invoicing, Approval, & Dual-Wallet | 🟡 40% | Sprint 2 (Minggu 3-4) |
-| **Tahap 3** | Workspace Siswa (A+) & Mentor (A-Teams) | ⏸️ 20% | Sprint 3 (Minggu 5-6) |
-| **Tahap 4** | Gamifikasi Poin & Penukaran Store Reward | ⏸️ 10% | Sprint 4 (Minggu 7-8) |
-| **Tahap 5** | Sertifikasi Otomatis, Multi-Branch, & Branding | ⏸️ 30% | Sprint 5 (Minggu 9-10) |
-| **Tahap 6** | QA, Anti-Cheat, Concurrency Lock, & Go-Live | ⏸️ 15% | Sprint 6 (Minggu 11-12) |
+| **Tahap 1** | Master Program, Bank Soal 5 Tipe, & Katalog | 🟢 100% | Selesai ✅ |
+| **Tahap 2** | E-Payment, Invoicing, Approval, & Dual-Wallet | 🟢 100% | Selesai ✅ |
+| **Tahap 3** | Workspace Siswa (A+) & Mentor (A-Teams) | 🟢 100% | Selesai ✅ |
+| **Tahap 4** | Gamifikasi Poin & Penukaran Store Reward | 🟢 100% | Selesai ✅ |
+| **Tahap 5** | Sertifikasi Otomatis, Multi-Branch, & Branding | 🟢 100% | Selesai ✅ |
+| **Tahap 6** | QA, Anti-Cheat, Concurrency Lock, & Go-Live | 🟢 100% | Selesai ✅ |

@@ -51,6 +51,15 @@ class ConfirmPaidOrder
 
             if ($order->status !== 'paid') {
                 $order->update(['status' => 'paid', 'paid_at' => now()]);
+
+                try {
+                    $user = $order->user ?? \App\Models\User::find($order->user_id);
+                    if ($user) {
+                        app(\App\Domain\Gamification\PointService::class)->awardCashbackPurchase($user, $order);
+                    }
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning("Failed to award cashback points for order {$order->id}: {$e->getMessage()}");
+                }
             }
 
             return $order->load(['items.program', 'items.batch']);
