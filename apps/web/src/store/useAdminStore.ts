@@ -16,7 +16,8 @@ export type AdminViewKey =
   | 'menus'
   | 'roles'
   | 'settings'
-  | 'colorpalette';
+  | 'colorpalette'
+  | 'consolidation';
 
 export interface AdminTab {
   id: string;

@@ -36,7 +36,7 @@ class MenuSeeder extends Seeder
 
         // --- 4. Admin: Management (AMS Konsolidasi & ASD Finance) ---
         $management = $this->createMenu('admin.sidebar.management', 'Management', 'Settings', 'admin://view/users', 'admin', 'sidebar', null, 2);
-        $this->createMenu('admin.sidebar.management.consolidation', 'Konsolidasi Cabang (AMS)', 'Network', '/admin/consolidation', 'admin', 'sidebar', $management->id, 1, 'manage_global_settings');
+        $this->createMenu('admin.sidebar.management.consolidation', 'Konsolidasi Cabang (AMS)', 'Network', 'admin://view/consolidation', 'admin', 'sidebar', $management->id, 1, 'manage_global_settings');
         $this->createMenu('admin.sidebar.management.users', 'Users', 'Users', 'admin://view/users', 'admin', 'sidebar', $management->id, 2, 'manage_users_global');
         $this->createMenu('admin.sidebar.management.roles', 'Roles & Permissions', 'ShieldCheck', 'admin://view/roles', 'admin', 'sidebar', $management->id, 3, 'manage_roles');
         $this->createMenu('admin.sidebar.management.finance', 'Finance (ASD)', 'PieChart', 'admin://view/finance', 'admin', 'sidebar', $management->id, 4, 'view_finance_analytics');

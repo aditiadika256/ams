@@ -22,6 +22,13 @@ class UserResource extends BaseResource
                 return $this->roles->pluck('name');
             }, []),
             'permissions' => $this->when($this->relationLoaded('roles'), function () {
+                if ($this->hasRole(['superadmin', 'super_admin'])) {
+                    return \Spatie\Permission\Models\Permission::pluck('name')
+                        ->prepend('*')
+                        ->unique()
+                        ->values();
+                }
+
                 return $this->getAllPermissions()->pluck('name');
             }, []),
             'avatar_url' => $this->avatar_url,

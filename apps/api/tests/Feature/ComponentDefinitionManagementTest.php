@@ -67,6 +67,11 @@ it('lists active definitions with usage counts and requires view permission', fu
         ->assertOk()
         ->assertJsonCount(2, 'data')
         ->assertJsonPath('data.1.deleted_at', fn ($value): bool => is_string($value));
+
+    $this->getJson('/api/v1/admin/component-definitions?include_archived=true')
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.1.deleted_at', fn ($value): bool => is_string($value));
 });
 
 it('creates an implemented generic definition that immediately appears unchecked for programs', function (): void {
