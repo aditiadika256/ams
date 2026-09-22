@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BatchMode;
 use App\Enums\BatchStatus;
+use App\Traits\HasBranchScope;
 use App\Traits\UserStamps;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,10 +14,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProgramBatch extends Model
 {
-    use HasFactory, UserStamps;
+    use HasBranchScope, HasFactory, UserStamps;
 
     protected $fillable = [
-        'program_id', 'name', 'code', 'registration_starts_at', 'registration_ends_at',
+        'branch_id', 'program_id', 'name', 'code', 'registration_starts_at', 'registration_ends_at',
         'starts_at', 'ends_at', 'capacity', 'enrolled_count', 'mode', 'location',
         'timezone', 'price_override', 'status', 'allow_retakes', 'metadata',
         'created_by', 'updated_by',

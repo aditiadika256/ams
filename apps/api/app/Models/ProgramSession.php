@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\MentorAssignmentMode;
 use App\Enums\SessionMode;
 use App\Enums\SessionStatus;
+use App\Traits\HasBranchScope;
 use App\Traits\UserStamps;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,10 +15,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ProgramSession extends Model
 {
-    use HasFactory, UserStamps;
+    use HasBranchScope, HasFactory, UserStamps;
 
     protected $fillable = [
-        'program_batch_id', 'title', 'description', 'starts_at', 'ends_at',
+        'branch_id', 'program_batch_id', 'title', 'description', 'starts_at', 'ends_at',
         'timezone', 'mode', 'location', 'meeting_url', 'capacity', 'reserved_count',
         'mentor_assignment_mode', 'status', 'metadata', 'created_by', 'updated_by',
     ];

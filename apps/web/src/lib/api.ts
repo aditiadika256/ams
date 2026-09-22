@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosRequestConfig } from 'axios';
 import { ApiResponse, User, RegisterData } from '../types/auth';
 import {
   ComponentDefinition,
@@ -45,36 +45,78 @@ export const api: AxiosInstance = axios.create({
   withCredentials: false,
 });
 
-// ---- GET request deduplication ----
-// Shares a single in-flight promise for identical concurrent GET requests
+// ---- GET request deduplication & short-lived micro-cache ----
+// Shares a single in-flight promise and short-lived result for identical concurrent GET requests
 const inflightGets = new Map<string, Promise<any>>();
+const recentGetCache = new Map<string, { data: any; timestamp: number }>();
 const MUTATION_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 let dataRevision = 0;
+
+// TTL for deduplicating identical rapid GET requests (e.g. React StrictMode or concurrent components)
+const DEDUPE_TTL_MS = 600;
 
 function buildDedupeKey(url: string, params?: any): string {
   const p = params ? JSON.stringify(params) : '';
   return `${dataRevision}:${url}?${p}`;
 }
 
-/**
- * Deduplicated GET — if an identical GET is already in-flight, returns the
- * same promise instead of firing another network request.
- */
-export function deduplicatedGet<T>(url: string, config?: { params?: any }): Promise<{ data: T }> {
+const originalGet = api.get.bind(api);
+
+// Automatically intercept and deduplicate ALL api.get calls across the application
+api.get = function <T = any, R = AxiosResponse<T>, D = any>(
+  url: string,
+  config?: AxiosRequestConfig<D>
+): Promise<R> {
+  const isBypass = Boolean(config?.params?.__fresh || (config as any)?.noDedupe);
   const key = buildDedupeKey(url, config?.params);
 
-  if (inflightGets.has(key)) {
-    return inflightGets.get(key)!;
+  if (!isBypass) {
+    // 1. Check if identical request is currently in-flight
+    if (inflightGets.has(key)) {
+      return inflightGets.get(key) as Promise<R>;
+    }
+
+    // 2. Check if identical request completed very recently (e.g. React StrictMode mount/unmount/remount)
+    const cached = recentGetCache.get(key);
+    if (cached && Date.now() - cached.timestamp < DEDUPE_TTL_MS) {
+      return Promise.resolve({
+        data: cached.data,
+        status: 200,
+        statusText: 'OK',
+        headers: {},
+        config: config as any,
+      } as unknown as R);
+    }
   }
 
-  const promise = api.get<T>(url, config).finally(() => {
-    inflightGets.delete(key);
-  });
+  const promise = originalGet<T, R, D>(url, config)
+    .then((response) => {
+      if (!isBypass && response && 'data' in response) {
+        recentGetCache.set(key, { data: response.data, timestamp: Date.now() });
+        setTimeout(() => {
+          recentGetCache.delete(key);
+        }, DEDUPE_TTL_MS * 2);
+      }
+      return response;
+    })
+    .finally(() => {
+      inflightGets.delete(key);
+    });
 
-  inflightGets.set(key, promise);
+  if (!isBypass) {
+    inflightGets.set(key, promise);
+  }
+
   return promise;
-}
+};
 
+/**
+ * Deduplicated GET helper (now api.get is automatically deduplicated,
+ * keeping this for backward compatibility).
+ */
+export function deduplicatedGet<T>(url: string, config?: { params?: any }): Promise<{ data: T }> {
+  return api.get<T>(url, config);
+}
 
 // Request interceptor - Add token to headers
 api.interceptors.request.use(
@@ -106,6 +148,8 @@ api.interceptors.response.use(
     const method = response.config.method?.toLowerCase();
     if (method && MUTATION_METHODS.has(method)) {
       dataRevision += 1;
+      recentGetCache.clear();
+      inflightGets.clear();
     }
 
     return response;
@@ -319,8 +363,98 @@ export const apiClient = {
     },
   },
 
+  // Wallet endpoints (Student & Mentor)
+  wallet: {
+    me: async () => {
+      const response = await api.get<ApiResponse<{
+        has_pin: boolean;
+        is_pin_locked: boolean;
+        student_wallet: { id: number; balance: string; pending_balance: string };
+        mentor_wallet: { id: number; balance: string; pending_balance: string };
+        recent_transactions: any[];
+      }>>('/wallet/me');
+      return response.data;
+    },
+    setPin: async (pin: string) => {
+      const response = await api.post<ApiResponse<null>>('/wallet/pin', { pin });
+      return response.data;
+    },
+    payOrder: async (orderId: number, pin: string) => {
+      const response = await api.post<ApiResponse<Order>>('/wallet/pay-order', { order_id: orderId, pin });
+      return response.data;
+    },
+    withdraw: async (payload: {
+      amount: number;
+      bank_name: string;
+      bank_account_number: string;
+      bank_account_name: string;
+      pin: string;
+      notes?: string;
+    }) => {
+      const response = await api.post<ApiResponse<any>>('/wallet/withdraw', payload);
+      return response.data;
+    },
+  },
+
+  // Mentor A-Teams endpoints
+  mentor: {
+    schedules: async () => {
+      const response = await api.get<ApiResponse<any[]>>('/mentor/schedules');
+      return response.data;
+    },
+    sessionLogs: async () => {
+      const response = await api.get<ApiResponse<any>>('/mentor/session-logs');
+      return response.data;
+    },
+    payslip: async (id: number) => {
+      const response = await api.get<ApiResponse<any>>(`/mentor/payslips/${id}`);
+      return response.data;
+    },
+    getAttendances: async (sessionId: number) => {
+      const response = await api.get<ApiResponse<any>>(`/mentor/sessions/${sessionId}/attendances`);
+      return response.data;
+    },
+    recordAttendance: async (sessionId: number, attendances: Array<{
+      program_access_id: number;
+      user_id: number;
+      status: string;
+      notes?: string;
+    }>) => {
+      const response = await api.post<ApiResponse<any>>(`/mentor/sessions/${sessionId}/attendances`, { attendances });
+      return response.data;
+    },
+    completeAndLog: async (sessionId: number, payload: {
+      topic: string;
+      notes?: string;
+      duration_minutes?: number;
+      hourly_rate?: number;
+    }) => {
+      const response = await api.post<ApiResponse<any>>(`/mentor/sessions/${sessionId}/complete-and-log`, payload);
+      return response.data;
+    },
+  },
+
+  // Public Mentor Application
+  mentorApplications: {
+    apply: async (payload: {
+      name: string;
+      email: string;
+      phone: string;
+      specialization: string;
+      ktp_number?: string;
+      cv_url?: string;
+      certificate_url?: string;
+      teaching_video_url?: string;
+    }) => {
+      const response = await api.post<ApiResponse<any>>('/mentor-applications', payload);
+      return response.data;
+    },
+  },
+
   // CBT endpoints
   cbt: {
+
+
     getPackages: async (programAccessId: number) => {
       const response = await api.get<ApiResponse<any[]>>('/exams/packages', { params: { program_access_id: programAccessId } });
       return response.data;
@@ -775,9 +909,187 @@ export const apiClient = {
           return response.data;
         }
       }
-    }
+    },
+    transactions: {
+      approve: async (id: number) => {
+        const response = await api.post<ApiResponse<any>>(`/admin/transactions/${id}/approve`);
+        return response.data;
+      },
+      reject: async (id: number, reason?: string, refundToWallet: boolean = true) => {
+        const response = await api.post<ApiResponse<any>>(`/admin/transactions/${id}/reject`, {
+          reason,
+          refund_to_wallet: refundToWallet,
+        });
+        return response.data;
+      },
+    },
+    withdrawals: {
+      list: async (params?: { status?: string; page?: number }) => {
+        const response = await api.get<ApiResponse<any>>('/admin/withdrawals', { params });
+        return response.data;
+      },
+      approve: async (id: number, payload: { transfer_reference: string; proof_url?: string }) => {
+        const response = await api.post<ApiResponse<any>>(`/admin/withdrawals/${id}/approve`, payload);
+        return response.data;
+      },
+      reject: async (id: number, reason: string) => {
+        const response = await api.post<ApiResponse<any>>(`/admin/withdrawals/${id}/reject`, { reason });
+        return response.data;
+      },
+    },
+    mentorApplications: {
+      list: async (params?: { status?: string; search?: string; page?: number }) => {
+        const response = await api.get<ApiResponse<any>>('/admin/mentor-applications', { params });
+        return response.data;
+      },
+      get: async (id: number) => {
+        const response = await api.get<ApiResponse<any>>(`/admin/mentor-applications/${id}`);
+        return response.data;
+      },
+      updateStatus: async (id: number, payload: {
+        status: string;
+        written_test_score?: number;
+        interview_notes?: string;
+        assigned_role?: string;
+      }) => {
+        const response = await api.patch<ApiResponse<any>>(`/admin/mentor-applications/${id}/status`, payload);
+        return response.data;
+      },
+    },
+    store: {
+      products: async (params?: { category?: string; search?: string; page?: number }) => {
+        const response = await api.get<ApiResponse<any>>('/admin/store/products', { params });
+        return response.data;
+      },
+      createProduct: async (data: any) => {
+        const response = await api.post<ApiResponse<any>>('/admin/store/products', data);
+        return response.data;
+      },
+      updateProduct: async (id: number, data: any) => {
+        const response = await api.put<ApiResponse<any>>(`/admin/store/products/${id}`, data);
+        return response.data;
+      },
+      deleteProduct: async (id: number) => {
+        const response = await api.delete<ApiResponse<any>>(`/admin/store/products/${id}`);
+        return response.data;
+      },
+      orders: async (params?: { status?: string; page?: number }) => {
+        const response = await api.get<ApiResponse<any>>('/admin/store/orders', { params });
+        return response.data;
+      },
+      updateOrderStatus: async (id: number, status: string, trackingNumber?: string) => {
+        const response = await api.patch<ApiResponse<any>>(`/admin/store/orders/${id}/status`, {
+          status,
+          tracking_number: trackingNumber,
+        });
+        return response.data;
+      },
+    },
+    ams: {
+      consolidation: async () => {
+        const response = await api.get<ApiResponse<any>>('/admin/ams/consolidation');
+        return response.data;
+      },
+    },
+  },
+
+  // Certificates (Public Verification & Workspace Access)
+  certificates: {
+    verify: async (certificateNumber: string) => {
+      const response = await api.get<ApiResponse<{
+        certificate_number: string;
+        is_valid: boolean;
+        status: string;
+        student_name: string;
+        program_name: string;
+        batch_name: string;
+        issued_at: string;
+        revoked_at: string | null;
+        verification_url: string;
+      }>>(`/certificates/verify/${certificateNumber}`);
+      return response.data;
+    },
+    getForAccess: async (accessId: number) => {
+      const response = await api.get<ApiResponse<{
+        is_eligible: boolean;
+        criteria: {
+          cbt_score: number;
+          cbt_passing_grade: number;
+          cbt_passed: boolean;
+          attendance_rate: number;
+          attendance_min_required: number;
+          attendance_passed: boolean;
+          total_sessions: number;
+          present_sessions: number;
+        };
+        certificate: any | null;
+      }>>(`/workspace/certificates/${accessId}`);
+      return response.data;
+    },
+    myCertificates: async () => {
+      const response = await api.get<ApiResponse<any[]>>('/workspace/my-certificates');
+      return response.data;
+    },
+  },
+
+  // Gamification Points
+  points: {
+    me: async () => {
+      const response = await api.get<ApiResponse<{
+        balance: number;
+        total_earned: number;
+        total_spent: number;
+        transactions: any;
+      }>>('/points/me');
+      return response.data;
+    },
+    leaderboard: async () => {
+      const response = await api.get<ApiResponse<Array<{
+        user_id: number;
+        name: string;
+        avatar_url?: string;
+        total_earned: number;
+        balance: number;
+      }>>>('/points/leaderboard');
+      return response.data;
+    },
+  },
+
+  // Store (Public & Student)
+  store: {
+    products: async (params?: { category?: string; search?: string; page?: number }) => {
+      const response = await api.get<ApiResponse<any>>('/store/products', { params });
+      return response.data;
+    },
+    productDetail: async (slug: string) => {
+      const response = await api.get<ApiResponse<any>>(`/store/products/${slug}`);
+      return response.data;
+    },
+    checkout: async (data: {
+      items: Array<{ product_id: number; quantity: number }>;
+      payment_method: 'points' | 'cash' | 'mixed';
+      shipping_name: string;
+      shipping_phone: string;
+      shipping_address: string;
+      shipping_city?: string;
+      shipping_postal_code?: string;
+      notes?: string;
+    }) => {
+      const response = await api.post<ApiResponse<any>>('/store/orders', data);
+      return response.data;
+    },
+    orders: async (params?: { page?: number }) => {
+      const response = await api.get<ApiResponse<any>>('/store/orders', { params });
+      return response.data;
+    },
+    orderDetail: async (id: number) => {
+      const response = await api.get<ApiResponse<any>>(`/store/orders/${id}`);
+      return response.data;
+    },
   },
 };
+
+
 
 export default api;
 

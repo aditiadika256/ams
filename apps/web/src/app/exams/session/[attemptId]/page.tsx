@@ -71,7 +71,7 @@ export default function ExamSessionPage({ params }: { params: Promise<{ attemptI
       apiClient.cbt.heartbeat(attemptId).catch(() => {});
     }, 30000);
 
-    // Event listeners
+    // Event listeners for anti-cheat
     const handleVisibilityChange = () => {
       if (document.hidden) {
         apiClient.cbt.logEvent(attemptId, 'visibility_hidden', { timestamp: new Date().toISOString() }).catch(() => {});
@@ -88,15 +88,42 @@ export default function ExamSessionPage({ params }: { params: Promise<{ attemptI
       apiClient.cbt.logEvent(attemptId, 'window_focus', { timestamp: new Date().toISOString() }).catch(() => {});
     };
 
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        apiClient.cbt.logEvent(attemptId, 'fullscreen_exit', { timestamp: new Date().toISOString() }).catch(() => {});
+        alertActions.error('Peringatan Anti-Cheat', 'Anda keluar dari mode layar penuh (Full Screen). Harap kembali ke mode Full Screen.');
+      }
+    };
+
+    // Multi-tab anti-cheat detection
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+      try {
+        channel = new BroadcastChannel(`cbt_session_${attemptId}`);
+        channel.postMessage({ type: 'NEW_TAB_OPENED', timestamp: Date.now() });
+        channel.onmessage = (event) => {
+          if (event.data?.type === 'NEW_TAB_OPENED') {
+            apiClient.cbt.logEvent(attemptId, 'multi_tab_detected', { timestamp: new Date().toISOString() }).catch(() => {});
+            alertActions.error('Peringatan Anti-Cheat', 'Terdeteksi membuka ujian di tab lain secara bersamaan.');
+          }
+        };
+      } catch {
+        // BroadcastChannel fallback
+      }
+    }
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('blur', handleBlur);
     window.addEventListener('focus', handleFocus);
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     return () => {
       clearInterval(heartbeatInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      channel?.close();
     };
   }, [attemptId]);
 

@@ -90,6 +90,7 @@ class MenuSeederTest extends TestCase
         ];
         $actualViews = Menu::query()
             ->where('layout', 'admin')
+            ->where('url', 'like', 'admin://view/%')
             ->pluck('url')
             ->map(fn (string $url): string => str_replace('admin://view/', '', $url))
             ->unique()
