@@ -12,6 +12,8 @@ import { ArrowLeft, CreditCard, CheckCircle2, XCircle, Clock, PlayCircle, BookOp
 import { motion } from 'framer-motion';
 import { Spinner, PageLoader } from '@/components/ui/loaders';
 import { alertActions } from '@/store/useAlertStore';
+import { PayWithWalletModal } from '@/components/wallet/PayWithWalletModal';
+
 
 declare global {
   interface Window {
@@ -287,7 +289,17 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
                 <p className="text-sm text-center text-muted-foreground">
                   Klik tombol di atas untuk menyelesaikan pembayaran aman melalui Midtrans.
                 </p>
+                <div className="relative my-2 w-full text-center">
+                  <span className="bg-background px-3 text-xs uppercase tracking-wider text-muted-foreground">atau</span>
+                  <Separator className="-mt-2" />
+                </div>
+                <PayWithWalletModal
+                  orderId={currentOrder.id}
+                  orderTotal={currentOrder.total}
+                  onSuccess={() => fetchOrder(id, { force: true })}
+                />
               </>
+
             ) : currentOrder.status === 'paid' ? (
               <div className="w-full space-y-3">
                  <Button className="w-full h-12 text-lg rounded-xl" asChild>

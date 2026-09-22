@@ -176,6 +176,7 @@ export interface Program {
   tags?: ProgramTag[];
   components?: ProgramComponent[];
   children?: ProgramChild[];
+  batches?: ProgramBatch[];
   created_at?: string;
   updated_at?: string;
 }

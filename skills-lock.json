@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "skills": {
+    "breakdown-feature-prd": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/breakdown-feature-prd/SKILL.md",
+      "computedHash": "e0a851ff26f6ddc213c390556ede39ac8fa43b76076b4a187c8c759128fe9fce"
+    },
+    "database-schema-designer": {
+      "source": "softaworks/agent-toolkit",
+      "sourceType": "github",
+      "skillPath": "skills/database-schema-designer/SKILL.md",
+      "computedHash": "f23c909d45c6207e974dbce0db4c648de13d586abb37057cfec34d62f25bb526"
+    },
+    "laravel": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "laravel/SKILL.md",
+      "computedHash": "909d6dbe1f48b8682d0e3ab8e839a23f85d8853dd888f840823b204d25a57393"
+    },
+    "laravel-specialist": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/laravel-specialist/SKILL.md",
+      "computedHash": "805be17bd59f759e2f2f2dcbd6bd205ca6678420a87b21da1c16e0793093615c"
+    },
+    "ponytail": {
+      "source": "dietrichgebert/ponytail",
+      "sourceType": "github",
+      "skillPath": "skills/ponytail/SKILL.md",
+      "computedHash": "9e8d05cbbaf6dc38f0cffc924c09b3cbe76d94ba4ba0d09bde803da2f8c6b5a0"
+    },
+    "postgresql-optimization": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/postgresql-optimization/SKILL.md",
+      "computedHash": "8022448de70ba9a485e3b5bce34c5bbc644f93eb39b68431c9f7dabcf03aeb09"
+    },
+    "prd": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/prd/SKILL.md",
+      "computedHash": "1f3e1f005fc40fda85d250ae906c8ee4f7e8e833e23adfeca6542c19609fd7cd"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/ui-ux-pro-max/SKILL.md",
+      "computedHash": "d1de8ff8d228cd4204bf06eb959ef4317d5b927908d9f42765971e33e80c8a7e"
+    },
+    "webapp-testing": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/webapp-testing/SKILL.md",
+      "computedHash": "3f14af7f5690695209c22fbf8c8d133769a86d64892602c09bb13f135e14e857"
+    }
+  }
+}

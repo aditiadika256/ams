@@ -2,6 +2,7 @@
 
 import React from 'react';
 import {
+  Activity,
   BarChart3,
   Blocks,
   BookOpen,
@@ -11,12 +12,14 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Network,
   PanelLeftClose,
   PanelLeftOpen,
   PieChart,
   Search,
   Settings,
   ShieldCheck,
+  ShoppingBag,
   Tags,
   Users,
   X,
@@ -41,6 +44,7 @@ import {
 } from './adminSidebarMenu';
 
 const IconMap: Record<string, LucideIcon> = {
+  Activity,
   BarChart3,
   Blocks,
   BookOpen,
@@ -48,9 +52,11 @@ const IconMap: Record<string, LucideIcon> = {
   GraduationCap,
   LayoutDashboard,
   Menu,
+  Network,
   PieChart,
   Settings,
   ShieldCheck,
+  ShoppingBag,
   Tags,
   Users,
 };
@@ -216,6 +222,12 @@ export function AdminSidebar() {
         title: menu.name,
         view: viewKey as AdminViewKey,
         icon: menu.icon || 'LayoutDashboard',
+      });
+    } else if (menu.url === '/admin/consolidation') {
+      addTab({
+        title: menu.name,
+        view: 'consolidation',
+        icon: menu.icon || 'Network',
       });
     } else {
       window.location.href = menu.url;

@@ -51,7 +51,18 @@ export const useAuthStore = create<AuthState>()(
 
       hasPermission: (permission: string | string[]) => {
         const { user } = get();
-        if (!user || !user.permissions) return false;
+        if (!user) return false;
+
+        // Superadmin bypass: superadmin inherently possesses all system permissions
+        if (user.roles?.includes('superadmin') || user.roles?.includes('super_admin')) {
+          return true;
+        }
+
+        if (!user.permissions) return false;
+
+        if (user.permissions.includes('*')) {
+          return true;
+        }
 
         if (Array.isArray(permission)) {
           return permission.some(p => user.permissions.includes(p));

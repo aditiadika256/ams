@@ -21,6 +21,7 @@ import CurriculumBuilderView from '../views/CurriculumBuilder/view';
 import RolesPermissionsView from '../views/RolesPermissions/view';
 import MenuManagementView from '../views/MenuManagement/view';
 import ColorPaletteView from '../views/ColorPalette/view';
+import ConsolidationView from '../views/Consolidation/view';
 
 const ViewMap: Record<string, React.ComponentType<any>> = {
   'dashboard': DashboardView,
@@ -35,6 +36,7 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'curriculum-builder': CurriculumBuilderView,
   'menus': MenuManagementView,
   'colorpalette': ColorPaletteView,// With hyphen
+  'consolidation': ConsolidationView,
   // Fallbacks or others
   'roles': RolesPermissionsView,
   'cms-pages': () => <div>Pages View (Placeholder)</div>,
@@ -54,6 +56,7 @@ const ViewPermissions: Record<string, string[]> = {
   'curriculum-builder': ['manage_learning_content'],
   'menus': ['manage_menus'],
   'colorpalette': ['manage_global_settings'],
+  'consolidation': ['manage_global_settings'],
   'roles': ['manage_roles'],
   'cms-pages': ['manage_global_settings'],
   'settings': ['manage_global_settings'],

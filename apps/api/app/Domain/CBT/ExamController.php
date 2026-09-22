@@ -3,6 +3,7 @@
 namespace App\Domain\CBT;
 
 use App\Actions\Access\RecordProgramActivity;
+use App\Enums\QuestionType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Access\ExamPackageAccessRequest;
 use App\Http\Requests\Access\ExamStartRequest;
@@ -14,6 +15,7 @@ use App\Models\ProgramAccess;
 use App\Models\Question;
 use App\Models\User;
 use App\Support\Access\AssessmentAccessAuthorizer;
+use App\Support\CBT\QuestionScorer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use OpenApi\Attributes as OA;
@@ -27,6 +29,7 @@ class ExamController extends Controller
     public function __construct(
         private readonly AssessmentAccessAuthorizer $assessmentAccess,
         private readonly RecordProgramActivity $activities,
+        private readonly QuestionScorer $scorer,
     ) {}
 
     /**
@@ -317,16 +320,17 @@ class ExamController extends Controller
         $data = $answers->map(function ($ans) {
             $q = $ans->question;
 
-            return [
-                'id' => $ans->id, // answer id (to submit answer)
+            $item = [
+                'id' => $ans->id,
                 'question_id' => $q->id,
-                'type' => $q->type,
+                'type' => $q->type instanceof QuestionType ? $q->type->value : $q->type,
                 'stem' => $q->stem,
-                'options' => $q->options, // MCQ options
-                // 'answer_key' => HIDDEN
+                'options' => $q->options,
                 'user_answer' => $ans->answer,
                 'flagged' => false,
             ];
+
+            return $item;
         });
 
         return $this->successResponse($data, 'Questions retrieved successfully');
@@ -489,30 +493,14 @@ class ExamController extends Controller
                 ->findOrFail($attempt->id);
 
             foreach ($attempt->answers as $ans) {
-                $question = $ans->question;
-                $isCorrect = false;
-                $score = 0;
-
-                // Simple scoring logic for MCQ
-                // Assuming answer_key and answer are comparable arrays/values
-                if ($question->type === 'mcq' || $question->type === 'single') {
-                    $correctAnswer = $question->answer_key;
-                    $userAnswer = $ans->answer;
-
-                    // Loose comparison for flexibility, or strict if standardized
-                    if ($correctAnswer == $userAnswer) {
-                        $isCorrect = true;
-                        $score = 1; // Default score
-                        // TODO: Implement weighted scoring based on question difficulty
-                    }
-                }
+                $result = $this->scorer->score($ans->question, $ans->answer);
 
                 $ans->update([
-                    'is_correct' => $isCorrect,
-                    'score' => $score,
+                    'is_correct' => $result['is_correct'],
+                    'score' => $result['score'],
                 ]);
 
-                $totalScore += $score;
+                $totalScore += $result['score'];
             }
 
             $attempt->update([
@@ -542,6 +530,12 @@ class ExamController extends Controller
         });
 
         $attempt->refresh();
+
+        try {
+            app(\App\Domain\Gamification\PointService::class)->awardCbtAchievement($user, $attempt);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed awarding CBT achievement points: {$e->getMessage()}");
+        }
 
         return $this->successResponse([
             'score' => $totalScore,

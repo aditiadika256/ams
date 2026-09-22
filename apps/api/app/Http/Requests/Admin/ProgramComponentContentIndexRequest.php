@@ -11,6 +11,15 @@ class ProgramComponentContentIndexRequest extends BaseFormRequest
         return $this->user()?->checkPermissionTo('program-content.view', 'web') ?? false;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('include_archived')) {
+            $this->merge([
+                'include_archived' => filter_var($this->input('include_archived'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [

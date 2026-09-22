@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Bell, User, LogOut, Settings, UserCircle, Menu, X, LayoutDashboard, PanelsTopLeft } from 'lucide-react';
+import { Bell, User, LogOut, Settings, UserCircle, Menu, X, LayoutDashboard, PanelsTopLeft, Coins, Wallet, Package } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   DropdownMenu,
@@ -23,6 +23,8 @@ const FALLBACK_NAV = [
   { name: 'Beranda', href: '/' },
   { name: 'Workspace', href: '/workspace' },
   { name: 'Program', href: '/programs' },
+  { name: 'Store', href: '/store' },
+  { name: 'Poin', href: '/points' },
   { name: 'Ujian', href: '/exams' },
 ];
 
@@ -108,6 +110,65 @@ const TopBar = () => {
     return visibleNav;
   }, [topbarMenus, isAuthenticated, user]);
 
+  const branding = useMemo(() => {
+    if (!isAuthenticated || !user) {
+      return {
+        badge: null,
+        title: 'Arkanin',
+        subtitle: null,
+        accentColor: 'text-primary',
+        badgeBg: '',
+      };
+    }
+
+    const roles = user.roles || [];
+    if (roles.includes('superadmin') || roles.includes('super_admin')) {
+      return {
+        badge: 'AMS',
+        title: 'Arkanin',
+        subtitle: 'Management System',
+        accentColor: 'text-rose-500',
+        badgeBg: 'bg-rose-500/10 text-rose-500 border-rose-500/30',
+      };
+    }
+    if (roles.includes('admin') || roles.includes('manajer_cabang')) {
+      return {
+        badge: 'ASA',
+        title: 'Arkanin',
+        subtitle: 'Super App',
+        accentColor: 'text-indigo-500',
+        badgeBg: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/30',
+      };
+    }
+    if (roles.includes('finance') || roles.includes('keuangan')) {
+      return {
+        badge: 'ASD',
+        title: 'Arkanin',
+        subtitle: 'Super Diamond',
+        accentColor: 'text-cyan-500',
+        badgeBg: 'bg-cyan-500/10 text-cyan-500 border-cyan-500/30',
+      };
+    }
+    if (roles.includes('mentor')) {
+      return {
+        badge: 'A-Team',
+        title: 'Arkanin',
+        subtitle: 'Mentor Workspace',
+        accentColor: 'text-emerald-500',
+        badgeBg: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30',
+      };
+    }
+
+    // Default for students: A+
+    return {
+      badge: 'A+',
+      title: 'Arkanin',
+      subtitle: 'Student Plus',
+      accentColor: 'text-amber-500',
+      badgeBg: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
+    };
+  }, [isAuthenticated, user]);
+
   return (
     <motion.header
       variants={{
@@ -123,10 +184,41 @@ const TopBar = () => {
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tight group">
-            <img src="/logo/arkanin-logo.png" alt="Arkanin" className="h-8 w-8 object-contain group-hover:rotate-12 transition-transform" />
-            <span className="text-primary">Arkanin</span>
-          </Link>
+          <a
+            href="https://arkanin.my.id"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Kembali ke Portal Induk arkanin.my.id"
+            className="flex items-center gap-2.5 font-bold text-xl tracking-tight group"
+          >
+            <div className="relative">
+              <img
+                src="/logo/arkanin-logo.png"
+                alt="Arkanin"
+                className="h-8 w-8 object-contain group-hover:rotate-12 transition-transform"
+              />
+              {branding.badge && (
+                <span className={`absolute -bottom-1 -right-2 rounded-full border px-1 text-[9px] font-black uppercase tracking-tighter shadow-sm ${branding.badgeBg}`}>
+                  {branding.badge}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-col leading-none">
+              <div className="flex items-center gap-1">
+                <span className="text-foreground">Arkanin</span>
+                {branding.badge && (
+                  <span className={`font-black ${branding.accentColor}`}>
+                    {branding.badge}
+                  </span>
+                )}
+              </div>
+              {branding.subtitle && (
+                <span className="text-[10px] font-medium text-muted-foreground hidden sm:block">
+                  {branding.subtitle}
+                </span>
+              )}
+            </div>
+          </a>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-6">
@@ -200,9 +292,27 @@ const TopBar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
+                    <Link href="/wallet" className="cursor-pointer">
+                      <Wallet className="mr-2 h-4 w-4 text-emerald-500" />
+                      <span>Dompet Saldo</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/points" className="cursor-pointer">
+                      <Coins className="mr-2 h-4 w-4 text-amber-500" />
+                      <span>Poin & Leaderboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/orders" className="cursor-pointer">
                       <span className="mr-2 h-4 w-4">🛍️</span>
-                      <span>Riwayat Order</span>
+                      <span>Riwayat Order Program</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/store/orders" className="cursor-pointer">
+                      <Package className="mr-2 h-4 w-4 text-indigo-500" />
+                      <span>Pesanan Merchandise</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

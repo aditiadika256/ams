@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasBranchScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,11 +10,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Transaction extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasBranchScope, HasFactory, SoftDeletes;
 
     protected $table = 'finance_transactions';
 
     protected $fillable = [
+        'branch_id',
         'reference_number',
         'type',
         'category',

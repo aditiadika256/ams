@@ -69,17 +69,16 @@ const BottomNavigation = () => {
 
     const fallback = [];
     if (isAuthenticated) {
-      fallback.push({ href: '/workspace', icon: PanelsTopLeft, label: 'Workspace' });
-    } else {
-      fallback.push({ href: '/', icon: Home, label: 'Home' });
-    }
-    fallback.push({ href: '/programs', icon: LayoutGrid, label: 'Program' });
-    if (isAuthenticated) {
+      fallback.push({ href: '/programs', icon: LayoutGrid, label: 'Program' });
+      fallback.push({ href: '/store', icon: ShoppingBag, label: 'Store' });
+      fallback.push({ href: '/workspace', icon: PanelsTopLeft, label: 'Workspace', isCenter: true });
       fallback.push({ href: '/exams', icon: FileText, label: 'Ujian' });
-      fallback.push({ href: '/orders', icon: ShoppingBag, label: 'Order' });
       fallback.push({ href: '/profile', icon: User, label: 'Akun' });
     } else {
-      fallback.push({ href: '/auth/login', icon: LogIn, label: 'Masuk' });
+      fallback.push({ href: '/', icon: Home, label: 'Beranda' });
+      fallback.push({ href: '/programs', icon: LayoutGrid, label: 'Program' });
+      fallback.push({ href: '/auth/login', icon: LogIn, label: 'Masuk', isCenter: true });
+      fallback.push({ href: '/store', icon: ShoppingBag, label: 'Store' });
     }
     return fallback;
   }, [isAuthenticated, bottomMenus]);
@@ -104,8 +103,28 @@ const BottomNavigation = () => {
       className="fixed bottom-0 z-50 w-full border-t border-white/10 glass md:hidden pb-safe"
     >
       <div className="mx-auto flex h-16 w-full items-center justify-around px-2">
-        {navItems.map((item) => {
+        {navItems.map((item: any) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
+
+          if (item.isCenter) {
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="relative -top-3 flex flex-col items-center justify-center"
+              >
+                <div className={cn(
+                  "flex size-12 items-center justify-center rounded-full shadow-lg transition-transform active:scale-95",
+                  isActive
+                    ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
+                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                )}>
+                  <item.icon className="size-6" />
+                </div>
+                <span className="mt-1 text-[10px] font-bold text-primary">{item.label}</span>
+              </Link>
+            );
+          }
 
           return (
             <Link
@@ -122,7 +141,7 @@ const BottomNavigation = () => {
               )}
               <div className={cn(
                 "flex flex-col items-center gap-1 transition-all duration-300",
-                isActive ? "text-primary -translate-y-1" : "text-muted-foreground hover:text-foreground"
+                isActive ? "text-primary -translate-y-0.5" : "text-muted-foreground hover:text-foreground"
               )}>
                 <item.icon className={cn("h-5 w-5", isActive && "fill-current/20")} />
                 <span className="text-[10px] font-medium">{item.label}</span>

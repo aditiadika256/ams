@@ -2,4 +2,4 @@
 
 use Tests\TestCase;
 
-pest()->extend(TestCase::class)->in('Feature', 'Postgres');
+pest()->extend(TestCase::class)->in('Feature', 'Postgres', 'Unit');

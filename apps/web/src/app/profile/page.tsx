@@ -4,7 +4,9 @@ import React from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { User } from 'lucide-react';
+import { User, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
@@ -57,9 +59,19 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
+
+            <div className="pt-2">
+              <Button asChild className="w-full gap-2">
+                <Link href="/wallet">
+                  <Wallet className="size-4" />
+                  Buka Dompet Saya
+                </Link>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+

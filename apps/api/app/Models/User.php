@@ -29,6 +29,9 @@ class User extends Authenticatable
         'provider',
         'avatar_url',
         'branch_id',
+        'pin_hash',
+        'pin_failed_attempts',
+        'pin_locked_until',
         'created_by',
         'updated_by',
     ];
@@ -41,6 +44,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'pin_hash',
     ];
 
     public function branch()
@@ -58,6 +62,26 @@ class User extends Authenticatable
         return $this->hasMany(Order::class);
     }
 
+    public function wallets(): HasMany
+    {
+        return $this->hasMany(Wallet::class);
+    }
+
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class);
+    }
+
+    public function hasPin(): bool
+    {
+        return ! empty($this->pin_hash);
+    }
+
+    public function isPinLocked(): bool
+    {
+        return $this->pin_locked_until && $this->pin_locked_until->isFuture();
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -68,6 +92,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'pin_locked_until' => 'datetime',
+            'pin_failed_attempts' => 'integer',
         ];
     }
 }
+

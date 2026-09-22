@@ -7,6 +7,15 @@ use Illuminate\Validation\Rule;
 
 class WorkspaceIndexRequest extends BaseFormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('archived')) {
+            $this->merge([
+                'archived' => filter_var($this->input('archived'), FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
