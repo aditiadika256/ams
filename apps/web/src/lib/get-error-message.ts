@@ -26,7 +26,7 @@ function firstValidationMessage(errors?: Record<string, unknown>): string | null
   return null;
 }
 
-export function getErrorMessage(error: unknown, fallback: string): string {
+export function getErrorMessage(error: unknown, fallback: string = 'Terjadi kesalahan'): string {
   if (typeof error === 'string' && error.trim()) {
     return error;
   }
