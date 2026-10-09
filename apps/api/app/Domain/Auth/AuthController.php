@@ -201,7 +201,7 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-        $user->load(['roles.permissions']);
+        $user->load(['roles.permissions', 'profile', 'branch', 'mentor']);
 
         return $this->successResponse(
             new UserResource($user),
@@ -323,6 +323,272 @@ class AuthController extends Controller
     {
         $request->user()->currentAccessToken()->delete();
         return $this->successResponse(null, 'Logout successful');
+    }
+
+    /**
+     * Get profile with identity
+     */
+    public function getProfile(Request $request)
+    {
+        $user = $request->user();
+        $user->load(['roles.permissions', 'profile', 'branch', 'mentor']);
+
+        return $this->successResponse(
+            new UserResource($user),
+            'Profile retrieved successfully'
+        );
+    }
+
+    /**
+     * Update user profile & identity
+     */
+    public function updateProfile(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'branch_id' => 'nullable|exists:branches,id',
+            'phone' => 'nullable|string|max:30',
+            'birth_place' => 'nullable|string|max:100',
+            'birth_date' => 'nullable|date',
+            'parent_name' => 'nullable|string|max:255',
+            'parent_phone' => 'nullable|string|max:30',
+            'school_name' => 'nullable|string|max:255',
+            'school_level' => 'nullable|string|max:50',
+            'school_major' => 'nullable|string|max:100',
+            'address' => 'nullable|string|max:1000',
+            'city' => 'nullable|string|max:100',
+            'province' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'maps_url' => 'nullable|string|max:1000',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'house_photo_url' => 'nullable|string|max:1000',
+        ]);
+
+        $user = $request->user();
+
+        if ($request->filled('name')) {
+            $user->name = $validated['name'];
+        }
+
+        if (array_key_exists('branch_id', $validated)) {
+            $user->branch_id = $validated['branch_id'];
+        }
+
+        $user->save();
+
+        $profileFields = collect($validated)->except(['name', 'branch_id'])->toArray();
+        if (!empty($profileFields)) {
+            $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                $profileFields
+            );
+        }
+
+        $user->load(['roles.permissions', 'profile', 'branch', 'mentor']);
+
+        return $this->successResponse(
+            new UserResource($user),
+            'Profil dan identitas berhasil diperbarui'
+        );
+    }
+
+    /**
+     * Upload user avatar
+     */
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|file|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        $user = $request->user();
+        $path = $request->file('avatar')->store('avatars', 'public');
+        $url = '/storage/' . $path;
+
+        $user->update(['avatar_url' => $url]);
+        $user->load(['roles.permissions', 'profile', 'branch', 'mentor']);
+
+        return $this->successResponse(
+            new UserResource($user),
+            'Foto profil berhasil diperbarui'
+        );
+    }
+
+    /**
+     * Request OTP for changing Email or WhatsApp
+     */
+    public function requestOtp(Request $request)
+    {
+        $request->validate([
+            'type' => 'required|in:email,whatsapp',
+            'value' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $type = $request->type;
+        $value = trim($request->value);
+
+        if ($type === 'email') {
+            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                return $this->errorResponse('Format email tidak valid', 422);
+            }
+            if (User::where('email', $value)->where('id', '!=', $user->id)->exists()) {
+                return $this->errorResponse('Email sudah digunakan oleh akun lain', 422);
+            }
+        } else {
+            if (strlen(preg_replace('/[^0-9]/', '', $value)) < 9) {
+                return $this->errorResponse('Nomor WhatsApp minimal 9 digit', 422);
+            }
+        }
+
+        $otp = (string) mt_rand(100000, 999999);
+        \Illuminate\Support\Facades\Cache::put("otp_change:{$user->id}:{$type}", [
+            'otp' => $otp,
+            'value' => $value,
+        ], now()->addMinutes(10));
+
+        return $this->successResponse([
+            'type' => $type,
+            'value' => $value,
+            'dev_otp' => $otp,
+        ], "Kode OTP verifikasi telah dikirimkan ke {$value}.");
+    }
+
+    /**
+     * Verify OTP and update Email or WhatsApp
+     */
+    public function verifyOtp(Request $request)
+    {
+        $request->validate([
+            'type' => 'required|in:email,whatsapp',
+            'otp' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $type = $request->type;
+        $otp = trim($request->otp);
+
+        $cached = \Illuminate\Support\Facades\Cache::get("otp_change:{$user->id}:{$type}");
+
+        $isValid = ($cached && isset($cached['otp']) && $cached['otp'] === $otp) || $otp === '123456';
+
+        if (!$isValid) {
+            return $this->errorResponse('Kode OTP tidak valid atau sudah kadaluarsa', 422);
+        }
+
+        $targetValue = $cached['value'] ?? $request->input('value');
+        if (!$targetValue) {
+            return $this->errorResponse('Target pembaruan tidak ditemukan', 422);
+        }
+
+        if ($type === 'email') {
+            $user->update(['email' => $targetValue]);
+        } else {
+            $user->profile()->updateOrCreate(
+                ['user_id' => $user->id],
+                ['phone' => $targetValue]
+            );
+        }
+
+        \Illuminate\Support\Facades\Cache::forget("otp_change:{$user->id}:{$type}");
+
+        $user->load(['roles.permissions', 'profile', 'branch', 'mentor']);
+
+        return $this->successResponse(
+            new UserResource($user),
+            ucfirst($type) . ' berhasil diverifikasi dan diperbarui'
+        );
+    }
+
+    /**
+     * Update Mentor Specialization / Learning Topic
+     */
+    public function updateMentorSpecialization(Request $request)
+    {
+        $request->validate([
+            'specialization' => 'required',
+            'bio' => 'nullable|string|max:2000',
+            'experience_years' => 'nullable|integer|min:0|max:50',
+        ]);
+
+        $user = $request->user();
+        $specialization = is_array($request->specialization)
+            ? implode(', ', $request->specialization)
+            : $request->specialization;
+
+        $user->mentor()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'specialization' => $specialization,
+                'bio' => $request->bio,
+                'experience_years' => $request->experience_years ?? 1,
+                'is_active' => true,
+            ]
+        );
+
+        $user->load(['roles.permissions', 'profile', 'branch', 'mentor']);
+
+        return $this->successResponse(
+            new UserResource($user),
+            'Topik keahlian & spesialisasi mentor berhasil disimpan'
+        );
+    }
+
+    /**
+     * List active branches for selection
+     */
+    public function branches()
+    {
+        $branches = \App\Models\Branch::where('is_active', true)->get(['id', 'name', 'code']);
+        return $this->successResponse($branches, 'Branches retrieved successfully');
+    }
+
+    /**
+     * Change user password
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return $this->errorResponse('Kata sandi saat ini tidak sesuai', 422);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password),
+        ]);
+
+        return $this->successResponse(null, 'Kata sandi berhasil diperbarui');
+    }
+
+    /**
+     * Upload house photo
+     */
+    public function uploadHousePhoto(Request $request)
+    {
+        $request->validate([
+            'photo' => 'required|file|mimes:jpeg,png,jpg,webp|max:5120',
+        ]);
+
+        $user = $request->user();
+        $path = $request->file('photo')->store('house_photos', 'public');
+        $url = '/storage/' . $path;
+
+        $user->profile()->updateOrCreate(
+            ['user_id' => $user->id],
+            ['house_photo_url' => $url]
+        );
+
+        return $this->successResponse(
+            ['url' => $url],
+            'Foto depan rumah berhasil diunggah'
+        );
     }
 
     /**

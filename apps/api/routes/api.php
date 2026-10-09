@@ -14,6 +14,15 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/login', [\App\Domain\Auth\AuthController::class, 'login'])->middleware('throttle:10,1');
     Route::post('auth/logout', [\App\Domain\Auth\AuthController::class, 'logout'])->middleware('auth:sanctum');
     Route::get('auth/me', [\App\Domain\Auth\AuthController::class, 'me'])->middleware('auth:sanctum');
+    Route::get('auth/profile', [\App\Domain\Auth\AuthController::class, 'getProfile'])->middleware('auth:sanctum');
+    Route::put('auth/profile', [\App\Domain\Auth\AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
+    Route::post('auth/change-password', [\App\Domain\Auth\AuthController::class, 'changePassword'])->middleware('auth:sanctum');
+    Route::post('auth/profile/upload-house-photo', [\App\Domain\Auth\AuthController::class, 'uploadHousePhoto'])->middleware('auth:sanctum');
+    Route::post('auth/avatar', [\App\Domain\Auth\AuthController::class, 'uploadAvatar'])->middleware('auth:sanctum');
+    Route::post('auth/otp/request', [\App\Domain\Auth\AuthController::class, 'requestOtp'])->middleware('auth:sanctum');
+    Route::post('auth/otp/verify', [\App\Domain\Auth\AuthController::class, 'verifyOtp'])->middleware('auth:sanctum');
+    Route::put('auth/mentor/specialization', [\App\Domain\Auth\AuthController::class, 'updateMentorSpecialization'])->middleware('auth:sanctum');
+    Route::get('branches', [\App\Domain\Auth\AuthController::class, 'branches']);
     Route::get('auth/google', [\App\Domain\Auth\AuthController::class, 'googleRedirect']);
     Route::get('auth/google/callback', [\App\Domain\Auth\AuthController::class, 'googleCallback']);
 
