@@ -18,8 +18,8 @@ interface ShowAlertInput {
 interface AlertState {
   alert: AppAlert | null;
   showAlert: (input: ShowAlertInput) => void;
-  showSuccess: (title: string, message: string) => void;
-  showError: (title: string, message: string) => void;
+  showSuccess: (titleOrMessage: string, message?: string) => void;
+  showError: (titleOrMessage: string, message?: string) => void;
   dismissAlert: () => void;
 }
 
@@ -54,12 +54,16 @@ export const useAlertStore = create<AlertState>((set, get) => ({
     }
   },
 
-  showSuccess: (title, message) => {
-    get().showAlert({ type: 'success', title, message });
+  showSuccess: (titleOrMessage, message) => {
+    const title = message !== undefined ? titleOrMessage : 'Berhasil';
+    const msg = message !== undefined ? message : titleOrMessage;
+    get().showAlert({ type: 'success', title, message: msg });
   },
 
-  showError: (title, message) => {
-    get().showAlert({ type: 'error', title, message });
+  showError: (titleOrMessage, message) => {
+    const title = message !== undefined ? titleOrMessage : 'Terjadi Kesalahan';
+    const msg = message !== undefined ? message : titleOrMessage;
+    get().showAlert({ type: 'error', title, message: msg });
   },
 
   dismissAlert: () => {
@@ -69,9 +73,9 @@ export const useAlertStore = create<AlertState>((set, get) => ({
 }));
 
 export const alertActions = {
-  success: (title: string, message: string) =>
-    useAlertStore.getState().showSuccess(title, message),
-  error: (title: string, message: string) =>
-    useAlertStore.getState().showError(title, message),
+  success: (titleOrMessage: string, message?: string) =>
+    useAlertStore.getState().showSuccess(titleOrMessage, message),
+  error: (titleOrMessage: string, message?: string) =>
+    useAlertStore.getState().showError(titleOrMessage, message),
   dismiss: () => useAlertStore.getState().dismissAlert(),
 };

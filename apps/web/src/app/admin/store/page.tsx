@@ -155,7 +155,7 @@ export default function AdminStorePage() {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
-      alertActions.error('Nama produk wajib diisi.');
+      alertActions.error('Validasi Gagal', 'Nama produk wajib diisi.');
       return;
     }
 
@@ -174,16 +174,16 @@ export default function AdminStorePage() {
 
       if (editingProduct) {
         await apiClient.admin.store.updateProduct(editingProduct.id, payload);
-        alertActions.success('Produk berhasil diperbarui.');
+        alertActions.success('Produk Diperbarui', 'Produk berhasil diperbarui.');
       } else {
         await apiClient.admin.store.createProduct(payload);
-        alertActions.success('Produk baru berhasil ditambahkan.');
+        alertActions.success('Produk Ditambahkan', 'Produk baru berhasil ditambahkan.');
       }
 
       setProductModalOpen(false);
       fetchProducts();
     } catch (err: any) {
-      alertActions.error(getErrorMessage(err) || 'Gagal menyimpan produk.');
+      alertActions.error('Gagal Menyimpan', getErrorMessage(err, 'Gagal menyimpan produk.'));
     } finally {
       setSavingProduct(false);
     }
@@ -193,10 +193,10 @@ export default function AdminStorePage() {
     if (!confirm('Apakah Anda yakin ingin menghapus produk ini dari etalase?')) return;
     try {
       await apiClient.admin.store.deleteProduct(id);
-      alertActions.success('Produk berhasil dihapus.');
+      alertActions.success('Produk Dihapus', 'Produk berhasil dihapus.');
       fetchProducts();
     } catch (err: any) {
-      alertActions.error(getErrorMessage(err) || 'Gagal menghapus produk.');
+      alertActions.error('Gagal Menghapus', getErrorMessage(err, 'Gagal menghapus produk.'));
     }
   };
 
@@ -219,11 +219,11 @@ export default function AdminStorePage() {
         newStatus === 'shipped' ? trackingNumber : undefined
       );
 
-      alertActions.success(`Status pes #${selectedOrder.order_number} berhasil diubah.`);
+      alertActions.success('Status Diperbarui', `Status pes #${selectedOrder.order_number} berhasil diubah.`);
       setOrderModalOpen(false);
       fetchOrders();
     } catch (err: any) {
-      alertActions.error(getErrorMessage(err) || 'Gagal mengubah status pesanan.');
+      alertActions.error('Gagal Mengubah Status', getErrorMessage(err, 'Gagal mengubah status pesanan.'));
     } finally {
       setUpdatingOrder(false);
     }
