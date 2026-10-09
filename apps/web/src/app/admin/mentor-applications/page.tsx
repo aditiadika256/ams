@@ -56,7 +56,7 @@ export default function AdminMentorApplicationsPage() {
         setApplications(res.data.data);
       }
     } catch (err) {
-      alertActions.error('Gagal memuat pelamar', getErrorMessage(err));
+      alertActions.error('Gagal memuat pelamar', getErrorMessage(err, 'Daftar pelamar mentor tidak dapat dimuat.'));
     } finally {
       setLoading(false);
     }
@@ -90,7 +90,7 @@ export default function AdminMentorApplicationsPage() {
       setModalOpen(false);
       void fetchApplications();
     } catch (err) {
-      alertActions.error('Gagal memperbarui status', getErrorMessage(err));
+      alertActions.error('Gagal memperbarui status', getErrorMessage(err, 'Status pelamar gagal diperbarui.'));
     } finally {
       setSaving(false);
     }
