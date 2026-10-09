@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosRequestConfig } from 'axios';
-import { ApiResponse, User, RegisterData } from '../types/auth';
+import { ApiResponse, User, RegisterData, UserProfile, PasswordChangeData, BranchItem } from '../types/auth';
 import {
   ComponentDefinition,
   ComponentDefinitionPayload,
@@ -256,6 +256,70 @@ export const apiClient = {
 
     me: async () => {
       const response = await api.get<ApiResponse<User>>('/auth/me');
+      return response.data;
+    },
+
+    getProfile: async () => {
+      const response = await api.get<ApiResponse<User>>('/auth/profile');
+      return response.data;
+    },
+
+    updateProfile: async (data: Partial<UserProfile & { name?: string }>) => {
+      const response = await api.put<ApiResponse<User>>('/auth/profile', data);
+      return response.data;
+    },
+
+    changePassword: async (data: PasswordChangeData) => {
+      const response = await api.post<ApiResponse>('/auth/change-password', data);
+      return response.data;
+    },
+
+    uploadHousePhoto: async (file: File) => {
+      const formData = new FormData();
+      formData.append('photo', file);
+      const response = await api.post<ApiResponse<{ url: string }>>('/auth/profile/upload-house-photo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+
+    uploadAvatar: async (file: File) => {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const response = await api.post<ApiResponse<User>>('/auth/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    },
+
+    requestOtp: async (type: 'email' | 'whatsapp', value: string) => {
+      const response = await api.post<ApiResponse<{ type: string; value: string; dev_otp?: string }>>('/auth/otp/request', {
+        type,
+        value,
+      });
+      return response.data;
+    },
+
+    verifyOtp: async (type: 'email' | 'whatsapp', otp: string, value?: string) => {
+      const response = await api.post<ApiResponse<User>>('/auth/otp/verify', {
+        type,
+        otp,
+        value,
+      });
+      return response.data;
+    },
+
+    updateMentorSpecialization: async (data: { specialization: string | string[]; bio?: string; experience_years?: number }) => {
+      const response = await api.put<ApiResponse<User>>('/auth/mentor/specialization', data);
+      return response.data;
+    },
+
+    getBranches: async () => {
+      const response = await api.get<ApiResponse<BranchItem[]>>('/branches');
       return response.data;
     },
   },

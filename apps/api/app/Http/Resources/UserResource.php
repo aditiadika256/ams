@@ -33,6 +33,19 @@ class UserResource extends BaseResource
             }, []),
             'avatar_url' => $this->avatar_url,
             'provider' => $this->provider,
+            'branch_id' => $this->branch_id,
+            'branch' => $this->branch ? [
+                'id' => $this->branch->id,
+                'name' => $this->branch->name,
+                'code' => $this->branch->code,
+            ] : null,
+            'mentor' => $this->mentor ? [
+                'id' => $this->mentor->id,
+                'specialization' => $this->mentor->specialization,
+                'bio' => $this->mentor->bio,
+                'experience_years' => $this->mentor->experience_years,
+            ] : null,
+            'profile' => $this->profile ? new UserProfileResource($this->profile) : null,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];
