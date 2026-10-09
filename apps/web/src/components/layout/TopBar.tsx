@@ -3,7 +3,24 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Bell, User, LogOut, Settings, UserCircle, Menu, X, LayoutDashboard, PanelsTopLeft, Coins, Wallet, Package } from 'lucide-react';
+import {
+  Home,
+  PanelsTopLeft,
+  LayoutGrid,
+  ShoppingBag,
+  Bell,
+  Settings,
+  ShoppingCart,
+  User,
+  LogOut,
+  UserCircle,
+  LayoutDashboard,
+  Coins,
+  Wallet,
+  Package,
+  HelpCircle,
+  Trophy,
+} from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   DropdownMenu,
@@ -15,40 +32,42 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'framer-motion';
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { ModeToggle } from '../mode-toggle';
 import { useMenuStore } from '@/store/useMenuStore';
+import { cn } from '@/lib/utils';
 
-const FALLBACK_NAV = [
-  { name: 'Beranda', href: '/' },
-  { name: 'Workspace', href: '/workspace' },
-  { name: 'Program', href: '/programs' },
-  { name: 'Store', href: '/store' },
-  { name: 'Poin', href: '/points' },
-  { name: 'Ujian', href: '/exams' },
+const iconMap: Record<string, any> = {
+  Home: Home,
+  PanelsTopLeft: PanelsTopLeft,
+  LayoutGrid: LayoutGrid,
+  ShoppingBag: ShoppingBag,
+  Bell: Bell,
+};
+
+// Default desktop navigation items (icon-only with hover title)
+const DEFAULT_DESKTOP_NAV = [
+  { name: 'Beranda', href: '/', icon: Home },
+  { name: 'Workspace', href: '/workspace', icon: PanelsTopLeft },
+  { name: 'Programs', href: '/programs', icon: LayoutGrid },
+  { name: 'Store', href: '/store', icon: ShoppingBag },
 ];
-
-const AUTHENTICATED_ONLY_PATHS = ['/workspace', '/exams'];
-
-const requiresAuthentication = (href: string) =>
-  AUTHENTICATED_ONLY_PATHS.some((path) => href === path || href.startsWith(`${path}/`));
 
 const TopBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { user, logout, isAuthenticated } = useAuthStore();
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
 
   const { scrollY } = useScroll();
 
-  // Shared menu store — select raw cache to avoid creating new references
+  // Shared menu store
   const menuCache = useMenuStore((s) => s.cache);
   const fetchMenus = useMenuStore((s) => s.fetchMenus);
   const topbarMenus = menuCache['users:topbar']?.data ?? [];
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
+  useMotionValueEvent(scrollY, 'change', (latest) => {
     const previous = scrollY.getPrevious() || 0;
     if (latest > previous && latest > 150) {
       setHidden(true);
@@ -76,39 +95,27 @@ const TopBar = () => {
       .substring(0, 2);
   };
 
-  // Fetch menus once via shared store (deduplicated)
+  // Fetch menus once via shared store
   useEffect(() => {
     fetchMenus('users', 'topbar');
   }, [fetchMenus]);
 
-  // Derive navLinks from store data or fallback
+  // Derive desktop main nav items (posisi: Beranda, Workspace, Programs, Store)
   const navLinks = useMemo(() => {
     const topLevel = topbarMenus
-      .filter(m => !m.parent_id)
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-      .map(m => ({ name: m.name, href: m.url }));
-    
-    const baseNav = topLevel.length > 0 ? topLevel : FALLBACK_NAV;
-    const visibleNav = isAuthenticated
-      ? baseNav
-      : baseNav.filter((link) => !requiresAuthentication(link.href));
+      .filter((m) => !m.parent_id && m.url !== '/notifications')
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-    if (isAuthenticated) {
-      const isAdmin = user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang', 'direktur'].includes(role));
-      const dashboardLink = {
-        name: isAdmin ? 'Admin Panel' : 'Workspace',
-        href: isAdmin ? '/admin' : '/workspace'
-      };
-      
-      const hasDashboard = visibleNav.some(link => link.href === '/workspace' || link.href === '/admin');
-      if (!hasDashboard) {
-        const result = [...visibleNav];
-        result.splice(1, 0, dashboardLink);
-        return result;
-      }
+    if (topLevel.length > 0) {
+      return topLevel.map((m) => ({
+        name: m.name,
+        href: m.url,
+        icon: iconMap[m.icon || ''] || LayoutGrid,
+      }));
     }
-    return visibleNav;
-  }, [topbarMenus, isAuthenticated, user]);
+
+    return DEFAULT_DESKTOP_NAV;
+  }, [topbarMenus]);
 
   const branding = useMemo(() => {
     if (!isAuthenticated || !user) {
@@ -177,35 +184,35 @@ const TopBar = () => {
       }}
       animate={hidden ? 'hidden' : 'visible'}
       transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className={`fixed top-0 z-40 w-full transition-all duration-300 ${scrolled
-        ? 'glass border-b-white/10'
-        : 'bg-transparent border-transparent'
-        }`}
+      className={`fixed top-0 z-40 w-full transition-all duration-300 ${
+        scrolled
+          ? 'bg-background/85 backdrop-blur-xl border-b border-border/40 shadow-sm'
+          : 'bg-background/50 backdrop-blur-md border-b border-border/20'
+      }`}
     >
-      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-8">
-          <a
-            href="https://arkanin.my.id"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Kembali ke Portal Induk arkanin.my.id"
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
+        {/* Left: Branding Logo */}
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            title="Arkanin Education Platform"
             className="flex items-center gap-2.5 font-bold text-xl tracking-tight group"
           >
-            <div className="relative">
-              <img
-                src="/logo/arkanin-logo.png"
-                alt="Arkanin"
-                className="h-8 w-8 object-contain group-hover:rotate-12 transition-transform"
-              />
+            <div className="relative flex items-center justify-center">
+              <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center font-black text-xl text-primary transition-transform group-hover:scale-105">
+                A
+              </div>
               {branding.badge && (
-                <span className={`absolute -bottom-1 -right-2 rounded-full border px-1 text-[9px] font-black uppercase tracking-tighter shadow-sm ${branding.badgeBg}`}>
+                <span
+                  className={`absolute -bottom-1 -right-2 rounded-full border px-1 text-[9px] font-black uppercase tracking-tighter shadow-sm ${branding.badgeBg}`}
+                >
                   {branding.badge}
                 </span>
               )}
             </div>
             <div className="flex flex-col leading-none">
               <div className="flex items-center gap-1">
-                <span className="text-foreground">Arkanin</span>
+                <span className="text-foreground tracking-tight">Arkanin</span>
                 {branding.badge && (
                   <span className={`font-black ${branding.accentColor}`}>
                     {branding.badge}
@@ -218,171 +225,192 @@ const TopBar = () => {
                 </span>
               )}
             </div>
-          </a>
+          </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium transition-colors hover:text-primary ${pathname === link.href ? 'text-primary' : 'text-muted-foreground'
-                  }`}
-              >
-                {link.name}
-              </Link>
-            ))}
+          {/* Desktop Navigation: Icon-only default, sliding title beside icon on hover that pushes adjacent icons */}
+          {/* Posisi: Beranda, Workspace, Programs, Store */}
+          <nav className="hidden md:flex items-center gap-1.5 bg-muted/40 p-1 rounded-2xl border border-border/50 transition-all duration-300">
+            {navLinks.map((link) => {
+              const isActive =
+                pathname === link.href ||
+                (link.href !== '/' && pathname?.startsWith(link.href));
+              const Icon = link.icon;
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    'group relative flex items-center h-10 px-2.5 rounded-xl transition-all duration-300 ease-out select-none overflow-hidden',
+                    isActive
+                      ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25 font-bold'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-background/80'
+                  )}
+                  aria-label={link.name}
+                >
+                  <Icon className="size-5 shrink-0 transition-transform duration-300 group-hover:scale-110" />
+
+                  {/* Slide-out title on hover: expands width smoothly & shifts adjacent icons to the right */}
+                  <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold transition-all duration-300 ease-out transform -translate-x-1 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-2 group-hover:translate-x-0">
+                    {link.name}
+                  </span>
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <ModeToggle />
-          {isAuthenticated ? (
-            <>
-              <Button variant="ghost" size="icon" className="rounded-full hidden sm:flex text-muted-foreground hover:text-primary">
-                <Bell className="h-5 w-5" />
-              </Button>
+        {/* Right side items */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* 1. Notification (Terpisah di pojok kanan untuk Desktop) */}
+          <div className="relative group hidden md:block">
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              className={cn(
+                'rounded-xl size-10 text-muted-foreground hover:text-primary hover:bg-muted/60 transition-colors',
+                pathname === '/notifications' && 'text-primary bg-primary/10'
+              )}
+            >
+              <Link href="/notifications" aria-label="Notifikasi">
+                <Bell className="size-5" />
+              </Link>
+            </Button>
+            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap bg-popover/95 text-popover-foreground text-xs font-semibold px-2.5 py-1 rounded-lg shadow-lg border border-border/80 backdrop-blur-sm">
+              Notifikasi
+            </div>
+          </div>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-2 ring-transparent hover:ring-primary/20 transition-all">
-                    <Avatar className="h-9 w-9">
-                      <AvatarImage src={user?.avatar_url || user?.profile_image_url || ''} alt={user?.name} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                        {user?.name ? getInitials(user.name) : <User className="h-4 w-4" />}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user?.name || 'User'}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user?.email}
-                      </p>
+          {/* 2. Settings (Sesuai wireframe - icon Gear) */}
+          <div className="relative group">
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              className={cn(
+                'rounded-xl size-10 text-muted-foreground hover:text-primary hover:bg-muted/60 transition-colors',
+                pathname === '/settings' && 'text-primary bg-primary/10'
+              )}
+            >
+              <Link href="/settings" aria-label="Pengaturan">
+                <Settings className="size-5" />
+              </Link>
+            </Button>
+            <div className="hidden md:block absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap bg-popover/95 text-popover-foreground text-xs font-semibold px-2.5 py-1 rounded-lg shadow-lg border border-border/80 backdrop-blur-sm">
+              Pengaturan
+            </div>
+          </div>
+
+          {/* 3. Shopping Cart (Sesuai wireframe - icon Troli) */}
+          <div className="relative group">
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              className={cn(
+                'rounded-xl size-10 text-muted-foreground hover:text-primary hover:bg-muted/60 transition-colors',
+                pathname === '/store' && 'text-primary bg-primary/10'
+              )}
+            >
+              <Link href="/store" aria-label="Store / Keranjang">
+                <ShoppingCart className="size-5" />
+              </Link>
+            </Button>
+            <div className="hidden md:block absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap bg-popover/95 text-popover-foreground text-xs font-semibold px-2.5 py-1 rounded-lg shadow-lg border border-border/80 backdrop-blur-sm">
+              Store & Keranjang
+            </div>
+          </div>
+
+          {/* Mode Toggle (Dark/Light) */}
+          <ModeToggle />
+
+          {/* 4. Avatar / User Dropdown */}
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="relative size-10 rounded-full ring-2 ring-primary/20 hover:ring-primary/40 transition-all p-0"
+                >
+                  <Avatar className="size-9">
+                    <AvatarImage
+                      src={user?.avatar_url || user?.profile_image_url || ''}
+                      alt={user?.name}
+                    />
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+                      {user?.name ? getInitials(user.name) : <User className="size-4" />}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-60 p-2 shadow-xl border-border" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal px-2 py-1.5">
+                  <div className="flex flex-col space-y-1">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold leading-none">{user?.name || 'User'}</p>
+                      {branding.badge && (
+                        <span className={`text-[10px] font-black px-1.5 py-0.5 rounded border ${branding.badgeBg}`}>
+                          {branding.badge}
+                        </span>
+                      )}
                     </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {user?.roles?.some(role => ['superadmin', 'admin', 'manajer_cabang'].includes(role)) ? (
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin" className="cursor-pointer font-medium text-primary">
-                        <LayoutDashboard className="mr-2 h-4 w-4" />
-                        <span>Admin Panel</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem asChild>
-                      <Link href="/workspace" className="cursor-pointer font-medium text-primary">
-                        <PanelsTopLeft className="mr-2 h-4 w-4" />
-                        <span>Workspace</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
+                    <p className="text-xs leading-none text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {user?.roles?.some((role) =>
+                  ['superadmin', 'admin', 'manajer_cabang'].includes(role)
+                ) && (
                   <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer">
-                      <UserCircle className="mr-2 h-4 w-4" />
-                      <span>Profile</span>
+                    <Link href="/admin" className="cursor-pointer font-medium text-primary">
+                      <LayoutDashboard className="mr-2.5 size-4" />
+                      <span>Admin Panel</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Settings</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/wallet" className="cursor-pointer">
-                      <Wallet className="mr-2 h-4 w-4 text-emerald-500" />
-                      <span>Dompet Saldo</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/points" className="cursor-pointer">
-                      <Coins className="mr-2 h-4 w-4 text-amber-500" />
-                      <span>Poin & Leaderboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/orders" className="cursor-pointer">
-                      <span className="mr-2 h-4 w-4">🛍️</span>
-                      <span>Riwayat Order Program</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/store/orders" className="cursor-pointer">
-                      <Package className="mr-2 h-4 w-4 text-indigo-500" />
-                      <span>Pesanan Merchandise</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive-foreground focus:bg-destructive/20 cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
+                )}
+                {/* 3 Menu Terpisah untuk Student dan Mentor: Profile, Achievement, Setting */}
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer font-medium">
+                    <UserCircle className="mr-2.5 size-4 text-primary" />
+                    <span>Profile</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/achievements" className="cursor-pointer font-medium">
+                    <Trophy className="mr-2.5 size-4 text-amber-500" />
+                    <span>Achievement</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="cursor-pointer font-medium">
+                    <Settings className="mr-2.5 size-4 text-muted-foreground" />
+                    <span>Setting</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {/* Logout */}
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  className="text-destructive focus:text-destructive-foreground focus:bg-destructive/20 cursor-pointer font-medium"
+                >
+                  <LogOut className="mr-2.5 size-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
-            <div className="hidden md:flex items-center gap-2">
-              <Button variant="ghost" asChild>
+            <div className="flex items-center gap-1.5">
+              <Button variant="ghost" size="sm" asChild className="text-xs font-semibold">
                 <Link href="/auth/login">Masuk</Link>
               </Button>
-              <Button asChild className="rounded-full px-6 shadow-md shadow-primary/20">
+              <Button size="sm" asChild className="rounded-xl px-4 text-xs font-semibold shadow-sm">
                 <Link href="/auth/register">Daftar</Link>
               </Button>
             </div>
           )}
-
-          {/* Mobile Menu Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-b bg-background shadow-xl"
-          >
-            <div className="space-y-1 p-4">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${pathname === link.href
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              {!isAuthenticated && (
-                <div className="pt-4 mt-4 border-t grid grid-cols-2 gap-2">
-                  <Button variant="outline" asChild onClick={() => setMobileMenuOpen(false)}>
-                    <Link href="/auth/login">Masuk</Link>
-                  </Button>
-                  <Button asChild onClick={() => setMobileMenuOpen(false)}>
-                    <Link href="/auth/register">Daftar</Link>
-                  </Button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.header>
   );
 };

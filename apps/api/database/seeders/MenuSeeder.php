@@ -15,21 +15,19 @@ class MenuSeeder extends Seeder
 
     public function run(): void
     {
-        // --- 1. Public & User Topbar (A+) ---
+        // --- 1. Public & User Topbar (Desktop) ---
         $this->createMenu('users.topbar.home', 'Beranda', 'Home', '/', 'users', 'topbar', null, 1);
-        $this->createMenu('users.topbar.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'topbar', null, 2);
-        $this->createMenu('users.topbar.store', 'Store', 'ShoppingBag', '/store', 'users', 'topbar', null, 3);
-        $this->createMenu('users.topbar.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'topbar', null, 4);
-        $this->createMenu('users.topbar.exams', 'Ujian', 'FileText', '/exams', 'users', 'topbar', null, 5);
-        $this->createMenu('users.topbar.points', 'Poin', 'Coins', '/points', 'users', 'topbar', null, 6);
+        $this->createMenu('users.topbar.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'topbar', null, 2);
+        $this->createMenu('users.topbar.programs', 'Programs', 'LayoutGrid', '/programs', 'users', 'topbar', null, 3);
+        $this->createMenu('users.topbar.store', 'Store', 'ShoppingBag', '/store', 'users', 'topbar', null, 4);
+        $this->createMenu('users.topbar.notifications', 'Notifikasi', 'Bell', '/notifications', 'users', 'topbar', null, 5);
 
         // --- 2. Public & User Bottom Navigation (Mobile) ---
-        $this->createMenu('users.bottom.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'bottomnavigation', null, 1);
-        $this->createMenu('users.bottom.programs', 'Program', 'LayoutGrid', '/programs', 'users', 'bottomnavigation', null, 2);
-        $this->createMenu('users.bottom.store', 'Store', 'ShoppingBag', '/store', 'users', 'bottomnavigation', null, 3);
-        $this->createMenu('users.bottom.exams', 'Ujian', 'FileText', '/exams', 'users', 'bottomnavigation', null, 4);
-        $this->createMenu('users.bottom.orders', 'Order', 'ShoppingBag', '/orders', 'users', 'bottomnavigation', null, 5);
-        $this->createMenu('users.bottom.account', 'Akun', 'User', '/profile', 'users', 'bottomnavigation', null, 6);
+        $this->createMenu('users.bottom.home', 'Beranda', 'Home', '/', 'users', 'bottomnavigation', null, 1);
+        $this->createMenu('users.bottom.programs', 'Programs', 'LayoutGrid', '/programs', 'users', 'bottomnavigation', null, 2);
+        $this->createMenu('users.bottom.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'bottomnavigation', null, 3);
+        $this->createMenu('users.bottom.store', 'Store', 'ShoppingBag', '/store', 'users', 'bottomnavigation', null, 4);
+        $this->createMenu('users.bottom.notifications', 'Notifikasi', 'Bell', '/notifications', 'users', 'bottomnavigation', null, 5);
 
         // --- 3. Admin: Dashboard ---
         $this->createMenu('admin.sidebar.dashboard', 'Dashboard', 'LayoutDashboard', 'admin://view/dashboard', 'admin', 'sidebar', null, 1);
