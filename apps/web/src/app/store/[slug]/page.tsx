@@ -61,14 +61,17 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (user?.name) setShippingName(user.name);
-    if (user?.phone) setShippingPhone(user.phone);
+    const phone = user?.profile?.phone || user?.phone;
+    if (phone) setShippingPhone(phone);
   }, [user]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const res = await apiClient.store.productDetail(slug);
-      setProduct(res.data);
+      if (res.data) {
+        setProduct(res.data);
+      }
 
       if (isAuthenticated) {
         const pointRes = await apiClient.points.me();

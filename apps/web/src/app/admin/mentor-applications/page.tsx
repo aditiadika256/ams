@@ -52,8 +52,9 @@ export default function AdminMentorApplicationsPage() {
         status: statusFilter || undefined,
         search: search || undefined,
       });
-      if (res.data?.data) {
-        setApplications(res.data.data);
+      const items = res.data?.data || res.data;
+      if (Array.isArray(items)) {
+        setApplications(items);
       }
     } catch (err) {
       alertActions.error('Gagal memuat pelamar', getErrorMessage(err, 'Daftar pelamar mentor tidak dapat dimuat.'));

@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosRequestConfig } from 'axios';
-import { ApiResponse, User, RegisterData, UserProfile, PasswordChangeData, BranchItem } from '../types/auth';
+import { ApiResponse, User, RegisterData, UserProfile, PasswordChangeData, BranchItem, UpdateProfilePayload } from '../types/auth';
 import {
   ComponentDefinition,
   ComponentDefinitionPayload,
@@ -91,8 +91,9 @@ api.get = function <T = any, R = AxiosResponse<T>, D = any>(
 
   const promise = originalGet<T, R, D>(url, config)
     .then((response) => {
-      if (!isBypass && response && 'data' in response) {
-        recentGetCache.set(key, { data: response.data, timestamp: Date.now() });
+      const respObj = response as any;
+      if (!isBypass && respObj && typeof respObj === 'object' && 'data' in respObj) {
+        recentGetCache.set(key, { data: respObj.data, timestamp: Date.now() });
         setTimeout(() => {
           recentGetCache.delete(key);
         }, DEDUPE_TTL_MS * 2);
@@ -264,7 +265,7 @@ export const apiClient = {
       return response.data;
     },
 
-    updateProfile: async (data: Partial<UserProfile & { name?: string }>) => {
+    updateProfile: async (data: UpdateProfilePayload) => {
       const response = await api.put<ApiResponse<User>>('/auth/profile', data);
       return response.data;
     },

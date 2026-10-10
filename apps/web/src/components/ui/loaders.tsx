@@ -44,9 +44,11 @@ export const Spinner = ({ className, size = 'md', variant = 'primary', ...props 
 
 interface PageLoaderProps {
   message?: React.ReactNode;
+  text?: React.ReactNode;
 }
 
-export const PageLoader = ({ message = "Memuat..." }: PageLoaderProps) => {
+export const PageLoader = ({ message, text = "Memuat..." }: PageLoaderProps) => {
+  const displayMessage = message ?? text;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <div className="flex flex-col items-center gap-4">
@@ -72,7 +74,7 @@ export const PageLoader = ({ message = "Memuat..." }: PageLoaderProps) => {
           transition={{ duration: 0.5, repeat: Infinity, repeatType: "reverse" }}
           className="text-lg font-medium text-primary"
         >
-          {message}
+          {displayMessage}
         </motion.p>
       </div>
     </div>

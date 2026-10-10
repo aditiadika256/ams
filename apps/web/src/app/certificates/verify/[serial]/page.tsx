@@ -49,7 +49,11 @@ export default function CertificateVerifyPage() {
       setError(null);
       try {
         const res = await apiClient.certificates.verify(serial);
-        setData(res.data);
+        if (res.data) {
+          setData(res.data);
+        } else {
+          setError('Data sertifikat tidak ditemukan.');
+        }
       } catch (err: any) {
         setError(err.message || 'Nomor sertifikat tidak ditemukan atau tidak valid.');
       } finally {
