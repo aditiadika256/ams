@@ -35,8 +35,9 @@ export function EnrollmentCodeModal({ trigger }: EnrollmentCodeModalProps) {
       alertActions.success('Berhasil!', 'Kode pendaftaran berhasil diklaim. Menuju Workspace…');
       setOpen(false);
       setCode('');
-      if (response.data?.id) {
-        router.push(`/workspace/accesses/${response.data.id}`);
+      const accessId = response.data?.id;
+      if (accessId) {
+        router.push(`/workspace/accesses/${accessId}`);
       } else {
         router.push('/workspace');
       }

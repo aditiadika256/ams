@@ -94,8 +94,9 @@ export default function IdentityForm() {
     try {
       setUploadingPhoto(true);
       const res = await apiClient.auth.uploadHousePhoto(file);
-      if (res?.data?.url) {
-        setFormData((prev) => ({ ...prev, house_photo_url: res.data.url }));
+      const photoUrl = res.data?.url;
+      if (photoUrl) {
+        setFormData((prev) => ({ ...prev, house_photo_url: photoUrl }));
         alertActions.success('Foto Terunggah', 'Foto depan rumah berhasil diunggah.');
         await fetchUser();
       }

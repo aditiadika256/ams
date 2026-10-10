@@ -72,7 +72,7 @@ export default function StorePage() {
     if (!isAuthenticated) return;
     try {
       const res = await apiClient.points.me();
-      if (res.data?.balance !== undefined) {
+      if (res.data && typeof res.data.balance === 'number') {
         setUserPoints(res.data.balance);
       }
     } catch {

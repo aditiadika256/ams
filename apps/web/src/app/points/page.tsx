@@ -66,11 +66,14 @@ export default function PointsPage() {
     try {
       if (isAuthenticated) {
         const meRes = await apiClient.points.me();
-        setBalance(meRes.data.balance);
-        setTotalEarned(meRes.data.total_earned);
-        setTotalSpent(meRes.data.total_spent);
-        const txItems = meRes.data.transactions?.data || meRes.data.transactions || [];
-        setTransactions(Array.isArray(txItems) ? txItems : []);
+        if (meRes.data) {
+          setBalance(meRes.data.balance ?? 0);
+          setTotalEarned(meRes.data.total_earned ?? 0);
+          setTotalSpent(meRes.data.total_spent ?? 0);
+          const txData = meRes.data.transactions as any;
+          const txItems = txData?.data || txData || [];
+          setTransactions(Array.isArray(txItems) ? txItems : []);
+        }
       }
 
       const leadRes = await apiClient.points.leaderboard();

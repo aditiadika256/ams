@@ -46,13 +46,16 @@ export function MentorWorkspaceView() {
       if (schedRes.status === 'fulfilled' && schedRes.value.data) {
         setSchedules(schedRes.value.data);
       }
-      if (logRes.status === 'fulfilled' && logRes.value.data?.data) {
-        setSessionLogs(logRes.value.data.data);
+      if (logRes.status === 'fulfilled') {
+        const logs = logRes.value.data?.data || logRes.value.data;
+        if (Array.isArray(logs)) {
+          setSessionLogs(logs);
+        }
       }
-      if (walletRes.status === 'fulfilled' && walletRes.value.data) {
+      if (walletRes.status === 'fulfilled' && walletRes.value.data?.mentor_wallet) {
         setMentorWallet({
-          balance: Number(walletRes.value.data.mentor_wallet.balance),
-          pending_balance: Number(walletRes.value.data.mentor_wallet.pending_balance),
+          balance: Number(walletRes.value.data.mentor_wallet.balance ?? 0),
+          pending_balance: Number(walletRes.value.data.mentor_wallet.pending_balance ?? 0),
         });
       }
     } catch (err) {

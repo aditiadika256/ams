@@ -45,7 +45,7 @@ export function PayWithWalletModal({ orderId, orderTotal, onSuccess }: PayWithWa
         setWalletData({
           has_pin: res.data.has_pin,
           is_pin_locked: res.data.is_pin_locked,
-          balance: Number(res.data.student_wallet.balance),
+          balance: Number(res.data.student_wallet?.balance ?? 0),
         });
       }
     } catch {

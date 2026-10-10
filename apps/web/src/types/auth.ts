@@ -21,6 +21,11 @@ export interface UserProfile {
   updated_at?: string;
 }
 
+export interface UpdateProfilePayload extends Partial<UserProfile> {
+  name?: string;
+  branch_id?: number | null;
+}
+
 export interface BranchItem {
   id: number;
   name: string;
@@ -38,6 +43,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  phone?: string;
   email_verified_at?: string;
   profile_image_url?: string;
   avatar_url?: string;
