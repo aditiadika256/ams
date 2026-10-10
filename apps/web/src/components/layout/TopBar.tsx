@@ -283,7 +283,7 @@ const TopBar = () => {
           </div>
 
           {/* 2. Settings (Sesuai wireframe - icon Gear) */}
-          <div className="relative group">
+          {/* <div className="relative group">
             <Button
               variant="ghost"
               size="icon"
@@ -300,7 +300,7 @@ const TopBar = () => {
             <div className="hidden md:block absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap bg-popover/95 text-popover-foreground text-xs font-semibold px-2.5 py-1 rounded-lg shadow-lg border border-border/80 backdrop-blur-sm">
               Pengaturan
             </div>
-          </div>
+          </div> */}
 
           {/* 3. Shopping Cart (Sesuai wireframe - icon Troli) */}
           <div className="relative group">
