@@ -43,7 +43,7 @@ export function CertificateModal({ accessId, programName }: CertificateModalProp
       setLoading(true);
       try {
         const res = await apiClient.certificates.getForAccess(accessId);
-        setData(res.data);
+        setData(res.data ?? null);
       } catch (err) {
         console.error('Failed to load certificate data:', err);
       } finally {

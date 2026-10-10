@@ -57,7 +57,7 @@ export default function ConsolidationView() {
     setLoading(true);
     try {
       const res = await apiClient.admin.ams.consolidation();
-      setData(res.data);
+      setData(res.data ?? null);
     } catch (err) {
       alertActions.error('Gagal memuat konsolidasi', getErrorMessage(err, 'Metrik cabang tidak tersedia.'));
     } finally {

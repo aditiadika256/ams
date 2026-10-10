@@ -84,8 +84,9 @@ export default function OtpVerificationModal({
     try {
       setLoading(true);
       const res = await apiClient.auth.requestOtp(type, val);
-      if (res.data?.dev_otp) {
-        setDevOtpHint(res.data.dev_otp);
+      const devOtp = res.data?.dev_otp;
+      if (devOtp) {
+        setDevOtpHint(devOtp);
       }
       setStep('verify');
       setTimer(60);
@@ -103,8 +104,9 @@ export default function OtpVerificationModal({
     try {
       setLoading(true);
       const res = await apiClient.auth.requestOtp(type, newValue.trim());
-      if (res.data?.dev_otp) {
-        setDevOtpHint(res.data.dev_otp);
+      const devOtp = res.data?.dev_otp;
+      if (devOtp) {
+        setDevOtpHint(devOtp);
       }
       setTimer(60);
       setCanResend(false);
