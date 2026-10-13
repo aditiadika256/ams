@@ -113,7 +113,7 @@ it('seeds granular permissions and workspace menus without legacy masters', func
         'url' => '/workspace',
     ]);
     $this->assertDatabaseHas('menus', [
-        'seed_key' => 'admin.sidebar.education.tags',
+        'seed_key' => 'admin.sidebar.workspace.tags',
         'url' => 'admin://view/tags',
     ]);
     $this->assertDatabaseMissing('menus', ['url' => 'admin://view/program-levels']);

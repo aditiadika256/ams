@@ -22,6 +22,7 @@ import RolesPermissionsView from '../views/RolesPermissions/view';
 import MenuManagementView from '../views/MenuManagement/view';
 import ColorPaletteView from '../views/ColorPalette/view';
 import ConsolidationView from '../views/Consolidation/view';
+import PlaceholderView from '../views/PlaceholderView';
 
 const ViewMap: Record<string, React.ComponentType<any>> = {
   'dashboard': DashboardView,
@@ -39,8 +40,8 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'consolidation': ConsolidationView,
   // Fallbacks or others
   'roles': RolesPermissionsView,
-  'cms-pages': () => <div>Pages View (Placeholder)</div>,
-  'settings': () => <div>Settings View (Placeholder)</div>,
+  'cms-pages': () => <PlaceholderView title="Content Pages" viewKey="cms-pages" />,
+  'settings': () => <PlaceholderView title="General Settings" viewKey="settings" />,
 };
 
 const ViewPermissions: Record<string, string[]> = {
@@ -69,7 +70,9 @@ export default function AdminLayout() {
   // Find the active tab definition
   const activeTab = tabs.find(t => t.id === activeTabId);
   
-  const ActiveView = activeTab ? (ViewMap[activeTab.view] || ViewMap['dashboard']) : DashboardView;
+  const ActiveView = activeTab
+    ? (ViewMap[activeTab.view] || (() => <PlaceholderView title={activeTab.title} viewKey={activeTab.view} />))
+    : DashboardView;
 
   // Check permissions for active view
   const isAllowed = (() => {

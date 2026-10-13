@@ -36,6 +36,8 @@ interface AdminStore {
   // Actions
   addTab: (tab: Omit<AdminTab, 'id'>) => void;
   closeTab: (id: string) => void;
+  closeAllTabs: () => void;
+  closeOtherTabs: (id: string) => void;
   setActiveTab: (id: string) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -107,6 +109,22 @@ export const useAdminStore = create<AdminStore>()(
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setSidebarMobileOpen: (open) => set({ sidebarMobileOpen: open }),
       
+      closeAllTabs: () => set({ 
+        tabs: [{ id: 'dashboard-default', title: 'Dashboard', view: 'dashboard', icon: 'LayoutDashboard' }], 
+        activeTabId: 'dashboard-default' 
+      }),
+
+      closeOtherTabs: (id: string) => {
+        const { tabs } = get();
+        const targetTab = tabs.find(t => t.id === id);
+        if (targetTab) {
+          set({
+            tabs: [targetTab],
+            activeTabId: targetTab.id,
+          });
+        }
+      },
+
       resetTabs: () => set({ 
         tabs: [{ id: 'dashboard-default', title: 'Dashboard', view: 'dashboard', icon: 'LayoutDashboard' }], 
         activeTabId: 'dashboard-default' 

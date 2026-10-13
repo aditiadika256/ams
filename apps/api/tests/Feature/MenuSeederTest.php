@@ -47,20 +47,19 @@ class MenuSeederTest extends TestCase
             'url' => '/workspace',
         ]);
         $this->assertDatabaseHas('menus', [
-            'seed_key' => 'admin.sidebar.education.programs',
+            'seed_key' => 'admin.sidebar.workspace.programs',
             'url' => 'admin://view/programs',
         ]);
         $this->assertDatabaseHas('menus', [
-            'seed_key' => 'admin.sidebar.education.tags',
+            'seed_key' => 'admin.sidebar.workspace.tags',
             'url' => 'admin://view/tags',
         ]);
         $this->assertDatabaseHas('menus', [
-            'seed_key' => 'admin.sidebar.education.components',
-            'name' => 'Component Catalog',
+            'seed_key' => 'admin.sidebar.component',
+            'name' => 'Component',
             'icon' => 'Blocks',
             'url' => 'admin://view/components',
-            'required_permission' => 'component-definition.view',
-            'order' => 3,
+            'order' => 6,
         ]);
 
         $this->assertDatabaseMissing('menus', ['seed_key' => 'users.topbar.blog']);
@@ -74,17 +73,47 @@ class MenuSeederTest extends TestCase
         $this->seed(MenuSeeder::class);
 
         $expectedViews = [
+            'assessment-contexts',
+            'assessment-questions',
+            'branches',
             'cms-pages',
-            'cms-posts',
             'colorpalette',
+            'component-assessments',
+            'component-certificates',
+            'component-forums',
+            'component-links',
+            'component-participants',
+            'component-schedules',
             'components',
             'dashboard',
+            'database-backup',
+            'database-manager',
+            'documentation',
+            'enrollments',
             'finance',
+            'finance-invoices',
+            'finance-orders',
+            'finance-reports',
+            'finance-transactions',
+            'finance-vouchers',
+            'landing-layout',
+            'materials-classification-support',
+            'materials-educational',
+            'materials-learning-topics',
+            'materials-topic-support',
+            'media-library',
             'mentors',
             'menus',
+            'monitor-assessment-results',
+            'monitor-schedule-evaluations',
             'programs',
             'roles',
+            'schedule-available-time',
+            'schedule-physical-room',
             'settings',
+            'store-catalog',
+            'store-points',
+            'store-shipments',
             'tags',
             'users',
         ];

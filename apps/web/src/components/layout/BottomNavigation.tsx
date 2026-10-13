@@ -41,30 +41,34 @@ const BottomNavigation = () => {
   const bottomMenus = menuCache['users:bottomnavigation']?.data ?? [];
 
   useEffect(() => {
-    fetchMenus('users', 'bottomnavigation');
-  }, [fetchMenus]);
+    fetchMenus('users', 'bottomnavigation', { force: true });
+  }, [fetchMenus, isAuthenticated]);
 
   const navItems = useMemo(() => {
     const filteredDynamicMenus = bottomMenus
       .filter((m) => !m.parent_id)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-    if (filteredDynamicMenus.length > 0) {
-      return filteredDynamicMenus.map((m) => {
-        const IconComponent = iconMap[m.icon || ''] || LayoutGrid;
-        const isCenter = m.url === '/workspace' || m.seed_key === 'users.bottom.workspace';
+    const baseList =
+      filteredDynamicMenus.length > 0
+        ? filteredDynamicMenus.map((m) => {
+            const IconComponent = iconMap[m.icon || ''] || LayoutGrid;
+            const isCenter =
+              m.url === '/workspace' || m.seed_key === 'users.bottom.workspace';
 
-        return {
-          href: m.url,
-          icon: IconComponent,
-          label: m.name,
-          isCenter,
-        };
-      });
-    }
+            return {
+              href: m.url,
+              icon: IconComponent,
+              label: m.name,
+              isCenter,
+            };
+          })
+        : DEFAULT_BOTTOM_NAV;
 
-    return DEFAULT_BOTTOM_NAV;
-  }, [bottomMenus]);
+    return isAuthenticated
+      ? baseList
+      : baseList.filter((item) => item.href !== '/workspace');
+  }, [bottomMenus, isAuthenticated]);
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
     const previous = scrollY.getPrevious() || 0;
