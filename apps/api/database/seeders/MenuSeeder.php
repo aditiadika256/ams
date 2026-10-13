@@ -17,7 +17,7 @@ class MenuSeeder extends Seeder
     {
         // --- 1. Public & User Topbar (Desktop) ---
         $this->createMenu('users.topbar.home', 'Beranda', 'Home', '/', 'users', 'topbar', null, 1);
-        $this->createMenu('users.topbar.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'topbar', null, 2);
+        $this->createMenu('users.topbar.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'topbar', null, 2, 'view_profile');
         $this->createMenu('users.topbar.programs', 'Programs', 'LayoutGrid', '/programs', 'users', 'topbar', null, 3);
         $this->createMenu('users.topbar.store', 'Store', 'ShoppingBag', '/store', 'users', 'topbar', null, 4);
         $this->createMenu('users.topbar.notifications', 'Notifikasi', 'Bell', '/notifications', 'users', 'topbar', null, 5);
@@ -25,41 +25,90 @@ class MenuSeeder extends Seeder
         // --- 2. Public & User Bottom Navigation (Mobile) ---
         $this->createMenu('users.bottom.home', 'Beranda', 'Home', '/', 'users', 'bottomnavigation', null, 1);
         $this->createMenu('users.bottom.programs', 'Programs', 'LayoutGrid', '/programs', 'users', 'bottomnavigation', null, 2);
-        $this->createMenu('users.bottom.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'bottomnavigation', null, 3);
+        $this->createMenu('users.bottom.workspace', 'Workspace', 'PanelsTopLeft', '/workspace', 'users', 'bottomnavigation', null, 3, 'view_profile');
         $this->createMenu('users.bottom.store', 'Store', 'ShoppingBag', '/store', 'users', 'bottomnavigation', null, 4);
         $this->createMenu('users.bottom.notifications', 'Notifikasi', 'Bell', '/notifications', 'users', 'bottomnavigation', null, 5);
 
         // --- 3. Admin: Dashboard ---
         $this->createMenu('admin.sidebar.dashboard', 'Dashboard', 'LayoutDashboard', 'admin://view/dashboard', 'admin', 'sidebar', null, 1);
 
-        // --- 4. Admin: Management (AMS Konsolidasi & ASD Finance) ---
-        $management = $this->createMenu('admin.sidebar.management', 'Management', 'Settings', 'admin://view/users', 'admin', 'sidebar', null, 2);
-        $this->createMenu('admin.sidebar.management.consolidation', 'Konsolidasi Cabang (AMS)', 'Network', 'admin://view/consolidation', 'admin', 'sidebar', $management->id, 1, 'manage_global_settings');
-        $this->createMenu('admin.sidebar.management.users', 'Users', 'Users', 'admin://view/users', 'admin', 'sidebar', $management->id, 2, 'manage_users_global');
-        $this->createMenu('admin.sidebar.management.roles', 'Roles & Permissions', 'ShieldCheck', 'admin://view/roles', 'admin', 'sidebar', $management->id, 3, 'manage_roles');
-        $this->createMenu('admin.sidebar.management.finance', 'Finance (ASD)', 'PieChart', 'admin://view/finance', 'admin', 'sidebar', $management->id, 4, 'view_finance_analytics');
+        // --- 4. Admin: Personal ---
+        $personal = $this->createMenu('admin.sidebar.personal', 'Personal', 'Users', 'admin://view/users', 'admin', 'sidebar', null, 2);
+        $this->createMenu('admin.sidebar.personal.roles', 'Role Permission', 'ShieldCheck', 'admin://view/roles', 'admin', 'sidebar', $personal->id, 1, 'manage_roles');
+        $this->createMenu('admin.sidebar.personal.branch', 'Branch', 'Building2', 'admin://view/branches', 'admin', 'sidebar', $personal->id, 2, 'manage_branches');
+        $this->createMenu('admin.sidebar.personal.user', 'User', 'Users', 'admin://view/users', 'admin', 'sidebar', $personal->id, 3, 'manage_users_global');
+        $this->createMenu('admin.sidebar.personal.mentor', 'Mentor', 'GraduationCap', 'admin://view/mentors', 'admin', 'sidebar', $personal->id, 4, 'manage_learning_content');
 
-        // --- 5. Admin: Education & Operasional (ASA & A-Teams) ---
-        $education = $this->createMenu('admin.sidebar.education', 'Education & Operasional', 'GraduationCap', 'admin://view/programs', 'admin', 'sidebar', null, 3);
-        $this->createMenu('admin.sidebar.education.programs', 'Programs', 'BookOpen', 'admin://view/programs', 'admin', 'sidebar', $education->id, 1, 'program.view');
-        $this->createMenu('admin.sidebar.education.tags', 'Tags', 'Tags', 'admin://view/tags', 'admin', 'sidebar', $education->id, 2, 'program-tag.manage');
-        $this->createMenu('admin.sidebar.education.components', 'Component Catalog', 'Blocks', 'admin://view/components', 'admin', 'sidebar', $education->id, 3, 'component-definition.view');
-        $this->createMenu('admin.sidebar.education.mentors', 'Mentors (A-Teams)', 'GraduationCap', 'admin://view/mentors', 'admin', 'sidebar', $education->id, 4, 'manage_learning_content');
-        $this->createMenu('admin.sidebar.education.store', 'Store & Rewards', 'ShoppingBag', '/admin/store', 'admin', 'sidebar', $education->id, 5, 'manage_learning_content');
+        // --- 5. Admin: Landing Page ---
+        $landingPage = $this->createMenu('admin.sidebar.landing-page', 'Landing Page', 'Globe', 'admin://view/cms-pages', 'admin', 'sidebar', null, 3);
+        $this->createMenu('admin.sidebar.landing-page.content', 'Content Page', 'FileText', 'admin://view/cms-pages', 'admin', 'sidebar', $landingPage->id, 1);
+        $this->createMenu('admin.sidebar.landing-page.layout', 'Layout Page', 'PanelsTopLeft', 'admin://view/landing-layout', 'admin', 'sidebar', $landingPage->id, 2);
 
-        // --- 6. Admin: Content & CMS ---
-        $content = $this->createMenu('admin.sidebar.content', 'Content', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', null, 4);
-        $this->createMenu('admin.sidebar.content.posts', 'Blog Posts', 'FileText', 'admin://view/cms-posts', 'admin', 'sidebar', $content->id, 1);
-        $this->createMenu('admin.sidebar.content.pages', 'Pages', 'FileText', 'admin://view/cms-pages', 'admin', 'sidebar', $content->id, 2);
+        // --- 6. Admin: Master Assessment ---
+        $assessment = $this->createMenu('admin.sidebar.assessment', 'Assessment', 'ClipboardCheck', 'admin://view/assessment-contexts', 'admin', 'sidebar', null, 4);
+        $this->createMenu('admin.sidebar.assessment.context', 'Context', 'FileQuestion', 'admin://view/assessment-contexts', 'admin', 'sidebar', $assessment->id, 1);
+        $this->createMenu('admin.sidebar.assessment.question', 'Question', 'HelpCircle', 'admin://view/assessment-questions', 'admin', 'sidebar', $assessment->id, 2);
 
-        // --- 7. Admin: System & Monitoring (AMS) ---
-        $system = $this->createMenu('admin.sidebar.system', 'System', 'Settings', 'admin://view/settings', 'admin', 'sidebar', null, 5);
-        $this->createMenu('admin.sidebar.system.settings', 'Settings', 'Settings', 'admin://view/settings', 'admin', 'sidebar', $system->id, 1, 'manage_global_settings');
-        $this->createMenu('admin.sidebar.system.menus', 'Menu Management', 'Menu', 'admin://view/menus', 'admin', 'sidebar', $system->id, 2, 'manage_menus');
-        $this->createMenu('admin.sidebar.system.color-palette', 'Color Palette', 'Settings', 'admin://view/colorpalette', 'admin', 'sidebar', $system->id, 3, 'manage_global_settings');
+        // --- 7. Admin: Schedule ---
+        $schedule = $this->createMenu('admin.sidebar.schedule', 'Schedule', 'Calendar', 'admin://view/schedule-available-time', 'admin', 'sidebar', null, 5);
+        $this->createMenu('admin.sidebar.schedule.available-time', 'Available Time', 'Clock', 'admin://view/schedule-available-time', 'admin', 'sidebar', $schedule->id, 1);
+        $this->createMenu('admin.sidebar.schedule.physical-room', 'Physical Room', 'MapPin', 'admin://view/schedule-physical-room', 'admin', 'sidebar', $schedule->id, 2);
+
+        // --- 8. Admin: Component ---
+        $component = $this->createMenu('admin.sidebar.component', 'Component', 'Blocks', 'admin://view/components', 'admin', 'sidebar', null, 6);
+        $this->createMenu('admin.sidebar.component.media-library', 'Media Library', 'Image', 'admin://view/media-library', 'admin', 'sidebar', $component->id, 1);
+        $this->createMenu('admin.sidebar.component.assessment', 'Assessment', 'FileCheck2', 'admin://view/component-assessments', 'admin', 'sidebar', $component->id, 2);
+        $this->createMenu('admin.sidebar.component.certificate', 'Certificate', 'Award', 'admin://view/component-certificates', 'admin', 'sidebar', $component->id, 3);
+        $this->createMenu('admin.sidebar.component.forum', 'Forum', 'MessageSquare', 'admin://view/component-forums', 'admin', 'sidebar', $component->id, 4);
+        $this->createMenu('admin.sidebar.component.participant', 'Participant', 'Users', 'admin://view/component-participants', 'admin', 'sidebar', $component->id, 5);
+        $this->createMenu('admin.sidebar.component.schedule', 'Schedule', 'CalendarRange', 'admin://view/component-schedules', 'admin', 'sidebar', $component->id, 6);
+        $this->createMenu('admin.sidebar.component.link', 'Link', 'ExternalLink', 'admin://view/component-links', 'admin', 'sidebar', $component->id, 7);
+
+        // --- 9. Admin: Workspace ---
+        $workspace = $this->createMenu('admin.sidebar.workspace', 'Workspace', 'Briefcase', 'admin://view/programs', 'admin', 'sidebar', null, 7);
+        $this->createMenu('admin.sidebar.workspace.tags', 'Tag', 'Tags', 'admin://view/tags', 'admin', 'sidebar', $workspace->id, 1, 'program-tag.manage');
+        $this->createMenu('admin.sidebar.workspace.programs', 'Program', 'BookOpen', 'admin://view/programs', 'admin', 'sidebar', $workspace->id, 2, 'program.view');
+        $this->createMenu('admin.sidebar.workspace.enrollment', 'Enrollment', 'UserCheck', 'admin://view/enrollments', 'admin', 'sidebar', $workspace->id, 3);
+
+        // --- 10. Admin: Monitor ---
+        $monitor = $this->createMenu('admin.sidebar.monitor', 'Monitor', 'Activity', 'admin://view/monitor-assessment-results', 'admin', 'sidebar', null, 8);
+        $this->createMenu('admin.sidebar.monitor.assessment-result', 'Assessment Result', 'FileSpreadsheet', 'admin://view/monitor-assessment-results', 'admin', 'sidebar', $monitor->id, 1);
+        $this->createMenu('admin.sidebar.monitor.schedule-evaluation', 'Schedule Evaluation', 'Star', 'admin://view/monitor-schedule-evaluations', 'admin', 'sidebar', $monitor->id, 2);
+
+        // --- 11. Admin: Materials ---
+        $materials = $this->createMenu('admin.sidebar.materials', 'Materials', 'FolderTree', 'admin://view/materials-learning-topics', 'admin', 'sidebar', null, 9);
+        $this->createMenu('admin.sidebar.materials.learning-topic', 'Learning Topic', 'Bookmark', 'admin://view/materials-learning-topics', 'admin', 'sidebar', $materials->id, 1);
+        $this->createMenu('admin.sidebar.materials.classification-support', 'Classification Support', 'Layers', 'admin://view/materials-classification-support', 'admin', 'sidebar', $materials->id, 2);
+        $this->createMenu('admin.sidebar.materials.topic-support', 'Support for Learning Topic', 'LifeBuoy', 'admin://view/materials-topic-support', 'admin', 'sidebar', $materials->id, 3);
+        $this->createMenu('admin.sidebar.materials.educational', 'Educational', 'GraduationCap', 'admin://view/materials-educational', 'admin', 'sidebar', $materials->id, 4);
+
+        // --- 12. Admin: Finance ---
+        $finance = $this->createMenu('admin.sidebar.finance', 'Finance', 'CircleDollarSign', 'admin://view/finance', 'admin', 'sidebar', null, 10);
+        $this->createMenu('admin.sidebar.finance.voucher', 'Voucher', 'Ticket', 'admin://view/finance-vouchers', 'admin', 'sidebar', $finance->id, 1);
+        $this->createMenu('admin.sidebar.finance.order', 'Order', 'ShoppingBag', 'admin://view/finance-orders', 'admin', 'sidebar', $finance->id, 2);
+        $this->createMenu('admin.sidebar.finance.invoice', 'Invoice', 'Receipt', 'admin://view/finance-invoices', 'admin', 'sidebar', $finance->id, 3);
+        $this->createMenu('admin.sidebar.finance.transaction', 'Transaction', 'ArrowLeftRight', 'admin://view/finance-transactions', 'admin', 'sidebar', $finance->id, 4, 'view_finance_analytics');
+        $this->createMenu('admin.sidebar.finance.report', 'Report', 'BarChart3', 'admin://view/finance-reports', 'admin', 'sidebar', $finance->id, 5, 'view_finance_analytics');
+
+        // --- 13. Admin: Store ---
+        $store = $this->createMenu('admin.sidebar.store', 'Store', 'ShoppingBag', 'admin://view/store-catalog', 'admin', 'sidebar', null, 11);
+        $this->createMenu('admin.sidebar.store.catalog', 'E-Catalog (Produk Fisik)', 'Package', 'admin://view/store-catalog', 'admin', 'sidebar', $store->id, 1);
+        $this->createMenu('admin.sidebar.store.point', 'Point', 'Coins', 'admin://view/store-points', 'admin', 'sidebar', $store->id, 2);
+        $this->createMenu('admin.sidebar.store.shipment', 'Shipment', 'Truck', 'admin://view/store-shipments', 'admin', 'sidebar', $store->id, 3);
+
+        // --- 14. Admin: System ---
+        $system = $this->createMenu('admin.sidebar.system', 'System', 'Settings', 'admin://view/settings', 'admin', 'sidebar', null, 12);
+        $this->createMenu('admin.sidebar.system.menus', 'Menu Management', 'Menu', 'admin://view/menus', 'admin', 'sidebar', $system->id, 1, 'manage_menus');
+        $this->createMenu('admin.sidebar.system.appearance', 'Appearance (Color Palette)', 'Palette', 'admin://view/colorpalette', 'admin', 'sidebar', $system->id, 2, 'manage_global_settings');
+        $this->createMenu('admin.sidebar.system.documentation', 'Documentation', 'BookOpen', 'admin://view/documentation', 'admin', 'sidebar', $system->id, 3);
         $this->createMenu('admin.sidebar.system.telescope', 'Telescope Monitoring', 'Activity', '/telescope', 'admin', 'sidebar', $system->id, 4, 'manage_global_settings');
 
-        // --- 8. Admin: Header ---
+        // --- 15. Admin: Database ---
+        $database = $this->createMenu('admin.sidebar.database', 'Database', 'Database', 'admin://view/database-manager', 'admin', 'sidebar', null, 13);
+        $this->createMenu('admin.sidebar.database.manager', 'Data Manager', 'HardDrive', 'admin://view/database-manager', 'admin', 'sidebar', $database->id, 1, 'manage_global_settings');
+        $this->createMenu('admin.sidebar.database.backup', 'Backup', 'Archive', 'admin://view/database-backup', 'admin', 'sidebar', $database->id, 2, 'manage_global_settings');
+
+        // --- 16. Admin: Header ---
         $this->createMenu('admin.header.dashboard', 'Dashboard', 'LayoutDashboard', 'admin://view/dashboard', 'admin', 'header', null, 1);
         $this->createMenu('admin.header.settings', 'Settings', 'Settings', 'admin://view/settings', 'admin', 'header', null, 2);
 
