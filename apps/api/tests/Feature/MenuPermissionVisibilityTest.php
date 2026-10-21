@@ -59,3 +59,34 @@ it('omits protected admin menus for unauthenticated requests', function (): void
     $response->assertJsonFragment(['url' => 'admin://view/dashboard']);
 });
 
+it('omits workspace menu from user topbar and bottomnavigation for unauthenticated requests', function (): void {
+    $this->seed(MenuSeeder::class);
+
+    $this->getJson('/api/v1/menus?layout=users&section=topbar')
+        ->assertOk()
+        ->assertJsonMissing(['url' => '/workspace'])
+        ->assertJsonFragment(['url' => '/'])
+        ->assertJsonFragment(['url' => '/programs']);
+
+    $this->getJson('/api/v1/menus?layout=users&section=bottomnavigation')
+        ->assertOk()
+        ->assertJsonMissing(['url' => '/workspace'])
+        ->assertJsonFragment(['url' => '/'])
+        ->assertJsonFragment(['url' => '/programs']);
+});
+
+it('includes workspace menu for authenticated users', function (): void {
+    $this->seed(MenuSeeder::class);
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $this->getJson('/api/v1/menus?layout=users&section=topbar')
+        ->assertOk()
+        ->assertJsonFragment(['url' => '/workspace']);
+
+    $this->getJson('/api/v1/menus?layout=users&section=bottomnavigation')
+        ->assertOk()
+        ->assertJsonFragment(['url' => '/workspace']);
+});
+
+

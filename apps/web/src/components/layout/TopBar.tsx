@@ -95,10 +95,10 @@ const TopBar = () => {
       .substring(0, 2);
   };
 
-  // Fetch menus once via shared store
+  // Fetch menus via shared store
   useEffect(() => {
-    fetchMenus('users', 'topbar');
-  }, [fetchMenus]);
+    fetchMenus('users', 'topbar', { force: true });
+  }, [fetchMenus, isAuthenticated]);
 
   // Derive desktop main nav items (posisi: Beranda, Workspace, Programs, Store)
   const navLinks = useMemo(() => {
@@ -106,16 +106,19 @@ const TopBar = () => {
       .filter((m) => !m.parent_id && m.url !== '/notifications')
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-    if (topLevel.length > 0) {
-      return topLevel.map((m) => ({
-        name: m.name,
-        href: m.url,
-        icon: iconMap[m.icon || ''] || LayoutGrid,
-      }));
-    }
+    const baseList =
+      topLevel.length > 0
+        ? topLevel.map((m) => ({
+            name: m.name,
+            href: m.url,
+            icon: iconMap[m.icon || ''] || LayoutGrid,
+          }))
+        : DEFAULT_DESKTOP_NAV;
 
-    return DEFAULT_DESKTOP_NAV;
-  }, [topbarMenus]);
+    return isAuthenticated
+      ? baseList
+      : baseList.filter((link) => link.href !== '/workspace');
+  }, [topbarMenus, isAuthenticated]);
 
   const branding = useMemo(() => {
     if (!isAuthenticated || !user) {
@@ -227,7 +230,7 @@ const TopBar = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation: Icon-only default, sliding title beside icon on hover that pushes adjacent icons */}
+          {/* Desktop Navigation: Active menu displays title, inactive menus are icon-only with sliding title on hover */}
           {/* Posisi: Beranda, Workspace, Programs, Store */}
           <nav className="hidden md:flex items-center gap-1.5 bg-muted/40 p-1 rounded-2xl border border-border/50 transition-all duration-300">
             {navLinks.map((link) => {
@@ -247,11 +250,19 @@ const TopBar = () => {
                       : 'text-muted-foreground hover:text-foreground hover:bg-background/80'
                   )}
                   aria-label={link.name}
+                  aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon className="size-5 shrink-0 transition-transform duration-300 group-hover:scale-110" />
 
-                  {/* Slide-out title on hover: expands width smoothly & shifts adjacent icons to the right */}
-                  <span className="max-w-0 opacity-0 overflow-hidden whitespace-nowrap text-xs font-semibold transition-all duration-300 ease-out transform -translate-x-1 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-2 group-hover:translate-x-0">
+                  {/* Title: Always shown when active; for inactive items, slides out smoothly on hover */}
+                  <span
+                    className={cn(
+                      'overflow-hidden whitespace-nowrap text-xs font-semibold transition-all duration-300 ease-out transform',
+                      isActive
+                        ? 'max-w-[140px] opacity-100 ml-2 translate-x-0'
+                        : 'max-w-0 opacity-0 -translate-x-1 group-hover:max-w-[140px] group-hover:opacity-100 group-hover:ml-2 group-hover:translate-x-0'
+                    )}
+                  >
                     {link.name}
                   </span>
                 </Link>
@@ -283,7 +294,7 @@ const TopBar = () => {
           </div>
 
           {/* 2. Settings (Sesuai wireframe - icon Gear) */}
-          <div className="relative group">
+          {/* <div className="relative group">
             <Button
               variant="ghost"
               size="icon"
@@ -300,7 +311,7 @@ const TopBar = () => {
             <div className="hidden md:block absolute top-full mt-2 left-1/2 -translate-x-1/2 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 translate-y-1 transition-all duration-150 z-50 whitespace-nowrap bg-popover/95 text-popover-foreground text-xs font-semibold px-2.5 py-1 rounded-lg shadow-lg border border-border/80 backdrop-blur-sm">
               Pengaturan
             </div>
-          </div>
+          </div> */}
 
           {/* 3. Shopping Cart (Sesuai wireframe - icon Troli) */}
           <div className="relative group">

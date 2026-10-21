@@ -116,10 +116,15 @@ class MenuController extends Controller
             return ['*'];
         }
 
-        return $user->getAllPermissions()
+        $permissions = $user->getAllPermissions()
             ->pluck('name')
             ->values()
             ->all();
+
+        $permissions[] = 'auth';
+        $permissions[] = 'authenticated';
+
+        return $permissions;
     }
 
     private function resolveUser(Request $request): ?User
