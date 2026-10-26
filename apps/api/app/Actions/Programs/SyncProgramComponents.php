@@ -51,28 +51,36 @@ class SyncProgramComponents
             $this->validator->validate($program, $definitions, $components);
 
             $before = $this->snapshot($program);
-            $installedComponents = $program->components();
+            
+            $incomingIds = collect($components)->pluck('id')->filter()->all();
             if ($definitionIds === []) {
-                $installedComponents->delete();
-            } else {
-                $installedComponents->whereNotIn('component_definition_id', $definitionIds)->delete();
+                $program->components()->delete();
+            } elseif (! empty($incomingIds)) {
+                $program->components()->whereNotIn('id', $incomingIds)->delete();
             }
 
             foreach ($components as $index => $component) {
-                $installation = ProgramComponent::withTrashed()
-                    ->where('program_id', $program->id)
-                    ->where('component_definition_id', $component['component_definition_id'])
-                    ->lockForUpdate()
-                    ->first() ?? new ProgramComponent([
+                $installation = null;
+
+                if (! empty($component['id'])) {
+                    $installation = ProgramComponent::withTrashed()
+                        ->where('program_id', $program->id)
+                        ->where('id', $component['id'])
+                        ->lockForUpdate()
+                        ->first();
+                }
+
+                if ($installation === null) {
+                    $installation = new ProgramComponent([
                         'program_id' => $program->id,
                         'component_definition_id' => $component['component_definition_id'],
                     ]);
-
-                if ($installation->trashed()) {
+                } elseif ($installation->trashed()) {
                     $installation->restore();
                 }
 
                 $installation->fill([
+                    'component_definition_id' => $component['component_definition_id'],
                     'is_enabled' => $component['is_enabled'] ?? true,
                     'label' => $component['label'] ?? null,
                     'sort_order' => $component['sort_order'] ?? $index,

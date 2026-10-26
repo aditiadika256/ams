@@ -23,6 +23,16 @@ import MenuManagementView from '../views/MenuManagement/view';
 import ColorPaletteView from '../views/ColorPalette/view';
 import ConsolidationView from '../views/Consolidation/view';
 import PlaceholderView from '../views/PlaceholderView';
+import AssessmentContextsView from '../views/AssessmentContexts/view';
+import AssessmentQuestionsView from '../views/AssessmentQuestions/view';
+import ComponentAssessmentsView from '../views/ComponentAssessments/view';
+import MonitorProctoringView from '../views/MonitorProctoring/view';
+import MonitorAnalysisView from '../views/MonitorAnalysis/view';
+import MonitorAssessmentResultsView from '../views/MonitorAssessmentResults/view';
+import EnrollmentsView from '../views/Enrollments/view';
+import SchedulePhysicalRoomView from '../views/SchedulePhysicalRoom/view';
+import DatabaseManagerView from '../views/DatabaseManager/view';
+import FinanceHoldsView from '../views/FinanceHolds/view';
 
 const ViewMap: Record<string, React.ComponentType<any>> = {
   'dashboard': DashboardView,
@@ -38,6 +48,16 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'menus': MenuManagementView,
   'colorpalette': ColorPaletteView,// With hyphen
   'consolidation': ConsolidationView,
+  'assessment-contexts': AssessmentContextsView,
+  'assessment-questions': AssessmentQuestionsView,
+  'component-assessments': ComponentAssessmentsView,
+  'monitor-proctoring': MonitorProctoringView,
+  'monitor-analysis': MonitorAnalysisView,
+  'monitor-assessment-results': MonitorAssessmentResultsView,
+  'enrollments': EnrollmentsView,
+  'schedule-physical-room': SchedulePhysicalRoomView,
+  'database-manager': DatabaseManagerView,
+  'finance-holds': FinanceHoldsView,
   // Fallbacks or others
   'roles': RolesPermissionsView,
   'cms-pages': () => <PlaceholderView title="Content Pages" viewKey="cms-pages" />,
@@ -59,6 +79,16 @@ const ViewPermissions: Record<string, string[]> = {
   'colorpalette': ['manage_global_settings'],
   'consolidation': ['manage_global_settings'],
   'roles': ['manage_roles'],
+  'assessment-contexts': ['manage_global_settings', 'manage_learning_content'],
+  'assessment-questions': ['manage_global_settings', 'manage_learning_content'],
+  'component-assessments': ['manage_global_settings', 'manage_learning_content'],
+  'monitor-proctoring': ['manage_global_settings', 'manage_learning_content', 'view_dashboard_learning'],
+  'monitor-analysis': ['manage_global_settings', 'manage_learning_content'],
+  'monitor-assessment-results': ['manage_global_settings', 'manage_learning_content', 'view_dashboard_learning'],
+  'enrollments': ['manage_students', 'manage_global_settings', 'view_finance_analytics'],
+  'schedule-physical-room': ['manage_global_settings', 'manage_learning_content'],
+  'database-manager': ['manage_global_settings'],
+  'finance-holds': ['view_finance_analytics', 'manage_global_settings'],
   'cms-pages': ['manage_global_settings'],
   'settings': ['manage_global_settings'],
 };

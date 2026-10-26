@@ -198,6 +198,7 @@ export interface ProgramWizardPayload {
   basics: ProgramMutationPayload;
   tag_ids: number[];
   components: Array<{
+    id?: number;
     component_definition_id: number;
     is_enabled: boolean;
     label?: string | null;

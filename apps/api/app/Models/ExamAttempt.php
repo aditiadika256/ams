@@ -18,6 +18,8 @@ class ExamAttempt extends Model
         'submitted_at',
         'score_total',
         'meta',
+        'proctor_status',
+        'row_status',
         'created_by',
         'updated_by',
     ];
@@ -27,6 +29,7 @@ class ExamAttempt extends Model
         'submitted_at' => 'datetime',
         'score_total' => 'decimal:2',
         'meta' => 'array',
+        'row_status' => 'integer',
     ];
 
     public function session(): BelongsTo
@@ -42,5 +45,15 @@ class ExamAttempt extends Model
     public function proctorEvents(): HasMany
     {
         return $this->hasMany(ProctorEvent::class, 'attempt_id');
+    }
+
+    public function proctorLogs(): HasMany
+    {
+        return $this->hasMany(ProctorLog::class, 'exam_attempt_id');
+    }
+
+    public function itemResponses(): HasMany
+    {
+        return $this->hasMany(ExamItemResponse::class, 'exam_attempt_id');
     }
 }

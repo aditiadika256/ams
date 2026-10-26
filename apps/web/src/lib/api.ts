@@ -1152,9 +1152,198 @@ export const apiClient = {
       return response.data;
     },
   },
+
+  // CBT Layer 1: Assessment Contexts & Questions
+  assessment: {
+    getContexts: async (params?: { search?: string; media_type?: string; page?: number; per_page?: number }) => {
+      const response = await api.get<ApiResponse<any>>('/assessment/contexts', { params });
+      return response.data;
+    },
+    getContext: async (id: number) => {
+      const response = await api.get<ApiResponse<any>>(`/assessment/contexts/${id}`);
+      return response.data;
+    },
+    createContext: async (data: { title: string; body_content: string; media_url?: string | null; media_type?: string | null }) => {
+      const response = await api.post<ApiResponse<any>>('/assessment/contexts', data);
+      return response.data;
+    },
+    updateContext: async (id: number, data: Partial<{ title: string; body_content: string; media_url?: string | null; media_type?: string | null }>) => {
+      const response = await api.put<ApiResponse<any>>(`/assessment/contexts/${id}`, data);
+      return response.data;
+    },
+    deleteContext: async (id: number) => {
+      const response = await api.delete<ApiResponse<any>>(`/assessment/contexts/${id}`);
+      return response.data;
+    },
+
+    // Question Bank (Layer 1 CBT)
+    getQuestions: async (params?: {
+      search?: string;
+      context_id?: number;
+      difficulty?: string;
+      type?: string;
+      status?: string;
+      page?: number;
+      per_page?: number;
+    }) => {
+      const response = await api.get<ApiResponse<any>>('/assessment/questions', { params });
+      return response.data;
+    },
+    getQuestion: async (id: number) => {
+      const response = await api.get<ApiResponse<any>>(`/assessment/questions/${id}`);
+      return response.data;
+    },
+    createQuestion: async (data: any) => {
+      const response = await api.post<ApiResponse<any>>('/assessment/questions', data);
+      return response.data;
+    },
+    updateQuestion: async (id: number, data: any) => {
+      const response = await api.put<ApiResponse<any>>(`/assessment/questions/${id}`, data);
+      return response.data;
+    },
+    deleteQuestion: async (id: number) => {
+      const response = await api.delete<ApiResponse<any>>(`/assessment/questions/${id}`);
+      return response.data;
+    },
+
+    // Blueprint Builder (Layer 2 CBT)
+    getBlueprints: async (params?: {
+      search?: string;
+      visual_mode?: string;
+      scoring_mode?: string;
+      page?: number;
+      per_page?: number;
+    }) => {
+      const response = await api.get<ApiResponse<any>>('/assessment/blueprints', { params });
+      return response.data;
+    },
+    getBlueprint: async (id: number) => {
+      const response = await api.get<ApiResponse<any>>(`/assessment/blueprints/${id}`);
+      return response.data;
+    },
+    createBlueprint: async (data: any) => {
+      const response = await api.post<ApiResponse<any>>('/assessment/blueprints', data);
+      return response.data;
+    },
+    updateBlueprint: async (id: number, data: any) => {
+      const response = await api.put<ApiResponse<any>>(`/assessment/blueprints/${id}`, data);
+      return response.data;
+    },
+    deleteBlueprint: async (id: number) => {
+      const response = await api.delete<ApiResponse<any>>(`/assessment/blueprints/${id}`);
+      return response.data;
+    },
+    // Layer 4 Live Proctoring & IRT Engine
+    getLiveAttempts: async (params?: { package_id?: number; status?: string; search?: string; per_page?: number }) => {
+      const response = await api.get<ApiResponse<any>>('/assessment/proctor/live', { params });
+      return response.data;
+    },
+    generateProctorToken: async (data: { package_id: number; session_id?: number; ttl_minutes?: number }) => {
+      const response = await api.post<ApiResponse<any>>('/assessment/proctor/tokens/generate', data);
+      return response.data;
+    },
+    getActiveProctorTokens: async () => {
+      const response = await api.get<ApiResponse<any>>('/assessment/proctor/tokens/active');
+      return response.data;
+    },
+    attemptProctorAction: async (attemptId: number, data: { action: string; reason?: string }) => {
+      const response = await api.post<ApiResponse<any>>(`/assessment/proctor/attempts/${attemptId}/action`, data);
+      return response.data;
+    },
+    getProctorIncidents: async (params?: { severity?: string; per_page?: number }) => {
+      const response = await api.get<ApiResponse<any>>('/assessment/proctor/incidents', { params });
+      return response.data;
+    },
+    getItemAnalysis: async (packageId: number) => {
+      const response = await api.get<ApiResponse<any>>(`/assessment/analysis/${packageId}`);
+      return response.data;
+    },
+    calculateItemAnalysis: async (packageId: number) => {
+      const response = await api.post<ApiResponse<any>>(`/assessment/analysis/${packageId}/calculate`);
+      return response.data;
+    },
+    dropItemQuestion: async (packageId: number, data: { question_id: number; reason?: string }) => {
+      const response = await api.post<ApiResponse<any>>(`/assessment/analysis/${packageId}/drop-question`, data);
+      return response.data;
+    },
+    getAssessmentResults: async (packageId: number, params?: { search?: string; page?: number; per_page?: number }) => {
+      const response = await api.get<ApiResponse<any>>(`/assessment/results/${packageId}`, { params });
+      return response.data;
+    },
+  },
+
+  // Installments & Drip Lock
+  installments: {
+    getTrackers: async (params?: { status?: string; program_id?: number; search?: string; page?: number; per_page?: number }) => {
+      const response = await api.get<ApiResponse<any>>('/admin/enrollments/installments', { params });
+      return response.data;
+    },
+    bypass: async (trackerId: number, data: { reason: string }) => {
+      const response = await api.post<ApiResponse<any>>(`/admin/enrollments/installments/${trackerId}/bypass`, data);
+      return response.data;
+    },
+    markPaid: async (trackerId: number, data?: { amount_paid?: number }) => {
+      const response = await api.post<ApiResponse<any>>(`/admin/enrollments/installments/${trackerId}/mark-paid`, data);
+      return response.data;
+    },
+  },
+
+  // Physical Rooms (Branch Classrooms)
+  physicalRooms: {
+    list: async (params?: { branch_id?: number; is_active?: boolean; search?: string; page?: number; per_page?: number }) => {
+      const response = await api.get<ApiResponse<any>>('/admin/physical-rooms', { params });
+      return response.data;
+    },
+    create: async (data: any) => {
+      const response = await api.post<ApiResponse<any>>('/admin/physical-rooms', data);
+      return response.data;
+    },
+    update: async (id: number, data: any) => {
+      const response = await api.put<ApiResponse<any>>(`/admin/physical-rooms/${id}`, data);
+      return response.data;
+    },
+    delete: async (id: number) => {
+      const response = await api.delete<ApiResponse<any>>(`/admin/physical-rooms/${id}`);
+      return response.data;
+    },
+  },
+
+  // Wallet Holds (Hold Balance & Disputes)
+  walletHolds: {
+    list: async (params?: { status?: string; search?: string; page?: number; per_page?: number }) => {
+      const response = await api.get<ApiResponse<any>>('/finance/holds', { params });
+      return response.data;
+    },
+    create: async (data: { user_id: number; amount: number; reason: string; release_condition?: string }) => {
+      const response = await api.post<ApiResponse<any>>('/finance/holds', data);
+      return response.data;
+    },
+    release: async (id: number) => {
+      const response = await api.post<ApiResponse<any>>(`/finance/holds/${id}/release`);
+      return response.data;
+    },
+    forfeit: async (id: number) => {
+      const response = await api.post<ApiResponse<any>>(`/finance/holds/${id}/forfeit`);
+      return response.data;
+    },
+  },
+
+  // Database Manager
+  databaseManager: {
+    getMetrics: async () => {
+      const response = await api.get<ApiResponse<any>>('/admin/database/metrics');
+      return response.data;
+    },
+    executeAction: async (action: string) => {
+      const response = await api.post<ApiResponse<any>>('/admin/database/execute', { action });
+      return response.data;
+    },
+  },
 };
 
 
+
+export const apiService = apiClient;
 
 export default api;
 

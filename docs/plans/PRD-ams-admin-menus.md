@@ -268,22 +268,48 @@ sequenceDiagram
     Admin->>API: 10. Publish Nilai Resmi & Terbitkan Sertifikat (Jika Lunas DP+Termin 2)
 ```
 
-### 4.2 Database Schema Adjustments
+### 4.2 Standard Kolom Tabel & Audit Trail (Mandatory Database Standard)
+Sesuai dengan standardisasi kode dan aturan arsitektur platform Arkanin ([standard-code.md](file:///d:/Project/Arkanin_v1/.agent/rules/standard-code.md) & [database-standard.md](file:///d:/Project/Arkanin_v1/docs/database-standard.md)), **seluruh tabel data bisnis** wajib menyertakan kolom identitas, status, dan 4 kolom audit trail berikut:
+
+1. **Struktur Kolom Wajib**:
+   - `id`: `BIGSERIAL PRIMARY KEY` (Identity auto-increment).
+   - `row_status`: `SMALLINT DEFAULT 1` (-1: Dihapus/Soft-deleted, 0: Non-aktif/Draft, 1: Aktif).
+   - `created_at`: `TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP` (Waktu pembuatan record).
+   - `created_by`: `BIGINT NULL REFERENCES users(id) ON DELETE SET NULL` (ID user yang membuat).
+   - `updated_at`: `TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP` (Waktu update terakhir).
+   - `updated_by`: `BIGINT NULL REFERENCES users(id) ON DELETE SET NULL` (ID user yang mengubah).
+
+2. **Index & Optimasi Kueri (Database Performance)**:
+   - Kolom `created_by` dan `updated_by` wajib diberi index (`INDEX`) untuk efisiensi join dan audit log.
+   - Kolom `row_status` dan `created_at` dikombinasikan dalam composite index untuk kebutuhan filter data aktif dan pagination.
+
+3. **Implementasi Eloquent ORM**:
+   - Setiap model Laravel wajib menggunakan trait `App\Traits\UserStamps` yang otomatis mengisi `created_by` dan `updated_by` dari user yang sedang terautentikasi (`Auth::id()`).
+
+---
+
+### 4.3 Database Schema Adjustments
 
 #### 1. Modul CBT & Item Analytics (Layer 1, 2, 4)
 ```sql
--- Stimulus / Wacana Induk
+-- Stimulus / Wacana Induk (Layer 1)
 CREATE TABLE assessment_contexts (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     body_content TEXT NOT NULL,
     media_url VARCHAR(500),
     media_type VARCHAR(50), -- 'image', 'audio', 'video'
+    row_status SMALLINT DEFAULT 1,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_assessment_contexts_creator ON assessment_contexts(created_by);
+CREATE INDEX idx_assessment_contexts_editor ON assessment_contexts(updated_by);
+CREATE INDEX idx_assessment_contexts_status ON assessment_contexts(row_status, created_at);
 
--- Master Butir Pertanyaan
+-- Master Butir Pertanyaan (Layer 1)
 CREATE TABLE questions (
     id BIGSERIAL PRIMARY KEY,
     context_id BIGINT REFERENCES assessment_contexts(id) ON DELETE SET NULL,
@@ -295,12 +321,18 @@ CREATE TABLE questions (
     estimated_seconds INT DEFAULT 60,
     tags JSONB DEFAULT '[]',
     status VARCHAR(30) DEFAULT 'draft', -- 'draft', 'submitted', 'approved', 'rejected'
-    created_by BIGINT REFERENCES users(id),
+    row_status SMALLINT DEFAULT 1,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_questions_context ON questions(context_id);
+CREATE INDEX idx_questions_creator ON questions(created_by);
+CREATE INDEX idx_questions_editor ON questions(updated_by);
+CREATE INDEX idx_questions_type_status ON questions(question_type, status, row_status);
 
--- Matriks Respons Peserta per Butir Soal (Untuk Engine IRT)
+-- Matriks Respons Peserta per Butir Soal (Untuk Engine IRT & Proctoring)
 CREATE TABLE exam_item_responses (
     id BIGSERIAL PRIMARY KEY,
     exam_attempt_id BIGINT NOT NULL,
@@ -311,10 +343,17 @@ CREATE TABLE exam_item_responses (
     score_earned NUMERIC(8, 3) DEFAULT 0,
     response_time_seconds INT,
     tab_switch_count INT DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_exam_responses_attempt ON exam_item_responses(exam_attempt_id, question_id);
+CREATE INDEX idx_exam_responses_user ON exam_item_responses(user_id);
+CREATE INDEX idx_exam_responses_creator ON exam_item_responses(created_by);
+CREATE INDEX idx_exam_responses_editor ON exam_item_responses(updated_by);
 
--- Log Parameter Psikometrik Hasil Analisis Butir Soal
+-- Log Parameter Psikometrik Hasil Analisis Butir Soal (Layer 4)
 CREATE TABLE item_analysis_parameters (
     id BIGSERIAL PRIMARY KEY,
     exam_package_id BIGINT NOT NULL,
@@ -324,8 +363,16 @@ CREATE TABLE item_analysis_parameters (
     pseudo_guessing_c NUMERIC(6, 3), -- Parameter Tebakan Acak (c)
     distractor_efficiency JSONB,
     fit_status VARCHAR(30) DEFAULT 'fit', -- 'fit', 'unfit', 'dropped'
-    analyzed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    analyzed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_item_analysis_package ON item_analysis_parameters(exam_package_id);
+CREATE INDEX idx_item_analysis_question ON item_analysis_parameters(question_id);
+CREATE INDEX idx_item_analysis_creator ON item_analysis_parameters(created_by);
+CREATE INDEX idx_item_analysis_editor ON item_analysis_parameters(updated_by);
 ```
 
 #### 2. Modul Cicilan & Dynamic Entitlement (Layer 3)
@@ -338,8 +385,15 @@ CREATE TABLE program_installments (
     amount NUMERIC(12, 2) NOT NULL,
     due_days_offset INT DEFAULT 30, -- Jatuh tempo X hari setelah pendaftaran
     milestone_section_id BIGINT, -- Terkunci sebelum masuk section ini
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    row_status SMALLINT DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_program_installments_program ON program_installments(program_id, term_number);
+CREATE INDEX idx_program_installments_creator ON program_installments(created_by);
+CREATE INDEX idx_program_installments_editor ON program_installments(updated_by);
 
 -- Status Pelunasan Cicilan per Siswa
 CREATE TABLE enrollment_installment_trackers (
@@ -350,8 +404,14 @@ CREATE TABLE enrollment_installment_trackers (
     due_date TIMESTAMP WITH TIME ZONE NOT NULL,
     paid_at TIMESTAMP WITH TIME ZONE,
     amount_paid NUMERIC(12, 2) DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_installment_trackers_enrollment ON enrollment_installment_trackers(enrollment_id, status);
+CREATE INDEX idx_installment_trackers_creator ON enrollment_installment_trackers(created_by);
+CREATE INDEX idx_installment_trackers_editor ON enrollment_installment_trackers(updated_by);
 ```
 
 #### 3. Modul Ruangan Fisik & Presensi Cerdas (Schedule Tool)
@@ -365,11 +425,18 @@ CREATE TABLE physical_rooms (
     max_capacity INT NOT NULL,
     facilities JSONB DEFAULT '["AC", "Projector", "Whiteboard"]',
     is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    row_status SMALLINT DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_by BIGINT REFERENCES users(id) ON DELETE SET NULL
 );
+CREATE INDEX idx_physical_rooms_branch ON physical_rooms(branch_id, is_active);
+CREATE INDEX idx_physical_rooms_creator ON physical_rooms(created_by);
+CREATE INDEX idx_physical_rooms_editor ON physical_rooms(updated_by);
 ```
 
-### 4.3 Security, Privacy & Integrity Safeguards
+### 4.4 Security, Privacy & Integrity Safeguards
 1. **Double-Spending Prevention via Balance Holding**:
    Setiap permintaan *withdrawal* honor mentor atau pengembalian saldo siswa secara otomatis mencatat debit pada kolom `hold_balance`. Saldo utama tidak dapat ditarik ulang secara paralel. Saldo baru dikonversi menjadi `disbursed` saat admin mengonfirmasi mutasi bank.
 2. **Anti-Cheat Client Safeguards**:

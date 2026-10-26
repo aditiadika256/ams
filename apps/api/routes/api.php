@@ -84,7 +84,27 @@ Route::prefix('v1')->group(function () {
     });
 
 
-    // CBT
+    // CBT Layer 1, 2, 4: Master Assessment, Blueprints, Live Proctoring & IRT Analysis
+    Route::prefix('assessment')->middleware('auth:sanctum')->group(function () {
+        Route::apiResource('contexts', \App\Domain\CBT\AssessmentContextController::class);
+        Route::apiResource('questions', \App\Domain\CBT\QuestionController::class);
+        Route::apiResource('blueprints', \App\Domain\CBT\ExamBlueprintController::class);
+
+        // Layer 4: Live Proctoring & Fraud Control
+        Route::get('proctor/live', [\App\Domain\CBT\LiveProctorController::class, 'liveAttempts']);
+        Route::post('proctor/tokens/generate', [\App\Domain\CBT\LiveProctorController::class, 'generateToken']);
+        Route::get('proctor/tokens/active', [\App\Domain\CBT\LiveProctorController::class, 'activeTokens']);
+        Route::post('proctor/attempts/{attemptId}/action', [\App\Domain\CBT\LiveProctorController::class, 'attemptAction']);
+        Route::get('proctor/incidents', [\App\Domain\CBT\LiveProctorController::class, 'incidents']);
+
+        // Layer 4: Psychometric Item Analysis & IRT Evaluation
+        Route::get('analysis/{packageId}', [\App\Domain\CBT\ItemAnalysisController::class, 'index']);
+        Route::post('analysis/{packageId}/calculate', [\App\Domain\CBT\ItemAnalysisController::class, 'calculate']);
+        Route::post('analysis/{packageId}/drop-question', [\App\Domain\CBT\ItemAnalysisController::class, 'dropQuestion']);
+        Route::get('results/{packageId}', [\App\Domain\CBT\ItemAnalysisController::class, 'results']);
+    });
+
+    // CBT Packages & Exams
     Route::get('exams/packages', [\App\Domain\CBT\ExamController::class, 'index'])->middleware('auth:sanctum');
     Route::get('exams/packages/{id}', [\App\Domain\CBT\ExamController::class, 'show'])->middleware('auth:sanctum');
     Route::post('exams/start', [\App\Domain\CBT\ExamController::class, 'start'])->middleware('auth:sanctum');
@@ -120,6 +140,15 @@ Route::prefix('v1')->group(function () {
         Route::post('program-accesses/{programAccess}/restore', [\App\Domain\Admin\ProgramAccessController::class, 'restore']);
         Route::post('program-accesses/{programAccess}/revoke', [\App\Domain\Admin\ProgramAccessController::class, 'revoke']);
         Route::post('program-accesses/{programAccess}/extend', [\App\Domain\Admin\ProgramAccessController::class, 'extend']);
+
+        // Installment Trackers & Drip Payment Locks
+        Route::get('enrollments/installments', [\App\Domain\Admin\InstallmentController::class, 'index']);
+        Route::post('enrollments/installments/{trackerId}/bypass', [\App\Domain\Admin\InstallmentController::class, 'manualBypass']);
+        Route::post('enrollments/installments/{trackerId}/mark-paid', [\App\Domain\Admin\InstallmentController::class, 'markPaid']);
+
+        // Physical Rooms (Branch Classrooms & Inventory)
+        Route::apiResource('physical-rooms', \App\Domain\Admin\PhysicalRoomController::class);
+
         Route::apiResource('tags', \App\Domain\Admin\TagController::class);
         Route::post('component-definitions/{componentDefinition}/restore', [\App\Domain\Admin\ComponentDefinitionController::class, 'restore'])
             ->withTrashed();
@@ -259,6 +288,16 @@ Route::prefix('v1')->group(function () {
         Route::post('withdrawals/{id}/reject', [\App\Domain\Finance\WalletController::class, 'adminRejectWithdrawal']);
 
         Route::apiResource('invoices', \App\Domain\Finance\InvoiceController::class);
+
+        // Wallet Holds & Dispute Escrow
+        Route::get('holds', [\App\Domain\Finance\WalletHoldController::class, 'index']);
+        Route::post('holds', [\App\Domain\Finance\WalletHoldController::class, 'store']);
+        Route::post('holds/{id}/release', [\App\Domain\Finance\WalletHoldController::class, 'release']);
+        Route::post('holds/{id}/forfeit', [\App\Domain\Finance\WalletHoldController::class, 'forfeit']);
+
+        // Database Manager Tools
+        Route::get('../admin/database/metrics', [\App\Domain\System\DatabaseManagerController::class, 'metrics']);
+        Route::post('../admin/database/execute', [\App\Domain\System\DatabaseManagerController::class, 'executeAction']);
 
 
         // Reports
