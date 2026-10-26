@@ -102,6 +102,11 @@ class ProgramAccess extends Model
         return $this->hasMany(ProgramComponentSubmission::class);
     }
 
+    public function installmentTrackers(): HasMany
+    {
+        return $this->hasMany(EnrollmentInstallmentTracker::class, 'program_access_id');
+    }
+
     public function scopeForUser(Builder $query, int $userId): Builder
     {
         return $query->where('user_id', $userId);
