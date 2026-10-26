@@ -17,7 +17,7 @@ import { ProgramComponentsStep } from './ProgramComponentsStep';
 import { ProgramCollectionStep } from './ProgramCollectionStep';
 import { ProgramBatchesStep } from './ProgramBatchesStep';
 import { ProgramReviewStep } from './ProgramReviewStep';
-import type { BatchDraft, ProgramWizardState } from './wizard-types';
+import type { BatchDraft, ProgramComponentDraft, ProgramWizardState } from './wizard-types';
 
 interface ProgramFormProps {
   initialData?: Program | null;
@@ -74,6 +74,16 @@ function initialState(program?: Program | null, batches: ProgramBatch[] = []): P
         ? 'ASSESSMENT'
         : 'NONE';
 
+  const initialComponents: ProgramComponentDraft[] = (program?.components ?? []).map((component, idx) => ({
+    id: component.id,
+    instanceKey: `comp_init_${component.id ?? idx}`,
+    componentDefinitionId: component.definition_id ?? component.component_definition_id ?? 0,
+    label: component.label ?? '',
+    isEnabled: component.is_enabled ?? true,
+    sortOrder: component.sort_order ?? idx + 1,
+    configuration: component.configuration ?? {},
+  }));
+
   return {
     name: program?.name ?? '',
     slug: program?.slug ?? '',
@@ -84,8 +94,9 @@ function initialState(program?: Program | null, batches: ProgramBatch[] = []): P
     visibility: program?.visibility ?? 'PUBLIC',
     completionMode,
     tagIds: program?.tags?.map((tag) => tag.id) ?? [],
-    componentIds: program?.components?.filter((component) => component.is_enabled).map((component) => component.definition_id ?? component.component_definition_id ?? 0).filter(Boolean) ?? [],
-    componentLabels: Object.fromEntries((program?.components ?? []).map((component) => [component.definition_id ?? component.component_definition_id ?? 0, component.label ?? ''])),
+    componentIds: initialComponents.filter((component) => component.isEnabled).map((component) => component.componentDefinitionId).filter(Boolean),
+    componentLabels: Object.fromEntries(initialComponents.map((component) => [component.componentDefinitionId, component.label])),
+    components: initialComponents,
     childIds: program?.children?.map((child) => child.id) ?? [],
     batches: batches.map(toBatchDraft),
     reason: program ? 'Memperbarui konfigurasi program' : 'Membuat konfigurasi program',
@@ -155,12 +166,13 @@ export function ProgramForm({
         },
       },
       tag_ids: state.tagIds,
-      components: state.componentIds.map((definitionId, index) => ({
-        component_definition_id: definitionId,
-        is_enabled: true,
-        label: state.componentLabels[definitionId]?.trim() || null,
+      components: state.components.map((comp, index) => ({
+        id: comp.id,
+        component_definition_id: comp.componentDefinitionId,
+        is_enabled: comp.isEnabled,
+        label: comp.label.trim() || null,
         sort_order: index + 1,
-        configuration: {},
+        configuration: comp.configuration ?? {},
       })),
       children: state.childIds.map((programId, index) => ({
         program_id: programId,

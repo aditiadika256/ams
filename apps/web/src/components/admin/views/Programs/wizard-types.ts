@@ -24,6 +24,16 @@ export interface BatchDraft {
   allow_retakes: boolean;
 }
 
+export interface ProgramComponentDraft {
+  id?: number;
+  instanceKey: string;
+  componentDefinitionId: number;
+  label: string;
+  isEnabled: boolean;
+  sortOrder: number;
+  configuration?: Record<string, unknown>;
+}
+
 export interface ProgramWizardState {
   name: string;
   slug: string;
@@ -36,6 +46,7 @@ export interface ProgramWizardState {
   tagIds: number[];
   componentIds: number[];
   componentLabels: Record<number, string>;
+  components: ProgramComponentDraft[];
   childIds: number[];
   batches: BatchDraft[];
   reason: string;
