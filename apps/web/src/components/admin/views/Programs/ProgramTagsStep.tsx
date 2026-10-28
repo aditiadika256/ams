@@ -64,6 +64,7 @@ export function ProgramTagsStep({ state, setState, tags: initialTags }: ProgramS
       }
     } catch (err: unknown) {
       // If code is already taken or tag exists, search existing tags from server
+      try {
         const searchRes = await apiClient.admin.tags.list({ search: trimmed });
         const listData = Array.isArray(searchRes.data)
           ? searchRes.data
