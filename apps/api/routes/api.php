@@ -156,6 +156,7 @@ Route::prefix('v1')->group(function () {
             ->withTrashed();
         Route::apiResource('component-definitions', \App\Domain\Admin\ComponentDefinitionController::class)
             ->parameters(['component-definitions' => 'componentDefinition']);
+        Route::get('programs/{program}/media-assets', [\App\Domain\Admin\MediaAssetController::class, 'index']);
         Route::post('programs/{program}/media-assets', [\App\Domain\Admin\MediaAssetController::class, 'store']);
         Route::scopeBindings()->delete('programs/{program}/media-assets/{mediaAsset}', [\App\Domain\Admin\MediaAssetController::class, 'destroy']);
         Route::put('programs/{program}/tags', [\App\Domain\Admin\ProgramTagController::class, 'update']);

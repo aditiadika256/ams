@@ -22,6 +22,13 @@ class MediaAsset extends Model
         'deleted_at' => 'datetime',
     ];
 
+    protected $appends = ['cdn_url'];
+
+    public function getCdnUrlAttribute(): ?string
+    {
+        return app(\App\Support\Media\CloudflareMediaService::class)->getCdnUrl($this->object_key);
+    }
+
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);

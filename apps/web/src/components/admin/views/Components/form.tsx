@@ -76,7 +76,7 @@ export function ComponentDefinitionForm({ initial, loading, onCancel, onSubmit }
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
           <Label htmlFor="component-code">Kode</Label>
-          <Input id="component-code" required disabled={Boolean(initial)} pattern="[a-z0-9_-]+" value={code} onChange={(event) => setCode(event.target.value.toLowerCase().replace(/\s+/g, '_'))} />
+          <Input id="component-code" required disabled={Boolean(initial)} pattern="[a-z0-9_\-]+" value={code} onChange={(event) => setCode(event.target.value.toLowerCase().replace(/\s+/g, '_'))} />
           <p className="text-xs text-zinc-500">Permanen setelah component dibuat.</p>
         </div>
         <div className="grid gap-2">

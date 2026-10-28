@@ -891,6 +891,10 @@ export const apiClient = {
       },
     },
     mediaAssets: {
+      list: async (programId: number) => {
+        const response = await api.get<ApiResponse<MediaAsset[]>>(`/admin/programs/${programId}/media-assets`);
+        return response.data;
+      },
       upload: async (programId: number, file: File, reason: string, onProgress?: (percent: number) => void) => {
         const form = new FormData();
         form.append('file', file);

@@ -24,6 +24,24 @@ export interface BatchDraft {
   allow_retakes: boolean;
 }
 
+export type ComponentContentType = 'file' | 'drive_or_pdf' | 'video_url' | 'text' | 'link';
+
+export interface ComponentContentConfig {
+  content_type?: ComponentContentType;
+  title?: string;
+  summary?: string;
+  body?: string;
+  external_url?: string;
+  drive_preview_url?: string;
+  is_pdf?: boolean;
+  media_asset_id?: number | null;
+  media_name?: string;
+  media_size?: number;
+  duration_minutes?: number;
+  is_published?: boolean;
+  is_preview?: boolean;
+}
+
 export interface ProgramComponentDraft {
   id?: number;
   instanceKey: string;
@@ -31,7 +49,8 @@ export interface ProgramComponentDraft {
   label: string;
   isEnabled: boolean;
   sortOrder: number;
-  configuration?: Record<string, unknown>;
+  configuration?: Record<string, unknown> & ComponentContentConfig;
+  pendingFile?: File;
 }
 
 export interface ProgramWizardState {
@@ -59,4 +78,5 @@ export interface ProgramStepProps {
   definitions: ComponentDefinition[];
   programs: Program[];
   initialBatches: ProgramBatch[];
+  programId?: number;
 }
