@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Cloud,
   Copy,
@@ -55,6 +55,7 @@ export default function MediaLibraryView() {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedProgramId, setSelectedProgramId] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<MediaTypeFilter>('all');
   const [selectedFolder, setSelectedFolder] = useState<string>('all');
@@ -77,11 +78,24 @@ export default function MediaLibraryView() {
   // Copy URL tracking
   const [copiedId, setCopiedId] = useState<number | null>(null);
 
+  // In-flight guard to prevent duplicate concurrent network requests
+  const inFlightRef = useRef(false);
+
+  // Debounce search input (350ms)
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 350);
+    return () => clearTimeout(handler);
+  }, [search]);
+
   const loadAssets = useCallback(async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setLoading(true);
     try {
       const response = await apiClient.admin.mediaLibrary.list({
-        search: search.trim() || undefined,
+        search: debouncedSearch.trim() || undefined,
         program_id: selectedProgramId !== 'all' ? selectedProgramId : undefined,
         type: selectedType !== 'all' ? selectedType : undefined,
         folder: selectedFolder !== 'all' ? selectedFolder : undefined,
@@ -102,9 +116,10 @@ export default function MediaLibraryView() {
     } catch (err) {
       alertActions.error('Gagal memuat media', getErrorMessage(err, 'Media library tidak dapat diakses.'));
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
-  }, [search, selectedProgramId, selectedType, selectedFolder]);
+  }, [debouncedSearch, selectedProgramId, selectedType, selectedFolder]);
 
   useEffect(() => {
     void loadAssets();
@@ -228,62 +243,62 @@ export default function MediaLibraryView() {
         </div>
       </div>
 
-      {/* Glassmorphic Metrics Card */}
+      {/* Metrics Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Assets */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/40 bg-white/60 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/60">
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Total Berkas</span>
-            <div className="rounded-lg bg-blue-500/10 p-1.5 text-blue-600 dark:text-blue-400">
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider dark:text-zinc-400">Total Berkas</span>
+            <div className="rounded-xl bg-blue-500/10 p-2 text-blue-600 dark:text-blue-400">
               <HardDrive className="size-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">{assets.length}</p>
-          <span className="text-[11px] text-zinc-400">Item tersimpan di storage</span>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">{assets.length}</p>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 block">Item tersimpan di storage</span>
         </div>
 
         {/* Total Storage */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/40 bg-white/60 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/60">
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Kapasitas Storage</span>
-            <div className="rounded-lg bg-emerald-500/10 p-1.5 text-emerald-600 dark:text-emerald-400">
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider dark:text-zinc-400">Kapasitas Storage</span>
+            <div className="rounded-xl bg-emerald-500/10 p-2 text-emerald-600 dark:text-emerald-400">
               <Cloud className="size-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">{formatBytes(storageBytes)}</p>
-          <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Cloudflare R2 Bucket</span>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">{formatBytes(storageBytes)}</p>
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1 block">Cloudflare R2 Bucket</span>
         </div>
 
         {/* Cloudflare CDN Status */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/40 bg-white/60 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/60">
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Edge CDN Delivery</span>
-            <div className="rounded-lg bg-purple-500/10 p-1.5 text-purple-600 dark:text-purple-400">
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider dark:text-zinc-400">Edge CDN Delivery</span>
+            <div className="rounded-xl bg-purple-500/10 p-2 text-purple-600 dark:text-purple-400">
               <Layers className="size-4" />
             </div>
           </div>
           <div className="mt-2 flex items-center gap-2">
             <span className="inline-block size-2 rounded-full bg-emerald-500 animate-pulse" />
-            <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 truncate">R2 Public CDN Aktif</p>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">R2 Public CDN Aktif</p>
           </div>
-          <span className="text-[10px] text-zinc-400 truncate block mt-0.5">pub-043d267920b64ff7b8d21410e443f7ee.r2.dev</span>
+          <span className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate block mt-1 font-mono">pub-043d267920b64ff7b8d21410e443f7ee.r2.dev</span>
         </div>
 
         {/* Programs Connected */}
-        <div className="relative overflow-hidden rounded-2xl border border-white/40 bg-white/60 p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/60">
+        <div className="relative overflow-hidden rounded-2xl border border-zinc-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Program Terhubung</span>
-            <div className="rounded-lg bg-amber-500/10 p-1.5 text-amber-600 dark:text-amber-400">
+            <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider dark:text-zinc-400">Program Terhubung</span>
+            <div className="rounded-xl bg-amber-500/10 p-2 text-amber-600 dark:text-amber-400">
               <FolderOpen className="size-4" />
             </div>
           </div>
-          <p className="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">{adminPrograms.length}</p>
-          <span className="text-[11px] text-zinc-400">Program katalog aktif</span>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-zinc-950 dark:text-zinc-50">{adminPrograms.length}</p>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 block">Program katalog aktif</span>
         </div>
       </div>
 
       {/* Control Filter Bar */}
-      <div className="rounded-2xl border border-white/40 bg-white/70 p-4 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-zinc-950/70">
+      <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           {/* Search Bar */}
           <div className="relative flex-1">
@@ -293,7 +308,7 @@ export default function MediaLibraryView() {
               placeholder="Cari berkas berdasarkan nama, folder, atau program..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-10 pl-9 text-xs bg-white/80 dark:bg-zinc-900/80 rounded-xl"
+              className="h-10 pl-9 text-xs bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 rounded-xl"
             />
           </div>
 
@@ -304,7 +319,7 @@ export default function MediaLibraryView() {
               aria-label="Filter berdasarkan Program"
               value={selectedProgramId}
               onChange={(e) => setSelectedProgramId(e.target.value)}
-              className="h-10 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm transition hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+              className="h-10 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-xs font-medium text-zinc-900 shadow-xs transition hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
             >
               <option value="all">Semua Program ({adminPrograms.length})</option>
               <option value="none">Tanpa Program (Global Library)</option>
@@ -320,7 +335,7 @@ export default function MediaLibraryView() {
               aria-label="Filter berdasarkan Tipe File"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value as MediaTypeFilter)}
-              className="h-10 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm transition hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+              className="h-10 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-xs font-medium text-zinc-900 shadow-xs transition hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
             >
               <option value="all">Semua Tipe Berkas</option>
               <option value="pdf">Dokumen PDF</option>
@@ -336,7 +351,7 @@ export default function MediaLibraryView() {
                 aria-label="Filter berdasarkan Folder"
                 value={selectedFolder}
                 onChange={(e) => setSelectedFolder(e.target.value)}
-                className="h-10 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm transition hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+                className="h-10 rounded-xl border border-zinc-200 bg-zinc-50 px-3 text-xs font-medium text-zinc-900 shadow-xs transition hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100"
               >
                 <option value="all">Semua Folder</option>
                 {availableFolders.map((f) => (
@@ -348,13 +363,13 @@ export default function MediaLibraryView() {
             )}
 
             {/* View Mode Toggle */}
-            <div className="flex items-center rounded-xl border border-zinc-200 bg-white/60 p-0.5 dark:border-zinc-800 dark:bg-zinc-900/60">
+            <div className="flex items-center rounded-xl border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-700 dark:bg-zinc-800">
               <button
                 type="button"
                 onClick={() => setViewMode('grid')}
                 className={`rounded-lg p-2 transition ${
                   viewMode === 'grid'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
                     : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
                 }`}
                 title="Tampilan Grid Kartu"
@@ -366,7 +381,7 @@ export default function MediaLibraryView() {
                 onClick={() => setViewMode('table')}
                 className={`rounded-lg p-2 transition ${
                   viewMode === 'table'
-                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
                     : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
                 }`}
                 title="Tampilan Tabel Rinci"
@@ -582,6 +597,8 @@ export default function MediaLibraryView() {
       {/* Upload File Modal (Separated Component) */}
       <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
         <DialogContent className="max-w-2xl p-0 bg-transparent border-0 shadow-none">
+          <DialogTitle className="sr-only">Formulir Unggah Media Library</DialogTitle>
+          <DialogDescription className="sr-only">Formulir untuk mengunggah materi pembelajaran baru ke Cloud Storage</DialogDescription>
           <MediaLibraryForm
             onSuccess={() => {
               setUploadOpen(false);
@@ -594,7 +611,7 @@ export default function MediaLibraryView() {
 
       {/* Interactive Media Viewer & Detail Modal */}
       <Dialog open={Boolean(previewAsset)} onOpenChange={(open) => !open && setPreviewAsset(null)}>
-        <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col rounded-3xl border border-white/30 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-800 dark:bg-zinc-950/95 overflow-hidden">
+        <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
           <DialogHeader className="shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">

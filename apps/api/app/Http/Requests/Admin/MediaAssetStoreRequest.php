@@ -9,7 +9,23 @@ class MediaAssetStoreRequest extends BaseFormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->checkPermissionTo('media-asset.upload', 'web') ?? false;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole(['superadmin', 'super_admin', 'direktur'])
+            || $user->hasRole('superadmin', 'web')
+            || $user->hasRole('superadmin', 'sanctum')) {
+            return true;
+        }
+
+        return $user->can('media-asset.upload')
+            || $user->can('program-component.manage')
+            || $user->can('component-definition.update')
+            || $user->can('component-definition.view')
+            || $user->can('program.update')
+            || $user->can('program.create');
     }
 
     public function rules(): array

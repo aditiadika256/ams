@@ -93,8 +93,7 @@ class MenuController extends Controller
             'required_permission' => [
                 'nullable',
                 'string',
-                'max:120',
-                Rule::exists('permissions', 'name')->where('guard_name', 'web'),
+                'max:255',
             ],
         ]);
 
@@ -151,8 +150,7 @@ class MenuController extends Controller
             'required_permission' => [
                 'nullable',
                 'string',
-                'max:120',
-                Rule::exists('permissions', 'name')->where('guard_name', 'web'),
+                'max:255',
             ],
         ]);
 

@@ -110,7 +110,7 @@ class MenuController extends Controller
             return [];
         }
 
-        if ($user->hasRole(['superadmin', 'super_admin'])
+        if ($user->hasRole(['superadmin', 'super_admin', 'direktur'])
             || $user->hasRole('superadmin', 'web')
             || $user->hasRole('superadmin', 'sanctum')) {
             return ['*'];
