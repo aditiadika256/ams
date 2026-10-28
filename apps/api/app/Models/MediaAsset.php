@@ -13,8 +13,9 @@ class MediaAsset extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'program_id', 'uploaded_by', 'disk', 'object_key', 'original_name',
-        'mime_type', 'extension', 'size_bytes', 'checksum_sha256',
+        'program_id', 'uploaded_by', 'created_by', 'updated_by', 'folder',
+        'disk', 'object_key', 'original_name', 'mime_type', 'extension',
+        'size_bytes', 'checksum_sha256',
     ];
 
     protected $casts = [
@@ -37,6 +38,16 @@ class MediaAsset extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 
     public function contents(): HasMany

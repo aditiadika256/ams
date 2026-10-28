@@ -159,6 +159,9 @@ Route::prefix('v1')->group(function () {
         Route::get('programs/{program}/media-assets', [\App\Domain\Admin\MediaAssetController::class, 'index']);
         Route::post('programs/{program}/media-assets', [\App\Domain\Admin\MediaAssetController::class, 'store']);
         Route::scopeBindings()->delete('programs/{program}/media-assets/{mediaAsset}', [\App\Domain\Admin\MediaAssetController::class, 'destroy']);
+        Route::get('media-library', [\App\Domain\Admin\MediaAssetController::class, 'library']);
+        Route::post('media-library/upload', [\App\Domain\Admin\MediaAssetController::class, 'libraryUpload']);
+        Route::delete('media-library/{mediaAsset}', [\App\Domain\Admin\MediaAssetController::class, 'destroyDirect']);
         Route::put('programs/{program}/tags', [\App\Domain\Admin\ProgramTagController::class, 'update']);
         Route::put('programs/{program}/components', [\App\Domain\Admin\ProgramComponentController::class, 'update']);
         Route::scopeBindings()->group(function () {

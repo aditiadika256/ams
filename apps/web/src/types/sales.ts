@@ -74,16 +74,30 @@ export interface ProgramComponent {
 export type ComponentContentStatus = 'DRAFT' | 'PUBLISHED';
 export interface MediaAsset {
   id: number;
-  program_id: number;
+  program_id?: number | null;
+  folder?: string;
   original_name: string;
   mime_type: string;
   extension: string;
   size_bytes: number;
-  checksum_sha256: string;
+  checksum_sha256?: string;
+  storage_disk?: string;
+  storage_path?: string;
+  url?: string;
   download_url?: string;
   view_url?: string;
   cdn_url?: string | null;
+  created_by?: number | null;
+  updated_by?: number | null;
+  uploader_name?: string | null;
+  program?: {
+    id: number;
+    name: string;
+    slug: string;
+  } | null;
   deleted_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 export interface ProgramComponentContent {
   id: number; program_component_id: number; title: string; slug: string;

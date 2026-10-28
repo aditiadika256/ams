@@ -23,6 +23,8 @@ class MediaAssetStoreRequest extends BaseFormRequest
                 'extensions:'.implode(',', $extensions),
             ],
             'reason' => ['required', 'string', 'min:5', 'max:1000'],
+            'program_id' => ['nullable', 'integer', 'exists:programs,id'],
+            'folder' => ['nullable', 'string', 'max:100'],
         ];
     }
 }
