@@ -82,7 +82,7 @@ export default function DashboardView() {
             </GlassCardHeader>
             <GlassCardContent className="pl-2 w-full min-w-0">
               <div className="h-[350px] w-full min-w-0 relative">
-                <ResponsiveContainer width="99%" height="100%">
+                <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={350}>
                   <BarChart data={data}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-white/10" />
                     <XAxis 

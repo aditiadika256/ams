@@ -32,10 +32,10 @@ interface ProgramFormProps {
 
 const steps = [
   { label: 'Dasar', component: ProgramBasicsStep },
-  { label: 'Tags', component: ProgramTagsStep },
   { label: 'Komponen', component: ProgramComponentsStep },
   { label: 'Collection', component: ProgramCollectionStep },
   { label: 'Batch', component: ProgramBatchesStep },
+  { label: 'Tags', component: ProgramTagsStep },
   { label: 'Review', component: ProgramReviewStep },
 ] as const;
 
@@ -128,7 +128,7 @@ export function ProgramForm({
   );
 
   const basicsValid = state.name.trim().length > 0
-    && /^[a-z0-9-]+$/.test(state.slug)
+    && /^[a-z0-9\-]+$/.test(state.slug.trim())
     && state.basePrice !== ''
     && Number(state.basePrice) >= 0;
   const reviewValid = state.reason.trim().length >= 5;
@@ -173,6 +173,7 @@ export function ProgramForm({
         label: comp.label.trim() || null,
         sort_order: index + 1,
         configuration: comp.configuration ?? {},
+        pendingFile: comp.pendingFile,
       })),
       children: state.childIds.map((programId, index) => ({
         program_id: programId,
@@ -236,6 +237,7 @@ export function ProgramForm({
           definitions={definitions}
           programs={availablePrograms}
           initialBatches={initialBatches}
+          programId={initialData?.id}
         />
       </div>
 

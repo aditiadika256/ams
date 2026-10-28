@@ -6,44 +6,27 @@ use App\Actions\Audit\RecordDomainAudit;
 use App\Models\MediaAsset;
 use App\Models\Program;
 use App\Models\User;
+use App\Support\Media\CloudflareMediaService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
-use RuntimeException;
 use Throwable;
 
 class StoreMediaAsset
 {
-    public function __construct(private readonly RecordDomainAudit $audit) {}
+    public function __construct(
+        private readonly RecordDomainAudit $audit,
+        private readonly CloudflareMediaService $cloudflareMedia,
+    ) {}
 
     public function handle(Program $program, UploadedFile $file, User $actor, string $reason): MediaAsset
     {
-        $disk = (string) config('components.media.disk');
-        $extension = strtolower($file->getClientOriginalExtension());
-        $objectKey = sprintf(
-            'programs/%d/%s/%s.%s',
-            $program->id,
-            now()->format('Y/m'),
-            (string) Str::ulid(),
-            $extension,
-        );
-        $checksum = hash_file('sha256', $file->getRealPath());
+        $directory = sprintf('programs/%d/%s', $program->id, now()->format('Y/m'));
+        $uploaded = $this->cloudflareMedia->upload($file, $directory);
 
-        if ($checksum === false) {
-            throw new RuntimeException('Unable to calculate uploaded file checksum.');
-        }
-
-        $stored = Storage::disk($disk)->putFileAs(
-            dirname($objectKey),
-            $file,
-            basename($objectKey),
-            ['visibility' => 'private'],
-        );
-
-        if ($stored === false) {
-            throw new RuntimeException('Unable to store uploaded component media.');
-        }
+        $disk = $uploaded['disk'];
+        $objectKey = $uploaded['object_key'];
+        $extension = $uploaded['extension'];
+        $checksum = $uploaded['checksum_sha256'];
 
         try {
             return DB::transaction(function () use (
@@ -82,7 +65,7 @@ class StoreMediaAsset
                 return $asset;
             });
         } catch (Throwable $exception) {
-            Storage::disk($disk)->delete($objectKey);
+            $this->cloudflareMedia->delete($objectKey, $disk);
 
             throw $exception;
         }

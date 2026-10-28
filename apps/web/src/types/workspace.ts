@@ -31,7 +31,13 @@ export interface WorkspaceComponent {
   handler_template: WorkspaceHandlerTemplate; handler_key?: string | null; icon?: string | null; sort_order: number;
 }
 export interface WorkspaceMediaAsset {
-  id: number; original_name: string; mime_type: string; size_bytes: number; download_url: string;
+  id: number;
+  original_name: string;
+  mime_type: string;
+  size_bytes: number;
+  download_url: string;
+  view_url?: string;
+  cdn_url?: string | null;
 }
 export interface WorkspaceFormField {
   key: string; label: string; type: 'text' | 'textarea' | 'email' | 'number' | 'select' | 'checkbox' | 'date';
