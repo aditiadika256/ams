@@ -24,7 +24,15 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(! app()->isProduction());
 
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('superadmin') ? true : null;
+            if ($user->hasRole(['superadmin', 'super_admin', 'direktur'])
+                || $user->hasRole('superadmin', 'web')
+                || $user->hasRole('superadmin', 'sanctum')) {
+                return true;
+            }
+
+            return null;
         });
+
+        \App\Models\Menu::observe(\App\Observers\MenuObserver::class);
     }
 }
