@@ -135,12 +135,13 @@ export default function ProgramsView() {
               pendingFile,
               `Mengunggah materi untuk ${comp.label || 'komponen'}`
             );
-            if (uploadRes.data?.id) {
+            const uploadedAsset = uploadRes.data;
+            if (uploadedAsset?.id) {
               configuration = {
                 ...configuration,
-                media_asset_id: uploadRes.data.id,
-                media_name: uploadRes.data.original_name,
-                media_size: uploadRes.data.size_bytes,
+                media_asset_id: uploadedAsset.id,
+                media_name: uploadedAsset.original_name,
+                media_size: uploadedAsset.size_bytes,
               };
             }
           } catch (err) {

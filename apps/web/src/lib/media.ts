@@ -1,5 +1,20 @@
 import { apiClient } from '@/lib/api';
 import type { WorkspaceMediaAsset } from '@/types/workspace';
+import type { MediaAsset } from '@/types/sales';
+
+export type SupportedMediaAsset =
+  | WorkspaceMediaAsset
+  | MediaAsset
+  | {
+      id: number;
+      original_name: string;
+      mime_type: string;
+      size_bytes?: number;
+      download_url?: string | null;
+      view_url?: string | null;
+      cdn_url?: string | null;
+      extension?: string;
+    };
 
 export interface GoogleDriveInfo {
   isGoogleDrive: boolean;
@@ -160,7 +175,7 @@ export function resolveCdnUrl(objectKeyOrUrl: string | null | undefined): string
 export function resolveMediaViewerData(params: {
   title?: string;
   externalUrl?: string | null;
-  mediaAsset?: WorkspaceMediaAsset | null;
+  mediaAsset?: SupportedMediaAsset | null;
 }): MediaViewerData {
   const { title = 'Materi Pembelajaran', externalUrl, mediaAsset } = params;
 
@@ -196,81 +211,90 @@ export function resolveMediaViewerData(params: {
 
   // Case 3: MediaAsset attached (from Cloudflare R2 / Storage)
   if (mediaAsset) {
-    const mime = mediaAsset.mime_type.toLowerCase();
-    const isPdf = mime.includes('pdf') || mediaAsset.original_name.toLowerCase().endsWith('.pdf');
-    const isVideo = mime.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(mediaAsset.original_name);
-    const isAudio = mime.startsWith('audio/') || /\.(mp3|wav|m4a|ogg)$/i.test(mediaAsset.original_name);
-    const isImage = mime.startsWith('image/') || /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(mediaAsset.original_name);
+    const mime = (mediaAsset.mime_type || '').toLowerCase();
+    const originalName = mediaAsset.original_name || '';
+    const isPdf = mime.includes('pdf') || originalName.toLowerCase().endsWith('.pdf');
+    const isVideo = mime.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(originalName);
+    const isAudio = mime.startsWith('audio/') || /\.(mp3|wav|m4a|ogg)$/i.test(originalName);
+    const isImage = mime.startsWith('image/') || /\.(png|jpg|jpeg|webp|gif|svg)$/i.test(originalName);
 
-    const cdnUrl = mediaAsset.cdn_url ? resolveCdnUrl(mediaAsset.cdn_url) : null;
-    const streamOrViewUrl = mediaAsset.view_url || (cdnUrl ?? mediaAsset.download_url);
+    const cdnUrl = 'cdn_url' in mediaAsset && mediaAsset.cdn_url ? resolveCdnUrl(mediaAsset.cdn_url) : null;
+    const downloadUrl =
+      ('download_url' in mediaAsset && mediaAsset.download_url)
+        ? mediaAsset.download_url
+        : mediaAsset.id
+          ? `/api/v1/workspace/media-assets/${mediaAsset.id}/download`
+          : null;
+    const viewUrl = ('view_url' in mediaAsset && mediaAsset.view_url) ? mediaAsset.view_url : null;
+    const streamOrViewUrl = viewUrl || (cdnUrl ?? downloadUrl);
+    const sizeBytes = 'size_bytes' in mediaAsset && typeof mediaAsset.size_bytes === 'number' ? mediaAsset.size_bytes : undefined;
 
     if (isPdf) {
       return {
         kind: 'pdf',
-        title: mediaAsset.original_name || title,
+        title: originalName || title,
         previewUrl: streamOrViewUrl,
-        downloadUrl: mediaAsset.download_url,
+        downloadUrl,
         cdnUrl,
         badgeLabel: cdnUrl ? 'Cloudflare CDN PDF' : 'Dokumen PDF Program',
         isEmbeddable: true,
         mimeType: mediaAsset.mime_type,
-        sizeBytes: mediaAsset.size_bytes,
+        sizeBytes,
       };
     }
 
     if (isVideo) {
       return {
         kind: 'video',
-        title: mediaAsset.original_name || title,
+        title: originalName || title,
         previewUrl: streamOrViewUrl,
-        downloadUrl: mediaAsset.download_url,
+        downloadUrl,
         cdnUrl,
         badgeLabel: cdnUrl ? 'Cloudflare CDN Video' : 'Video Pembelajaran',
         isEmbeddable: true,
         mimeType: mediaAsset.mime_type,
-        sizeBytes: mediaAsset.size_bytes,
+        sizeBytes,
       };
     }
 
     if (isAudio) {
       return {
         kind: 'audio',
-        title: mediaAsset.original_name || title,
+        title: originalName || title,
         previewUrl: streamOrViewUrl,
-        downloadUrl: mediaAsset.download_url,
+        downloadUrl,
         cdnUrl,
         badgeLabel: cdnUrl ? 'Cloudflare CDN Audio' : 'Audio Pembelajaran',
         isEmbeddable: true,
         mimeType: mediaAsset.mime_type,
-        sizeBytes: mediaAsset.size_bytes,
+        sizeBytes,
       };
     }
 
     if (isImage) {
       return {
         kind: 'image',
-        title: mediaAsset.original_name || title,
+        title: originalName || title,
         previewUrl: streamOrViewUrl,
-        downloadUrl: mediaAsset.download_url,
+        downloadUrl,
         cdnUrl,
         badgeLabel: cdnUrl ? 'Cloudflare CDN Gambar' : 'Gambar',
         isEmbeddable: true,
         mimeType: mediaAsset.mime_type,
-        sizeBytes: mediaAsset.size_bytes,
+        sizeBytes,
       };
     }
 
     return {
       kind: 'download_only',
-      title: mediaAsset.original_name || title,
+      title: originalName || title,
       previewUrl: null,
-      downloadUrl: mediaAsset.download_url,
+      downloadUrl,
       cdnUrl,
       badgeLabel: cdnUrl ? 'Cloudflare CDN File' : 'Berkas Privat',
       isEmbeddable: false,
       mimeType: mediaAsset.mime_type,
-      sizeBytes: mediaAsset.size_bytes,
+      sizeBytes,
     };
   }
 

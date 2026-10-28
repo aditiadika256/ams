@@ -69,6 +69,25 @@ function formatBytes(bytes?: number): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 
+function extractMediaAssets(payload: unknown): MediaAsset[] {
+  if (Array.isArray(payload)) {
+    return payload as MediaAsset[];
+  }
+  if (payload && typeof payload === 'object' && 'data' in payload) {
+    const data = (payload as { data: unknown }).data;
+    if (Array.isArray(data)) {
+      return data as MediaAsset[];
+    }
+    if (data && typeof data === 'object' && 'data' in data) {
+      const nested = (data as { data: unknown }).data;
+      if (Array.isArray(nested)) {
+        return nested as MediaAsset[];
+      }
+    }
+  }
+  return [];
+}
+
 export function ProgramComponentsStep({ state, setState, definitions, programId }: ProgramStepProps) {
   const [selectedDefinitionId, setSelectedDefinitionId] = useState<number | ''>('');
   const [expandedInstanceKey, setExpandedInstanceKey] = useState<string | null>(null);
@@ -91,10 +110,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
     setLoadingMedia(true);
     try {
       const response = await apiClient.admin.mediaAssets.list(programId);
-      const items = Array.isArray(response.data)
-        ? response.data
-        : (response.data as { data?: MediaAsset[] })?.data ?? [];
-      setProgramMediaAssets(items);
+      setProgramMediaAssets(extractMediaAssets(response));
     } catch {
       // Fallback silently if no media assets or endpoint loading fails
     } finally {
@@ -1232,7 +1248,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
               <MediaContentViewer
                 title={livePreviewData.title}
                 externalUrl={livePreviewData.externalUrl}
-                mediaAsset={livePreviewData.mediaAsset as any}
+                mediaAsset={livePreviewData.mediaAsset}
                 defaultHeight={500}
               />
             </div>
