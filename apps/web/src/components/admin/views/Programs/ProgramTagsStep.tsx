@@ -85,8 +85,8 @@ export function ProgramTagsStep({ state, setState, tags: initialTags }: ProgramS
         } else {
           alertActions.error('Gagal menambahkan tag', getErrorMessage(err, 'Terjadi kesalahan saat membuat tag.'));
         }
-      } catch {
-        alertActions.error('Gagal menambahkan tag', getErrorMessage(err, 'Terjadi kesalahan saat membuat tag.'));
+      } catch (innerErr) {
+        alertActions.error('Gagal menambahkan tag', getErrorMessage(innerErr, 'Terjadi kesalahan saat mencari tag yang ada.'));
       }
     } finally {
       setIsCreatingTag(false);

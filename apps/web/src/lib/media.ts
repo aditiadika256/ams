@@ -30,6 +30,9 @@ export type MediaViewKind =
   | 'video'
   | 'audio'
   | 'image'
+  | 'office'
+  | 'text'
+  | 'archive'
   | 'external_link'
   | 'download_only';
 
@@ -44,6 +47,8 @@ export interface MediaViewerData {
   driveInfo?: GoogleDriveInfo;
   mimeType?: string;
   sizeBytes?: number;
+  extension?: string;
+  subType?: 'word' | 'excel' | 'powerpoint' | 'text' | 'archive' | 'general';
 }
 
 /**
@@ -282,6 +287,92 @@ export function resolveMediaViewerData(params: {
         isEmbeddable: true,
         mimeType: mediaAsset.mime_type,
         sizeBytes,
+        extension: originalName.split('.').pop()?.toLowerCase(),
+      };
+    }
+
+    // Office Documents (Word, Excel, PowerPoint)
+    const isWord =
+      /\.(docx?|rtf|odt)$/i.test(originalName) ||
+      mime.includes('word') ||
+      mime.includes('officedocument.wordprocessingml');
+    const isExcel =
+      /\.(xlsx?|csv|ods)$/i.test(originalName) ||
+      mime.includes('spreadsheet') ||
+      mime.includes('excel');
+    const isPowerPoint =
+      /\.(pptx?|odp)$/i.test(originalName) ||
+      mime.includes('presentation') ||
+      mime.includes('powerpoint');
+
+    if (isWord || isExcel || isPowerPoint) {
+      const subType = isWord ? 'word' : isExcel ? 'excel' : 'powerpoint';
+      // If publicly accessible via Cloudflare CDN, embed via Microsoft Office Online Viewer
+      const officeEmbedUrl = cdnUrl
+        ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(cdnUrl)}`
+        : null;
+
+      return {
+        kind: 'office',
+        title: originalName || title,
+        previewUrl: officeEmbedUrl || streamOrViewUrl,
+        downloadUrl,
+        cdnUrl,
+        badgeLabel: isWord
+          ? 'Dokumen Word (DOCX)'
+          : isExcel
+          ? 'Lembar Kerja Excel (XLSX)'
+          : 'Presentasi Slide (PPTX)',
+        isEmbeddable: Boolean(officeEmbedUrl),
+        mimeType: mediaAsset.mime_type,
+        sizeBytes,
+        extension: originalName.split('.').pop()?.toLowerCase(),
+        subType,
+      };
+    }
+
+    // Text & Code files
+    const isText =
+      /\.(txt|json|md|log|xml|html|css|js|ts)$/i.test(originalName) ||
+      mime.startsWith('text/') ||
+      mime.includes('json');
+
+    if (isText) {
+      return {
+        kind: 'text',
+        title: originalName || title,
+        previewUrl: streamOrViewUrl,
+        downloadUrl,
+        cdnUrl,
+        badgeLabel: 'Dokumen Teks / Kode',
+        isEmbeddable: true,
+        mimeType: mediaAsset.mime_type,
+        sizeBytes,
+        extension: originalName.split('.').pop()?.toLowerCase(),
+        subType: 'text',
+      };
+    }
+
+    // Archive files (ZIP, RAR, 7Z, TAR)
+    const isArchive =
+      /\.(zip|rar|7z|tar|gz|bz2)$/i.test(originalName) ||
+      mime.includes('zip') ||
+      mime.includes('compressed') ||
+      mime.includes('tar');
+
+    if (isArchive) {
+      return {
+        kind: 'archive',
+        title: originalName || title,
+        previewUrl: null,
+        downloadUrl,
+        cdnUrl,
+        badgeLabel: 'Arsip Terkompresi (ZIP/RAR)',
+        isEmbeddable: false,
+        mimeType: mediaAsset.mime_type,
+        sizeBytes,
+        extension: originalName.split('.').pop()?.toLowerCase(),
+        subType: 'archive',
       };
     }
 
@@ -295,6 +386,8 @@ export function resolveMediaViewerData(params: {
       isEmbeddable: false,
       mimeType: mediaAsset.mime_type,
       sizeBytes,
+      extension: originalName.split('.').pop()?.toLowerCase(),
+      subType: 'general',
     };
   }
 
@@ -325,8 +418,8 @@ export function resolveMediaViewerData(params: {
 /**
  * Format raw bytes into human readable format (KB, MB, GB).
  */
-export function formatBytes(bytes: number, decimals = 1): string {
-  if (bytes === 0) return '0 Bytes';
+export function formatBytes(bytes?: number | null, decimals = 1): string {
+  if (bytes === undefined || bytes === null || isNaN(bytes) || bytes <= 0) return '0 Bytes';
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];

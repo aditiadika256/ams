@@ -22,10 +22,14 @@ import {
   Loader2,
   Plus,
   Radio,
+  Search,
   Sparkles,
   Trash2,
   Video,
   X,
+  Folder,
+  CheckCircle2,
+  Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,7 +97,13 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
   const [expandedInstanceKey, setExpandedInstanceKey] = useState<string | null>(null);
   const [mediaLibraryModalKey, setMediaLibraryModalKey] = useState<string | null>(null);
   const [programMediaAssets, setProgramMediaAssets] = useState<MediaAsset[]>([]);
+  const [centralMediaAssets, setCentralMediaAssets] = useState<MediaAsset[]>([]);
+  const [libraryScope, setLibraryScope] = useState<'all' | 'program'>('all');
+  const [librarySearch, setLibrarySearch] = useState('');
+  const [libraryFolderFilter, setLibraryFolderFilter] = useState('all');
   const [loadingMedia, setLoadingMedia] = useState(false);
+  const [isUploadingModal, setIsUploadingModal] = useState(false);
+  const [modalUploadProgress, setModalUploadProgress] = useState<number | null>(null);
   const [uploadingKey, setUploadingKey] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [livePreviewData, setLivePreviewData] = useState<{
@@ -104,25 +114,60 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
 
   const selectId = useId();
 
+  // Load central media assets from central Media Library
+  const loadCentralMediaAssets = useCallback(async () => {
+    setLoadingMedia(true);
+    try {
+      const response = await apiClient.admin.mediaLibrary.list();
+      setCentralMediaAssets(extractMediaAssets(response));
+    } catch {
+      // Fallback silently if central library endpoint fails
+    } finally {
+      setLoadingMedia(false);
+    }
+  }, []);
+
   // Load existing media assets for program if editing
   const loadMediaAssets = useCallback(async () => {
     if (!programId) return;
-    setLoadingMedia(true);
     try {
       const response = await apiClient.admin.mediaAssets.list(programId);
       setProgramMediaAssets(extractMediaAssets(response));
     } catch {
       // Fallback silently if no media assets or endpoint loading fails
-    } finally {
-      setLoadingMedia(false);
     }
   }, [programId]);
 
   useEffect(() => {
+    void loadCentralMediaAssets();
     if (programId) {
       void loadMediaAssets();
     }
-  }, [programId, loadMediaAssets]);
+  }, [programId, loadMediaAssets, loadCentralMediaAssets]);
+
+  // Filtered assets for modal
+  const displayedMediaAssets = useMemo(() => {
+    const source = libraryScope === 'program' && programId ? programMediaAssets : centralMediaAssets;
+    return source.filter((asset) => {
+      const q = librarySearch.trim().toLowerCase();
+      const matchSearch =
+        !q ||
+        asset.original_name.toLowerCase().includes(q) ||
+        (asset.folder && asset.folder.toLowerCase().includes(q)) ||
+        (asset.program?.name && asset.program.name.toLowerCase().includes(q));
+      const matchFolder = libraryFolderFilter === 'all' || asset.folder === libraryFolderFilter;
+      return matchSearch && matchFolder;
+    });
+  }, [libraryScope, programId, programMediaAssets, centralMediaAssets, librarySearch, libraryFolderFilter]);
+
+  const availableFolders = useMemo(() => {
+    const source = libraryScope === 'program' && programId ? programMediaAssets : centralMediaAssets;
+    const folders = new Set<string>();
+    source.forEach((a) => {
+      if (a.folder) folders.add(a.folder);
+    });
+    return Array.from(folders);
+  }, [libraryScope, programId, programMediaAssets, centralMediaAssets]);
 
   // Detect whether program has an active schedule component
   const scheduleComponentActive = useMemo(() => {
@@ -331,6 +376,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                 media_asset_id: asset.id,
                 media_name: asset.original_name,
                 media_size: asset.size_bytes,
+                external_url: asset.url || comp.configuration?.external_url,
               },
             }
           : comp
@@ -338,6 +384,35 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
     }));
     setMediaLibraryModalKey(null);
     alertActions.success('Media terpilih', `${asset.original_name} berhasil ditautkan ke komponen.`);
+  };
+
+  // Direct upload from modal to central media library and attach immediately
+  const handleModalDirectUpload = async (file?: File) => {
+    if (!file || !mediaLibraryModalKey) return;
+    setIsUploadingModal(true);
+    setModalUploadProgress(0);
+    try {
+      const response = await apiClient.admin.mediaLibrary.upload(
+        file,
+        {
+          program_id: programId,
+          folder: 'materials',
+          reason: 'Mengunggah materi pembelajaran baru ke Media Library',
+        },
+        (percent) => setModalUploadProgress(percent)
+      );
+      if (!response.data) throw new Error('Respons unggah tidak memuat media asset.');
+      const newAsset = response.data;
+      void loadCentralMediaAssets();
+      if (programId) void loadMediaAssets();
+      handleSelectMediaAsset(mediaLibraryModalKey, newAsset);
+      alertActions.success('Unggah & Tautkan Berhasil', `${newAsset.original_name} berhasil diunggah ke Media Library.`);
+    } catch (err) {
+      alertActions.error('Unggah gagal', getErrorMessage(err, 'Gagal mengunggah file ke Media Library.'));
+    } finally {
+      setIsUploadingModal(false);
+      setModalUploadProgress(null);
+    }
   };
 
   // Remove attached file
@@ -766,18 +841,20 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                               File Materi Privat (Tersimpan Aman)
                             </span>
 
-                            {programId ? (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setMediaLibraryModalKey(component.instanceKey)}
-                                className="h-7 text-xs gap-1.5 border-zinc-200 dark:border-zinc-700"
-                              >
-                                <FolderOpen className="size-3.5 text-primary" />
-                                Ambil dari Media Library ({programMediaAssets.length})
-                              </Button>
-                            ) : null}
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setMediaLibraryModalKey(component.instanceKey);
+                                void loadCentralMediaAssets();
+                                if (programId) void loadMediaAssets();
+                              }}
+                              className="h-7 text-xs gap-1.5 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 dark:border-primary/40 dark:bg-primary/15"
+                            >
+                              <FolderOpen className="size-3.5 text-primary" />
+                              Pilih dari Media Library ({centralMediaAssets.length})
+                            </Button>
                           </div>
 
                           {/* Existing File Preview Card */}
@@ -807,6 +884,28 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                               </div>
 
                               <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                                {(config.media_asset_id || config.external_url) && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      const matchedAsset =
+                                        programMediaAssets.find((a) => a.id === config.media_asset_id) ||
+                                        centralMediaAssets.find((a) => a.id === config.media_asset_id);
+                                      setLivePreviewData({
+                                        title: config.media_name || 'Pratinjau File Materi',
+                                        externalUrl: matchedAsset?.url || config.external_url,
+                                        mediaAsset: matchedAsset || null,
+                                      });
+                                    }}
+                                    className="h-7 px-2 text-xs gap-1 border-emerald-500/30 text-emerald-700 hover:bg-emerald-500/10 dark:border-emerald-500/40 dark:text-emerald-300"
+                                    title="Pratinjau materi ini"
+                                  >
+                                    <Eye className="size-3.5" />
+                                    Lihat
+                                  </Button>
+                                )}
                                 <label
                                   htmlFor={`replace-file-${component.instanceKey}`}
                                   className="inline-flex h-7 cursor-pointer items-center rounded-lg border border-zinc-200 bg-white px-2 text-xs font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
@@ -1164,67 +1263,239 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
         open={Boolean(mediaLibraryModalKey)}
         onOpenChange={(open) => !open && setMediaLibraryModalKey(null)}
       >
-        <DialogContent className="max-w-xl rounded-2xl bg-white/95 backdrop-blur-xl dark:bg-zinc-950/95">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base">
-              <FolderOpen className="size-5 text-primary" />
-              Media Library Program
-            </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500">
-              Pilih file privat yang telah diunggah sebelumnya pada program ini untuk digunakan sebagai materi.
-            </DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[88vh] flex flex-col rounded-3xl border border-white/30 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-800 dark:bg-zinc-950/95">
+          <DialogHeader className="shrink-0">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <DialogTitle className="flex items-center gap-2.5 text-base font-bold text-zinc-900 dark:text-zinc-100">
+                  <div className="rounded-xl bg-primary/10 p-2 text-primary dark:bg-primary/20">
+                    <FolderOpen className="size-5" />
+                  </div>
+                  Pilih dari Media Library Cloudflare
+                </DialogTitle>
+                <DialogDescription className="text-xs text-zinc-500 mt-1">
+                  Pilih materi pembelajaran dari repositori terpusat Cloudflare Storage (R2 & Edge CDN) atau materi yang tersimpan di program ini.
+                </DialogDescription>
+              </div>
+
+              <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                <Badge variant="outline" className="border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300 text-[11px] gap-1 py-1">
+                  <Cloud className="size-3 text-sky-500" /> Cloudflare R2 / CDN
+                </Badge>
+              </div>
+            </div>
+
+            {/* Scope Tabs & Search Controls */}
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-t border-zinc-100 pt-3 dark:border-zinc-800">
+              {/* Scope Switcher */}
+              <div className="flex items-center rounded-xl bg-zinc-100/80 p-1 dark:bg-zinc-900/80">
+                <button
+                  type="button"
+                  onClick={() => setLibraryScope('all')}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                    libraryScope === 'all'
+                      ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100'
+                      : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                  }`}
+                >
+                  Semua Media Library ({centralMediaAssets.length})
+                </button>
+                {programId ? (
+                  <button
+                    type="button"
+                    onClick={() => setLibraryScope('program')}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-medium transition ${
+                      libraryScope === 'program'
+                        ? 'bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100'
+                        : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200'
+                    }`}
+                  >
+                    Program Ini ({programMediaAssets.length})
+                  </button>
+                ) : null}
+              </div>
+
+              {/* Search & Folder Filter */}
+              <div className="flex items-center gap-2">
+                {availableFolders.length > 0 && (
+                  <select
+                    value={libraryFolderFilter}
+                    onChange={(e) => setLibraryFolderFilter(e.target.value)}
+                    aria-label="Filter berdasarkan folder media"
+                    className="h-8 rounded-lg border border-zinc-200 bg-white/90 px-2.5 text-xs text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300"
+                  >
+                    <option value="all">Semua Folder</option>
+                    {availableFolders.map((f) => (
+                      <option key={f} value={f}>
+                        {f}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
+                <div className="relative w-full sm:w-48">
+                  <Search className="absolute left-2.5 top-2 size-3.5 text-zinc-400" />
+                  <Input
+                    placeholder="Cari materi..."
+                    value={librarySearch}
+                    onChange={(e) => setLibrarySearch(e.target.value)}
+                    className="h-8 pl-8 text-xs bg-white/90 dark:bg-zinc-900/90"
+                  />
+                  {librarySearch && (
+                    <button
+                      type="button"
+                      aria-label="Hapus teks pencarian"
+                      onClick={() => setLibrarySearch('')}
+                      className="absolute right-2 top-2 text-zinc-400 hover:text-zinc-600"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Upload Strip Inside Modal */}
+            <div className="mt-2 flex items-center justify-between rounded-xl border border-dashed border-primary/40 bg-primary/5 px-3 py-2 text-xs">
+              <span className="font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                <FileUp className="size-3.5 text-primary" />
+                Ingin gunakan file baru?
+              </span>
+
+              <div className="flex items-center gap-2">
+                {isUploadingModal ? (
+                  <span className="flex items-center gap-1.5 text-primary text-xs font-medium">
+                    <Loader2 className="size-3.5 animate-spin" />
+                    Mengunggah... {modalUploadProgress !== null ? `${modalUploadProgress}%` : ''}
+                  </span>
+                ) : (
+                  <>
+                    <label
+                      htmlFor="modal-direct-upload-file"
+                      className="cursor-pointer inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-primary/90 transition"
+                    >
+                      <Plus className="size-3.5" /> Unggah Baru & Tautkan
+                    </label>
+                    <input
+                      id="modal-direct-upload-file"
+                      type="file"
+                      className="sr-only"
+                      disabled={isUploadingModal}
+                      onChange={(e) => void handleModalDirectUpload(e.target.files?.[0])}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="mt-2 max-h-80 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+          {/* Asset List Grid */}
+          <div className="mt-3 flex-1 overflow-y-auto pr-1">
             {loadingMedia ? (
-              <div className="flex items-center justify-center p-8 gap-2 text-xs text-zinc-500">
-                <Loader2 className="size-4 animate-spin text-primary" /> Memuat daftar media...
+              <div className="flex flex-col items-center justify-center p-12 gap-2 text-xs text-zinc-500">
+                <Loader2 className="size-6 animate-spin text-primary" />
+                <span>Memuat daftar Media Library...</span>
               </div>
-            ) : programMediaAssets.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center">
-                <FileUp className="size-8 text-zinc-300 dark:text-zinc-700 mb-2" />
-                <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                  Belum ada file di Media Library
+            ) : displayedMediaAssets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-10 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800">
+                <div className="rounded-2xl bg-zinc-100 p-3 dark:bg-zinc-900 text-zinc-400 mb-2">
+                  <FolderOpen className="size-6" />
+                </div>
+                <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
+                  {librarySearch ? 'Tidak ada materi sesuai pencarian' : 'Belum ada materi di repositori ini'}
                 </p>
-                <p className="text-[11px] text-zinc-500 mt-0.5">
-                  Unggah file langsung melalui form komponen di atas.
+                <p className="text-[11px] text-zinc-500 max-w-sm mt-0.5">
+                  {librarySearch
+                    ? 'Coba ganti kata kunci pencarian atau ubah filter folder.'
+                    : 'Gunakan tombol Unggah Baru di atas untuk menambahkan berkas materi baru ke Media Library.'}
                 </p>
               </div>
             ) : (
-              programMediaAssets.map((asset) => (
-                <div
-                  key={asset.id}
-                  className="flex items-center justify-between p-3 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 rounded-xl transition"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="rounded-lg bg-primary/10 p-2 text-primary shrink-0">
-                      <FileText className="size-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-                        {asset.original_name}
-                      </p>
-                      <p className="text-[11px] text-zinc-400">
-                        {formatBytes(asset.size_bytes)} · {asset.mime_type}
-                      </p>
-                    </div>
-                  </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                {displayedMediaAssets.map((asset) => {
+                  const isPdf = asset.mime_type.includes('pdf');
+                  const isVid = asset.mime_type.includes('video');
+                  return (
+                    <div
+                      key={asset.id}
+                      className="group flex flex-col justify-between rounded-xl border border-zinc-200/80 bg-white/70 p-3 shadow-sm backdrop-blur-md transition-all hover:border-primary/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900/60"
+                    >
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div
+                          className={`rounded-xl p-2.5 shrink-0 ${
+                            isPdf
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                              : isVid
+                              ? 'bg-purple-500/10 text-purple-600 dark:text-purple-400'
+                              : 'bg-primary/10 text-primary dark:bg-primary/20'
+                          }`}
+                        >
+                          {isPdf ? <FileText className="size-5" /> : isVid ? <Video className="size-5" /> : <FileText className="size-5" />}
+                        </div>
 
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (mediaLibraryModalKey) {
-                        handleSelectMediaAsset(mediaLibraryModalKey, asset);
-                      }
-                    }}
-                    className="h-7 text-xs font-medium shrink-0 ml-3"
-                  >
-                    Pilih File
-                  </Button>
-                </div>
-              ))
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate" title={asset.original_name}>
+                            {asset.original_name}
+                          </p>
+                          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            {formatBytes(asset.size_bytes)} · {asset.mime_type.split('/')[1] || asset.mime_type}
+                          </p>
+
+                          <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                            {asset.folder && (
+                              <Badge variant="outline" className="text-[10px] py-0 px-1.5">
+                                <Folder className="mr-1 size-2.5 text-zinc-400" />
+                                {asset.folder}
+                              </Badge>
+                            )}
+                            {asset.program?.name && (
+                              <Badge variant="secondary" className="text-[10px] py-0 px-1.5 max-w-32 truncate">
+                                {asset.program.name}
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className="text-[10px] py-0 px-1 text-sky-600 dark:text-sky-400 border-sky-500/20">
+                              CDN Ready
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action buttons footer */}
+                      <div className="mt-3 flex items-center justify-end gap-1.5 border-t border-zinc-100 pt-2 dark:border-zinc-800/60">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setLivePreviewData({
+                              title: asset.original_name,
+                              externalUrl: asset.url,
+                              mediaAsset: asset,
+                            });
+                          }}
+                          className="h-7 px-2 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-300"
+                        >
+                          <Eye className="mr-1 size-3.5" /> Pratinjau
+                        </Button>
+
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                            if (mediaLibraryModalKey) {
+                              handleSelectMediaAsset(mediaLibraryModalKey, asset);
+                            }
+                          }}
+                          className="h-7 text-xs font-medium gap-1 rounded-lg shadow-sm"
+                        >
+                          <CheckCircle2 className="size-3.5" /> Pilih Materi
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         </DialogContent>
