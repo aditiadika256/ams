@@ -81,7 +81,7 @@ export function ProgramTagsStep({ state, setState, tags: initialTags }: ProgramS
           if (!state.tagIds.includes(found.id)) {
             toggleTag(found.id);
           }
-          alertActions.info('Tag ditemukan', `Tag "${found.name}" dipilih.`);
+          alertActions.success('Tag ditemukan', `Tag "${found.name}" dipilih.`);
         } else {
           alertActions.error('Gagal menambahkan tag', getErrorMessage(err, 'Terjadi kesalahan saat membuat tag.'));
         }
