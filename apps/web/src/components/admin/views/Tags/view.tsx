@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiClient } from '@/lib/api';
@@ -119,9 +119,12 @@ export default function TagsView() {
 
       <Dialog open={dialogOpen} onOpenChange={(open) => !loading && setDialogOpen(open)}>
         <DialogContent className="bg-white dark:bg-zinc-950">
-          <DialogHeader><DialogTitle>{selected ? `Edit ${selected.name}` : 'Tambah tag'}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{selected ? `Edit ${selected.name}` : 'Tambah tag'}</DialogTitle>
+            <DialogDescription className="sr-only">Form master tag katalog program</DialogDescription>
+          </DialogHeader>
           <form onSubmit={submit} className="grid gap-5">
-            <div className="grid gap-2"><Label htmlFor="tag-code">Kode</Label><Input id="tag-code" required pattern="[a-z0-9_-]+" disabled={Boolean(selected)} value={code} onChange={(event) => setCode(event.target.value.toLowerCase())} /><p className="text-xs text-zinc-500">Kode bersifat permanen setelah tag dibuat.</p></div>
+            <div className="grid gap-2"><Label htmlFor="tag-code">Kode</Label><Input id="tag-code" required pattern="[a-z0-9_\-]+" disabled={Boolean(selected)} value={code} onChange={(event) => setCode(event.target.value.toLowerCase())} /><p className="text-xs text-zinc-500">Kode bersifat permanen setelah tag dibuat.</p></div>
             <div className="grid gap-2"><Label htmlFor="tag-name">Nama</Label><Input id="tag-name" required value={name} onChange={(event) => setName(event.target.value)} /></div>
             <div className="grid gap-2"><Label htmlFor="tag-description">Deskripsi</Label><textarea id="tag-description" maxLength={2000} value={description} onChange={(event) => setDescription(event.target.value)} className="min-h-24 rounded-xl border border-zinc-200 bg-white px-3 py-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-primary dark:border-zinc-700 dark:bg-zinc-950" /></div>
             <div className="grid gap-2"><Label htmlFor="tag-order">Urutan</Label><Input id="tag-order" type="number" min="0" value={sortOrder} onChange={(event) => setSortOrder(event.target.value)} /></div>

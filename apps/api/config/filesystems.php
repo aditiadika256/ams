@@ -81,6 +81,47 @@ return [
             'report' => true,
         ],
 
+        'cloudflare-r2-public' => [
+            'driver' => 's3',
+            'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('CLOUDFLARE_R2_REGION', 'auto'),
+            'bucket' => env('CLOUDFLARE_R2_PUBLIC_BUCKET', 'public-files'),
+            'url' => env('CLOUDFLARE_R2_PUBLIC_URL', 'https://pub-043d267920b64ff7b8d21410e443f7ee.r2.dev'),
+            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT', 'https://13186a6d991d58c1204634129a35ea3c.r2.cloudflarestorage.com'),
+            'use_path_style_endpoint' => env('CLOUDFLARE_R2_PATH_STYLE', false),
+            'visibility' => 'public',
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'cloudflare-r2-private' => [
+            'driver' => 's3',
+            'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('CLOUDFLARE_R2_REGION', 'auto'),
+            'bucket' => env('CLOUDFLARE_R2_PRIVATE_BUCKET', 'private-files'),
+            'url' => env('CLOUDFLARE_R2_PRIVATE_URL'),
+            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT', 'https://13186a6d991d58c1204634129a35ea3c.r2.cloudflarestorage.com'),
+            'use_path_style_endpoint' => env('CLOUDFLARE_R2_PATH_STYLE', false),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
+
+        'cloudflare-r2' => [
+            'driver' => 's3',
+            'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID', env('AWS_ACCESS_KEY_ID')),
+            'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY', env('AWS_SECRET_ACCESS_KEY')),
+            'region' => env('CLOUDFLARE_R2_REGION', 'auto'),
+            'bucket' => env('CLOUDFLARE_R2_BUCKET', env('CLOUDFLARE_R2_PRIVATE_BUCKET', 'private-files')),
+            'url' => env('CLOUDFLARE_CDN_URL'),
+            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT', 'https://13186a6d991d58c1204634129a35ea3c.r2.cloudflarestorage.com'),
+            'use_path_style_endpoint' => env('CLOUDFLARE_R2_PATH_STYLE', false),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => true,
+        ],
     ],
 
     /*

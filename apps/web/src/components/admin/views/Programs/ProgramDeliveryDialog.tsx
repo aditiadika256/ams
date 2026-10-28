@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -221,6 +222,7 @@ export function ProgramDeliveryDialog({
       <DialogContent className="max-h-[92dvh] max-w-4xl overflow-y-auto bg-white dark:bg-zinc-950">
         <DialogHeader>
           <DialogTitle>Batch & sesi · {program?.name}</DialogTitle>
+          <DialogDescription className="sr-only">Pengaturan jadwal batch dan sesi belajar program</DialogDescription>
         </DialogHeader>
         {batches.length === 0 && !loading ? (
           <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-zinc-500">

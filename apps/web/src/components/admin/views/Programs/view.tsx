@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,7 @@ import { alertActions } from '@/store/useAlertStore';
 import { useSalesStore } from '@/store/useSalesStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useAdminStore } from '@/store/useAdminStore';
-import type { ComponentDefinition, Program, ProgramBatch, ProgramTag, ProgramWizardPayload } from '@/types/sales';
+import type { ComponentDefinition, Program, ProgramBatch, ProgramComponent, ProgramComponentContent, ProgramTag, ProgramWizardPayload } from '@/types/sales';
 import { ProgramForm } from './form';
 import { ProgramDeliveryDialog } from './ProgramDeliveryDialog';
 
@@ -121,17 +121,100 @@ export default function ProgramsView() {
   };
 
   const saveComposition = async (program: Program, payload: ProgramWizardPayload) => {
-    await Promise.all([
-      apiClient.admin.programs.syncTags(program.id, payload.tag_ids, payload.reason),
-      apiClient.admin.programs.syncComponents(program.id, payload.components, payload.reason),
+    const validTagIds = payload.tag_ids.filter((id) => typeof id === 'number' && id > 0);
+
+    // 1. Process any pending files attached to components
+    const processedComponents = await Promise.all(
+      payload.components.map(async (comp) => {
+        let configuration = { ...(comp.configuration ?? {}) };
+        const pendingFile = (comp as { pendingFile?: File }).pendingFile;
+        if (pendingFile) {
+          try {
+            const uploadRes = await apiClient.admin.mediaAssets.upload(
+              program.id,
+              pendingFile,
+              `Mengunggah materi untuk ${comp.label || 'komponen'}`
+            );
+            if (uploadRes.data?.id) {
+              configuration = {
+                ...configuration,
+                media_asset_id: uploadRes.data.id,
+                media_name: uploadRes.data.original_name,
+                media_size: uploadRes.data.size_bytes,
+              };
+            }
+          } catch (err) {
+            console.error('Gagal mengunggah file materi:', err);
+          }
+        }
+
+        return {
+          id: comp.id,
+          component_definition_id: comp.component_definition_id,
+          is_enabled: comp.is_enabled,
+          label: comp.label,
+          sort_order: comp.sort_order,
+          configuration,
+        };
+      })
+    );
+
+    // 2. Sync tags, components, and relations
+    const [_, syncedComponentsRes] = await Promise.all([
+      apiClient.admin.programs.syncTags(program.id, validTagIds, payload.reason),
+      apiClient.admin.programs.syncComponents(program.id, processedComponents, payload.reason),
       apiClient.admin.programs.syncRelations(program.id, payload.children, payload.reason),
     ]);
+
+    // 3. Sync Batches
     await Promise.all([
       ...payload.batches.map((batch) => batch.id
         ? apiClient.admin.programs.batches.update(program.id, batch.id, batch)
         : apiClient.admin.programs.batches.create(program.id, batch)),
       ...payload.delete_batch_ids.map((batchId) => apiClient.admin.programs.batches.remove(program.id, batchId)),
     ]);
+
+    // 4. Synchronize generic component contents if defined
+    const syncedComponents = unwrapArray<ProgramComponent>(syncedComponentsRes?.data);
+    for (const comp of processedComponents) {
+      const config = comp.configuration as Record<string, unknown>;
+      if (!config || (!config.title && !config.body && !config.external_url && !config.media_asset_id)) {
+        continue;
+      }
+
+      const match = syncedComponents.find(
+        (c) => (comp.id && c.id === comp.id) || c.component_definition_id === comp.component_definition_id
+      );
+      if (match?.id && match.handler_template !== 'NATIVE') {
+        try {
+          const contentsRes = await apiClient.admin.programContents.list(program.id, match.id);
+          const existingList = unwrapArray<ProgramComponentContent>(contentsRes.data);
+          const first = existingList[0];
+          const contentPayload = {
+            title: (config.title as string) || comp.label || 'Materi Utama',
+            summary: (config.summary as string) || null,
+            body: (config.body as string) || null,
+            external_url: (config.external_url as string) || null,
+            media_asset_id: (config.media_asset_id as number) || null,
+            payload: {
+              content_type: config.content_type,
+              drive_preview_url: config.drive_preview_url,
+              is_pdf: config.is_pdf,
+            },
+            status: config.is_published ? ('PUBLISHED' as const) : ('DRAFT' as const),
+            sort_order: comp.sort_order,
+            reason: payload.reason || 'Sinkronisasi konten materi dari wizard program',
+          };
+          if (first?.id) {
+            await apiClient.admin.programContents.update(program.id, match.id, first.id, contentPayload);
+          } else {
+            await apiClient.admin.programContents.create(program.id, match.id, contentPayload);
+          }
+        } catch {
+          // Continue gracefully
+        }
+      }
+    }
   };
 
   const submit = async (payload: ProgramWizardPayload) => {
@@ -212,7 +295,7 @@ export default function ProgramsView() {
                     <DropdownMenuContent align="end" className="w-52">
                       <DropdownMenuLabel>Aksi program</DropdownMenuLabel>
                       {canUpdate && <DropdownMenuItem onClick={() => void openEdit(program)}><Edit3 className="mr-2 size-4" />Edit konfigurasi</DropdownMenuItem>}
-                      {canManageContent && <DropdownMenuItem onClick={() => addTab({ title: `Isi · ${program.name}`, view: 'program-content', icon: 'Files', data: { programId: program.id, programName: program.name } })}><Files className="mr-2 size-4" />Kelola isi</DropdownMenuItem>}
+                      {canManageContent && <DropdownMenuItem onClick={() => addTab({ title: `Isi · ${program.name}`, view: 'program-content', icon: 'Files', data: { programId: program.id, programName: program.name } })}><Files className="mr-2 size-4" />Kelola isi (Lanjutan / Detail)</DropdownMenuItem>}
                       {canManageSessions && <DropdownMenuItem onClick={() => setDeliveryProgram(program)}><CalendarDays className="mr-2 size-4" />Kelola Batch & sesi</DropdownMenuItem>}
                       <DropdownMenuSeparator />
                       {canPublish && (program.status === 'DRAFT' || program.status === 'UNPUBLISHED') && <DropdownMenuItem onClick={() => void transition(program, 'publish')}>Publikasikan</DropdownMenuItem>}
@@ -234,7 +317,10 @@ export default function ProgramsView() {
 
       <Dialog open={dialogOpen} onOpenChange={(open) => !formLoading && setDialogOpen(open)}>
         <DialogContent className="max-h-[92dvh] max-w-5xl overflow-y-auto bg-white dark:bg-zinc-950">
-          <DialogHeader><DialogTitle>{selectedProgram ? `Edit ${selectedProgram.name}` : 'Tambah program baru'}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{selectedProgram ? `Edit ${selectedProgram.name}` : 'Tambah program baru'}</DialogTitle>
+            <DialogDescription className="sr-only">Form wizard konfigurasi program dan silabus</DialogDescription>
+          </DialogHeader>
           {formLoading && !selectedProgram && dialogOpen ? <div className="grid min-h-80 place-items-center text-sm text-zinc-500">Memuat editor…</div> : (
             <ProgramForm initialData={selectedProgram} initialBatches={batches} tags={tags} definitions={definitions} programs={adminPrograms} onSubmit={submit} onCancel={() => setDialogOpen(false)} isLoading={formLoading} />
           )}
