@@ -15,6 +15,13 @@ import {
   AlertCircle,
   Loader2,
   RefreshCw,
+  FileSpreadsheet,
+  Presentation,
+  FileCode,
+  Archive,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,11 +62,13 @@ export function MediaContentViewer({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [iframeError, setIframeError] = useState(false);
+  const [imageZoom, setImageZoom] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsLoading(true);
     setIframeError(false);
+    setImageZoom(1);
   }, [viewerData.previewUrl]);
 
   const toggleFullscreen = () => {
@@ -98,11 +107,18 @@ export function MediaContentViewer({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/15 bg-white/40 px-4 py-3 backdrop-blur-md dark:border-white/5 dark:bg-zinc-900/50">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-white/20 bg-primary/10 text-primary dark:border-white/10 dark:bg-primary/20">
-            {viewerData.kind === 'google_drive' && <HardDrive className="size-4" />}
-            {viewerData.kind === 'pdf' && <FileText className="size-4" />}
-            {viewerData.kind === 'video' && <VideoIcon className="size-4" />}
-            {viewerData.kind === 'audio' && <Music className="size-4" />}
-            {viewerData.kind === 'image' && <ImageIcon className="size-4" />}
+            {viewerData.kind === 'google_drive' && <HardDrive className="size-4 text-blue-500" />}
+            {viewerData.kind === 'pdf' && <FileText className="size-4 text-red-500" />}
+            {viewerData.kind === 'video' && <VideoIcon className="size-4 text-purple-500" />}
+            {viewerData.kind === 'audio' && <Music className="size-4 text-amber-500" />}
+            {viewerData.kind === 'image' && <ImageIcon className="size-4 text-emerald-500" />}
+            {viewerData.kind === 'office' && (
+              viewerData.subType === 'excel' ? <FileSpreadsheet className="size-4 text-emerald-600" /> :
+              viewerData.subType === 'powerpoint' ? <Presentation className="size-4 text-amber-600" /> :
+              <FileText className="size-4 text-blue-600" />
+            )}
+            {viewerData.kind === 'text' && <FileCode className="size-4 text-cyan-500" />}
+            {viewerData.kind === 'archive' && <Archive className="size-4 text-indigo-500" />}
             {viewerData.kind === 'download_only' && <Cloud className="size-4" />}
             {viewerData.kind === 'external_link' && <ExternalLink className="size-4" />}
           </div>
@@ -305,19 +321,169 @@ export function MediaContentViewer({
           </div>
         )}
 
-        {/* 5. Image Viewer */}
+        {/* 5. Image Viewer with Zoom Controls */}
         {viewerData.kind === 'image' && viewerData.previewUrl && (
-          <div className="flex h-full w-full items-center justify-center p-4">
+          <div className="relative flex h-full w-full items-center justify-center overflow-auto p-4 bg-zinc-950/5 dark:bg-zinc-950/50">
+            <div className="absolute right-4 top-4 z-10 flex items-center gap-1 rounded-xl border border-white/20 bg-white/70 p-1 shadow-sm backdrop-blur-md dark:border-white/10 dark:bg-zinc-900/70">
+              <button
+                type="button"
+                onClick={() => setImageZoom((prev) => Math.min(prev + 0.25, 3))}
+                className="rounded-lg p-1.5 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                title="Perbesar Gambar"
+              >
+                <ZoomIn className="size-3.5" />
+              </button>
+              <span className="px-1 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300 min-w-10 text-center">
+                {Math.round(imageZoom * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={() => setImageZoom((prev) => Math.max(prev - 0.25, 0.5))}
+                className="rounded-lg p-1.5 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                title="Perkecil Gambar"
+              >
+                <ZoomOut className="size-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageZoom(1)}
+                className="rounded-lg p-1.5 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+                title="Reset Ukuran"
+              >
+                <RotateCcw className="size-3.5" />
+              </button>
+            </div>
             <img
               src={viewerData.previewUrl}
               alt={viewerData.title}
+              style={{ transform: `scale(${imageZoom})`, transition: 'transform 0.2s ease-out' }}
               className="max-h-full max-w-full object-contain rounded-lg shadow-sm"
               onLoad={() => setIsLoading(false)}
             />
           </div>
         )}
 
-        {/* 6. Non-embeddable or Download Only Card */}
+        {/* 6. Office Documents (Word, Excel, PowerPoint) */}
+        {viewerData.kind === 'office' && (
+          <div className="h-full w-full flex flex-col items-center justify-center p-6">
+            {viewerData.previewUrl && viewerData.previewUrl.startsWith('https://view.officeapps.live.com') ? (
+              <iframe
+                src={viewerData.previewUrl}
+                title={viewerData.title}
+                className="h-full w-full border-0 bg-white rounded-lg shadow-inner"
+                allowFullScreen
+                loading="lazy"
+                onLoad={() => setIsLoading(false)}
+                onError={() => {
+                  setIsLoading(false);
+                  setIframeError(true);
+                }}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center p-8 text-center max-w-lg rounded-2xl border border-white/40 bg-white/60 shadow-lg backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/60">
+                <div
+                  className={`mb-3 flex size-16 items-center justify-center rounded-2xl border border-white/20 p-4 shadow-sm backdrop-blur-md ${
+                    viewerData.subType === 'excel'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : viewerData.subType === 'powerpoint'
+                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                      : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                  }`}
+                >
+                  {viewerData.subType === 'excel' ? (
+                    <FileSpreadsheet className="size-8" />
+                  ) : viewerData.subType === 'powerpoint' ? (
+                    <Presentation className="size-8" />
+                  ) : (
+                    <FileText className="size-8" />
+                  )}
+                </div>
+
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{viewerData.title}</h4>
+                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                  {viewerData.badgeLabel} {viewerData.sizeBytes ? `· ${formatBytes(viewerData.sizeBytes)}` : ''}
+                </p>
+                <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  Dokumen Microsoft Office dapat dibuka langsung secara daring melalui Office Online atau diunduh ke komputer lokal.
+                </p>
+
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                  {viewerData.cdnUrl && (
+                    <Button asChild variant="outline" size="sm" className="gap-1.5 text-xs rounded-xl">
+                      <a
+                        href={`https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(viewerData.cdnUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="size-3.5" /> Buka di Office Online
+                      </a>
+                    </Button>
+                  )}
+                  {viewerData.downloadUrl && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="gap-1.5 text-xs rounded-xl shadow-sm"
+                      onClick={() => {
+                        if (onDownload) onDownload();
+                        else if (viewerData.downloadUrl) window.open(viewerData.downloadUrl, '_blank');
+                      }}
+                    >
+                      <Download className="size-3.5" /> Unduh Dokumen
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 7. Text & Code Documents */}
+        {viewerData.kind === 'text' && viewerData.previewUrl && (
+          <div className="h-full w-full p-4">
+            <iframe
+              src={viewerData.previewUrl}
+              title={viewerData.title}
+              className="h-full w-full rounded-xl border border-zinc-200 bg-white font-mono text-xs dark:border-zinc-800 dark:bg-zinc-950 p-4 shadow-inner"
+              onLoad={() => setIsLoading(false)}
+              onError={() => {
+                setIsLoading(false);
+                setIframeError(true);
+              }}
+            />
+          </div>
+        )}
+
+        {/* 8. Compressed Archive (ZIP/RAR) */}
+        {viewerData.kind === 'archive' && (
+          <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+            <div className="mb-3 flex size-16 items-center justify-center rounded-2xl border border-white/20 bg-indigo-500/10 p-4 text-indigo-600 shadow-sm backdrop-blur-md dark:bg-indigo-950/30 dark:text-indigo-400">
+              <Archive className="size-8" />
+            </div>
+            <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">{viewerData.title}</h4>
+            <div className="mt-1 flex items-center gap-2 text-xs text-zinc-500">
+              <span>Paket Arsip Terkompresi</span>
+              {viewerData.sizeBytes && <span>· {formatBytes(viewerData.sizeBytes)}</span>}
+            </div>
+            <p className="mt-2 max-w-sm text-xs text-zinc-500 dark:text-zinc-400">
+              Arsip berkas zip/rar untuk materi pendukung atau aset praktikum. Unduh dan ekstrak pada komputer lokal.
+            </p>
+            {viewerData.downloadUrl && (
+              <Button
+                type="button"
+                className="mt-5 gap-2 rounded-xl"
+                onClick={() => {
+                  if (onDownload) onDownload();
+                  else if (viewerData.downloadUrl) window.open(viewerData.downloadUrl, '_blank');
+                }}
+              >
+                <Download className="size-4" /> Unduh Arsip ({formatBytes(viewerData.sizeBytes)})
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* 9. Non-embeddable or Download Only Card */}
         {viewerData.kind === 'download_only' && (
           <div className="flex h-full flex-col items-center justify-center p-8 text-center">
             <div className="mb-3 flex size-16 items-center justify-center rounded-2xl border border-white/20 bg-zinc-100 p-4 text-zinc-500 shadow-sm backdrop-blur-md dark:bg-zinc-900 dark:text-zinc-400">

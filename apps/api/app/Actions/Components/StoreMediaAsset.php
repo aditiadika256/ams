@@ -18,9 +18,18 @@ class StoreMediaAsset
         private readonly CloudflareMediaService $cloudflareMedia,
     ) {}
 
-    public function handle(Program $program, UploadedFile $file, User $actor, string $reason): MediaAsset
-    {
-        $directory = sprintf('programs/%d/%s', $program->id, now()->format('Y/m'));
+    public function handle(
+        ?Program $program,
+        UploadedFile $file,
+        User $actor,
+        string $reason,
+        ?string $folder = 'general'
+    ): MediaAsset {
+        $cleanFolder = trim((string) $folder) ?: 'general';
+        $directory = $program
+            ? sprintf('programs/%d/%s', $program->id, now()->format('Y/m'))
+            : sprintf('media-library/%s/%s', $cleanFolder, now()->format('Y/m'));
+
         $uploaded = $this->cloudflareMedia->upload($file, $directory);
 
         $disk = $uploaded['disk'];
@@ -38,10 +47,14 @@ class StoreMediaAsset
                 $objectKey,
                 $extension,
                 $checksum,
+                $cleanFolder,
             ): MediaAsset {
                 $asset = MediaAsset::query()->create([
-                    'program_id' => $program->id,
+                    'program_id' => $program?->id,
                     'uploaded_by' => $actor->id,
+                    'created_by' => $actor->id,
+                    'updated_by' => $actor->id,
+                    'folder' => $cleanFolder,
                     'disk' => $disk,
                     'object_key' => $objectKey,
                     'original_name' => $this->safeOriginalName($file),
@@ -57,7 +70,7 @@ class StoreMediaAsset
                     $actor,
                     $reason,
                     after: $asset->only([
-                        'id', 'program_id', 'original_name', 'mime_type', 'extension',
+                        'id', 'program_id', 'folder', 'original_name', 'mime_type', 'extension',
                         'size_bytes', 'checksum_sha256',
                     ]),
                 );

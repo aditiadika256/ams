@@ -33,6 +33,7 @@ import EnrollmentsView from '../views/Enrollments/view';
 import SchedulePhysicalRoomView from '../views/SchedulePhysicalRoom/view';
 import DatabaseManagerView from '../views/DatabaseManager/view';
 import FinanceHoldsView from '../views/FinanceHolds/view';
+import MediaLibraryView from '../views/MediaLibrary/view';
 
 const ViewMap: Record<string, React.ComponentType<any>> = {
   'dashboard': DashboardView,
@@ -43,6 +44,7 @@ const ViewMap: Record<string, React.ComponentType<any>> = {
   'programs': ProgramsView,
   'tags': TagsView,
   'components': ComponentsView,
+  'media-library': MediaLibraryView,
   'program-content': ProgramContentView,
   'curriculum-builder': CurriculumBuilderView,
   'menus': MenuManagementView,

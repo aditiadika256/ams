@@ -909,6 +909,52 @@ export const apiClient = {
         await api.delete(`/admin/programs/${programId}/media-assets/${mediaAssetId}`, { data: { reason } });
       },
     },
+    mediaLibrary: {
+      list: async (params?: {
+        search?: string;
+        program_id?: number | string;
+        type?: 'all' | 'pdf' | 'video' | 'audio' | 'image' | 'document';
+        folder?: string;
+        page?: number;
+        per_page?: number;
+      }) => {
+        const response = await api.get<ApiResponse<MediaAsset[]> & { meta?: { total_storage_bytes?: number; total_storage_mb?: number } }>(
+          '/admin/media-library',
+          { params }
+        );
+        return response.data;
+      },
+      upload: async (
+        file: File,
+        options?: { program_id?: number; folder?: string; reason?: string },
+        reasonOrProgress?: string | ((percent: number) => void),
+        maybeProgress?: (percent: number) => void
+      ) => {
+        let finalReason = options?.reason || 'Unggah materi ke Media Library Cloud';
+        let onProgress: ((percent: number) => void) | undefined;
+
+        if (typeof reasonOrProgress === 'string') {
+          finalReason = reasonOrProgress;
+          onProgress = maybeProgress;
+        } else if (typeof reasonOrProgress === 'function') {
+          onProgress = reasonOrProgress;
+        }
+
+        const form = new FormData();
+        form.append('file', file);
+        form.append('reason', finalReason);
+        if (options?.program_id) form.append('program_id', String(options.program_id));
+        if (options?.folder) form.append('folder', options.folder);
+        const response = await api.post<ApiResponse<MediaAsset>>('/admin/media-library/upload', form, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+          onUploadProgress: (event) => onProgress?.(event.total ? Math.round((event.loaded / event.total) * 100) : 0),
+        });
+        return response.data;
+      },
+      remove: async (mediaAssetId: number, reason: string) => {
+        await api.delete(`/admin/media-library/${mediaAssetId}`, { data: { reason } });
+      },
+    },
     branches: {
       list: async () => {
         const response = await api.get<ApiResponse<any[]>>('/admin/branches');
