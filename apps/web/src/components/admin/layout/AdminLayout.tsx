@@ -75,6 +75,7 @@ const ViewPermissions: Record<string, string[]> = {
   'programs': ['program.view', 'program.create', 'program.update'],
   'tags': ['program-tag.manage'],
   'components': ['component-definition.view'],
+  'media-library': ['media-asset.upload', 'component-definition.view', 'program.view', 'manage_global_settings'],
   'program-content': ['program-content.view', 'program-content.manage'],
   'curriculum-builder': ['manage_learning_content'],
   'menus': ['manage_menus'],

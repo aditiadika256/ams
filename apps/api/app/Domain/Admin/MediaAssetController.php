@@ -37,7 +37,15 @@ class MediaAssetController extends Controller
     public function index(Request $request, Program $program): JsonResponse
     {
         $user = $request->user();
-        if (! $user || (! $user->checkPermissionTo('program.view', 'web') && ! $user->checkPermissionTo('media-asset.upload', 'web'))) {
+        if (! $user) {
+            abort(403);
+        }
+
+        $isSuper = $user->hasRole(['superadmin', 'super_admin', 'direktur'])
+            || $user->hasRole('superadmin', 'web')
+            || $user->hasRole('superadmin', 'sanctum');
+
+        if (! $isSuper && ! $user->can('program.view') && ! $user->can('media-asset.upload')) {
             abort(403);
         }
 
@@ -157,19 +165,28 @@ class MediaAssetController extends Controller
     public function library(Request $request): JsonResponse
     {
         $user = $request->user();
-        if (! $user || (! $user->checkPermissionTo('program.view', 'web') && ! $user->checkPermissionTo('media-asset.upload', 'web') && ! $user->checkPermissionTo('component-definition.view', 'web'))) {
+        if (! $user) {
+            abort(403);
+        }
+
+        $isSuper = $user->hasRole(['superadmin', 'super_admin', 'direktur'])
+            || $user->hasRole('superadmin', 'web')
+            || $user->hasRole('superadmin', 'sanctum');
+
+        if (! $isSuper && ! $user->can('program.view') && ! $user->can('media-asset.upload') && ! $user->can('component-definition.view')) {
             abort(403);
         }
 
         $query = MediaAsset::query()->with(['program:id,name,slug', 'uploader:id,name']);
 
         if ($search = trim((string) $request->input('search'))) {
-            $query->where(function ($q) use ($search): void {
-                $q->where('original_name', 'ilike', "%{$search}%")
-                    ->orWhere('object_key', 'ilike', "%{$search}%")
-                    ->orWhere('folder', 'ilike', "%{$search}%")
-                    ->orWhereHas('program', function ($pq) use ($search): void {
-                        $pq->where('name', 'ilike', "%{$search}%");
+            $likeOp = config('database.default') === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($search, $likeOp): void {
+                $q->where('original_name', $likeOp, "%{$search}%")
+                    ->orWhere('object_key', $likeOp, "%{$search}%")
+                    ->orWhere('folder', $likeOp, "%{$search}%")
+                    ->orWhereHas('program', function ($pq) use ($search, $likeOp): void {
+                        $pq->where('name', $likeOp, "%{$search}%");
                     });
             });
         }
@@ -223,14 +240,15 @@ class MediaAssetController extends Controller
             ? $query->latest()->paginate($perPage)
             : $query->latest()->get();
 
-        return $this->successResponse(
-            MediaAssetResource::collection($assets),
-            'Media library retrieved successfully',
-            [
+        return response()->json([
+            'success' => true,
+            'message' => 'Media library retrieved successfully',
+            'data' => MediaAssetResource::collection($assets),
+            'meta' => [
                 'total_storage_bytes' => $totalStorageBytes,
                 'total_storage_mb' => round($totalStorageBytes / (1024 * 1024), 2),
-            ]
-        );
+            ],
+        ], 200);
     }
 
     /**

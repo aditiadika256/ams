@@ -21,24 +21,75 @@ class RolesSeeder extends Seeder
             ['name' => 'Kantor Pusat', 'is_active' => true]
         );
 
-        // 2. Define Permissions
+        // 2. Define Comprehensive Permissions per Feature (Based on PRD-ams-admin-menus.md)
         $permissions = [
-            // Dashboard
+            // --- 1. Dashboard ---
             'view_dashboard_global',
             'view_dashboard_branch',
             'view_dashboard_finance',
             'view_dashboard_learning',
-
-            // Activities
+            'view_dashboard_admin',
             'view_all_activities',
             'view_branch_activities',
 
-            // Global Settings
-            'manage_global_settings',
-            // Menu Management
-            'manage_menus',
+            // --- 2. Personal & HR ---
+            'manage_users_global',
+            'manage_users_branch',
+            'view_users',
+            'manage_parent_relations',
+            'manage_branches',
+            'view_branches',
+            'manage_roles',
+            'view_permissions',
+            'manage_permissions',
+            'manage_mentors',
+            'view_mentors',
+            'manage_mentor_applications',
+            'view_profile',
+            'edit_profile',
 
-            // Program Management
+            // --- 3. Landing Page (CMS) ---
+            'manage_cms_content',
+            'publish_cms_content',
+            'manage_landing_layout',
+
+            // --- 4. Master Assessment (Layer 1 CBT) ---
+            'assessment-context.view',
+            'assessment-context.create',
+            'assessment-context.update',
+            'assessment-context.delete',
+            'assessment-question.view',
+            'assessment-question.create',
+            'assessment-question.update',
+            'assessment-question.delete',
+            'assessment-question.review',
+
+            // --- 5. Schedule Tool ---
+            'schedule-available-time.view',
+            'schedule-available-time.manage',
+            'schedule-physical-room.view',
+            'schedule-physical-room.manage',
+
+            // --- 6. Component Tool (Layer 2 CBT & Reusable Modules) ---
+            'component-definition.view',
+            'component-definition.create',
+            'component-definition.update',
+            'component-definition.delete',
+            'component-definition.restore',
+            'component-definition.force-delete',
+            'media-asset.view',
+            'media-asset.upload',
+            'media-asset.delete',
+            'assessment-blueprint.view',
+            'assessment-blueprint.manage',
+            'certificate-template.view',
+            'certificate-template.manage',
+            'component-forum.manage',
+            'component-participant.manage',
+            'component-schedule.manage',
+            'component-link.manage',
+
+            // --- 7. Workspace (Layer 3 CBT & Program Delivery) ---
             'program.view',
             'program.create',
             'program.update',
@@ -47,17 +98,9 @@ class RolesSeeder extends Seeder
             'program.clone',
             'program-tag.manage',
             'program-component.manage',
-            'component-definition.view',
-            'component-definition.create',
-            'component-definition.update',
-            'component-definition.delete',
-            'component-definition.restore',
-            'component-definition.force-delete',
             'program-content.view',
             'program-content.manage',
             'program-content.publish',
-            'media-asset.upload',
-            'media-asset.delete',
             'program-batch.manage',
             'program-session.manage',
             'mentor-assignment.manage',
@@ -66,32 +109,75 @@ class RolesSeeder extends Seeder
             'program-access.suspend',
             'program-access.revoke',
             'program-access.extend',
+            'enrollment.view',
+            'enrollment.manage',
+            'installment.manage',
+            'installment.bypass',
 
-            // User Management
-            'manage_users_global', // Create, read, update, delete, assign roles globally
-            'manage_users_branch', // Read only (or manage) within branch
+            // --- 8. Monitor (Layer 4 CBT - Live Proctoring & Item Analytics) ---
+            'monitor-proctoring.view',
+            'monitor-proctoring.control',
+            'monitor-session.view',
+            'monitor-session.manage',
+            'monitor-result.view',
+            'monitor-result.export',
+            'monitor-analysis.view',
+            'monitor-analysis.calculate-irt',
+            'monitor-analysis.drop-question',
+            'certificate-validation.view',
+            'certificate-validation.approve',
+            'schedule-evaluation.view',
+            'schedule-evaluation.manage',
 
-            // Branch Management (Master Cabang)
-            'manage_branches', // CRUD branches, link users
+            // --- 9. Materials ---
+            'materials-topic.view',
+            'materials-topic.manage',
+            'materials-classification.manage',
+            'materials-support.manage',
+            'materials-educational.manage',
 
-            // Role Management (Master Role)
-            'manage_roles', // CRUD roles, assign permissions
-
-            // Permission Management
-            'view_permissions',
-
-            // Finance
+            // --- 10. Finance ---
             'view_finance_analytics',
             'view_finance_reports',
+            'finance-voucher.view',
+            'finance-voucher.manage',
+            'finance-order.view',
+            'finance-order.manage',
+            'finance-invoice.view',
+            'finance-invoice.manage',
+            'finance-transaction.view',
+            'finance-transaction.approve',
+            'finance-withdrawal.view',
+            'finance-withdrawal.approve',
+            'finance-withdrawal.reject',
+            'finance-report.view',
+            'finance-report.export',
 
-            // Learning / Mentoring
+            // --- 11. Store & Gamification ---
+            'store-catalog.view',
+            'store-catalog.manage',
+            'store-points.view',
+            'store-points.manage',
+            'store-shipments.view',
+            'store-shipments.manage',
+
+            // --- 12. System ---
+            'manage_global_settings',
+            'manage_menus',
+            'view_documentation',
+            'manage_documentation',
+
+            // --- 13. Database ---
+            'database-manager.view',
+            'database-manager.execute',
+            'database-backup.view',
+            'database-backup.create',
+            'database-backup.restore',
+
+            // --- Legacy Compatibility Keys ---
             'manage_students',
             'view_student_progress',
             'manage_learning_content',
-
-            // General
-            'view_profile',
-            'edit_profile',
         ];
 
         foreach ($permissions as $perm) {
@@ -99,45 +185,128 @@ class RolesSeeder extends Seeder
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'sanctum']);
         }
 
-        // 3. Define Roles & Assign Permissions
+        // 3. Define Roles & Baseline Permissions Matrix
         $rolesStructure = [
-            'superadmin' => $permissions, // All permissions
-            'direktur' => $permissions,   // All permissions (similar to Super Admin)
+            'superadmin' => $permissions,
+            'direktur' => $permissions,
 
             'manajer_cabang' => [
                 'view_dashboard_branch',
                 'view_branch_activities',
-                'manage_users_branch', // View detail user sesuai cabang
+                'manage_users_branch',
+                'view_users',
+                'manage_parent_relations',
+                'schedule-available-time.view',
+                'schedule-physical-room.view',
+                'schedule-physical-room.manage',
+                'program.view',
+                'enrollment.view',
+                'schedule-evaluation.view',
+                'schedule-evaluation.manage',
                 'view_profile',
                 'edit_profile',
-                // Add specific branch management permissions if needed
             ],
 
             'admin_keuangan' => [
                 'view_dashboard_finance',
                 'view_finance_analytics',
                 'view_finance_reports',
+                'finance-voucher.view',
+                'finance-voucher.manage',
+                'finance-order.view',
+                'finance-order.manage',
+                'finance-invoice.view',
+                'finance-invoice.manage',
+                'finance-transaction.view',
+                'finance-transaction.approve',
+                'finance-withdrawal.view',
+                'finance-withdrawal.approve',
+                'finance-withdrawal.reject',
+                'finance-report.view',
+                'finance-report.export',
+                'enrollment.view',
+                'installment.manage',
+                'installment.bypass',
                 'view_profile',
                 'edit_profile',
             ],
 
             'admin_cabang' => [
                 'view_dashboard_branch',
+                'view_branch_activities',
                 'manage_users_branch',
+                'view_users',
+                'schedule-available-time.view',
+                'schedule-physical-room.view',
+                'schedule-physical-room.manage',
+                'schedule-evaluation.view',
+                'schedule-evaluation.manage',
                 'view_profile',
                 'edit_profile',
             ],
 
-            // Other Admins (Placeholder permissions, customize as needed)
-            'admin_kemitraan' => ['view_dashboard_global', 'view_profile', 'edit_profile'],
-            'admin_operasional' => ['view_dashboard_global', 'view_profile', 'edit_profile'],
-            'admin_teknologi' => ['view_dashboard_global', 'view_profile', 'edit_profile'],
-            'admin_pemasaran' => ['view_dashboard_global', 'view_profile', 'edit_profile'],
+            'admin_operasional' => [
+                'view_dashboard_global',
+                'view_dashboard_branch',
+                'view_branch_activities',
+                'schedule-available-time.view',
+                'schedule-available-time.manage',
+                'schedule-physical-room.view',
+                'schedule-physical-room.manage',
+                'program.view',
+                'program-batch.manage',
+                'program-session.manage',
+                'mentor-assignment.manage',
+                'enrollment.view',
+                'monitor-session.view',
+                'monitor-session.manage',
+                'certificate-validation.view',
+                'certificate-validation.approve',
+                'view_profile',
+                'edit_profile',
+            ],
 
-            'mentor_harian' => [
+            'admin_akademik' => [
                 'view_dashboard_learning',
-                'manage_students',
-                'view_student_progress',
+                'assessment-context.view',
+                'assessment-context.create',
+                'assessment-context.update',
+                'assessment-context.delete',
+                'assessment-question.view',
+                'assessment-question.create',
+                'assessment-question.update',
+                'assessment-question.delete',
+                'assessment-question.review',
+                'assessment-blueprint.view',
+                'assessment-blueprint.manage',
+                'component-definition.view',
+                'media-asset.view',
+                'media-asset.upload',
+                'certificate-template.view',
+                'program.view',
+                'program.create',
+                'program.update',
+                'program-tag.manage',
+                'program-component.manage',
+                'program-content.view',
+                'program-content.manage',
+                'program-content.publish',
+                'materials-topic.view',
+                'materials-topic.manage',
+                'materials-classification.manage',
+                'materials-support.manage',
+                'materials-educational.manage',
+                'view_profile',
+                'edit_profile',
+            ],
+
+            'proctor' => [
+                'view_dashboard_learning',
+                'monitor-proctoring.view',
+                'monitor-proctoring.control',
+                'monitor-session.view',
+                'monitor-result.view',
+                'monitor-result.export',
                 'view_profile',
                 'edit_profile',
             ],
@@ -147,6 +316,65 @@ class RolesSeeder extends Seeder
                 'manage_students',
                 'view_student_progress',
                 'manage_learning_content',
+                'assessment-context.view',
+                'assessment-context.create',
+                'assessment-context.update',
+                'assessment-question.view',
+                'assessment-question.create',
+                'assessment-question.update',
+                'schedule-available-time.view',
+                'schedule-available-time.manage',
+                'materials-topic.view',
+                'materials-support.manage',
+                'materials-educational.manage',
+                'view_profile',
+                'edit_profile',
+            ],
+
+            'mentor_harian' => [
+                'view_dashboard_learning',
+                'manage_students',
+                'view_student_progress',
+                'manage_learning_content',
+                'assessment-question.view',
+                'assessment-question.create',
+                'schedule-available-time.view',
+                'schedule-available-time.manage',
+                'view_profile',
+                'edit_profile',
+            ],
+
+            'admin_kemitraan' => [
+                'view_dashboard_global',
+                'view_profile',
+                'edit_profile',
+            ],
+
+            'admin_teknologi' => [
+                'view_dashboard_global',
+                'manage_global_settings',
+                'manage_menus',
+                'view_documentation',
+                'manage_documentation',
+                'database-manager.view',
+                'database-manager.execute',
+                'database-backup.view',
+                'database-backup.create',
+                'view_profile',
+                'edit_profile',
+            ],
+
+            'admin_pemasaran' => [
+                'view_dashboard_global',
+                'manage_cms_content',
+                'publish_cms_content',
+                'manage_landing_layout',
+                'finance-voucher.view',
+                'finance-voucher.manage',
+                'store-catalog.view',
+                'store-catalog.manage',
+                'store-points.view',
+                'store-points.manage',
                 'view_profile',
                 'edit_profile',
             ],
@@ -157,7 +385,7 @@ class RolesSeeder extends Seeder
                 'edit_profile',
             ],
 
-            'student' => [ // Previously 'siswa'
+            'student' => [
                 'view_dashboard_learning',
                 'view_profile',
                 'edit_profile',
@@ -175,16 +403,17 @@ class RolesSeeder extends Seeder
                         ->where('guard_name', $guardName)
                         ->whereIn('name', $rolePermissions)
                         ->get();
+
                     $role->syncPermissions($baselinePermissions);
                 }
             }
         }
 
+        // Grant ALL permissions explicitly to superadmin and direktur
         foreach (['web', 'sanctum'] as $guardName) {
-            $superadmin = Role::findByName('superadmin', $guardName);
-            $superadmin->givePermissionTo(
-                Permission::query()->where('guard_name', $guardName)->get()
-            );
+            $allPerms = Permission::query()->where('guard_name', $guardName)->get();
+            Role::findByName('superadmin', $guardName)->givePermissionTo($allPerms);
+            Role::findByName('direktur', $guardName)->givePermissionTo($allPerms);
         }
 
         // 4. Create Demo Users
@@ -212,6 +441,7 @@ class RolesSeeder extends Seeder
             ]
         );
         $direktur->assignRole('direktur');
+        $direktur->assignRole(Role::findByName('direktur', 'sanctum'));
 
         // Manajer Cabang (Demo Branch)
         $cabangJakarta = Branch::firstOrCreate(
@@ -243,5 +473,31 @@ class RolesSeeder extends Seeder
         );
         $finance->assignRole('admin_keuangan');
         $finance->assignRole(Role::findByName('admin_keuangan', 'sanctum'));
+
+        // Admin Akademik (Demo)
+        $akademik = User::firstOrCreate(
+            ['email' => 'akademik@arkanin.com'],
+            [
+                'name' => 'Admin Akademik & Kurikulum',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+                'branch_id' => $pusat->id,
+            ]
+        );
+        $akademik->assignRole('admin_akademik');
+        $akademik->assignRole(Role::findByName('admin_akademik', 'sanctum'));
+
+        // Proctor (Demo)
+        $proctor = User::firstOrCreate(
+            ['email' => 'proctor@arkanin.com'],
+            [
+                'name' => 'Pengawas Ujian CBT',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+                'branch_id' => $pusat->id,
+            ]
+        );
+        $proctor->assignRole('proctor');
+        $proctor->assignRole(Role::findByName('proctor', 'sanctum'));
     }
 }
