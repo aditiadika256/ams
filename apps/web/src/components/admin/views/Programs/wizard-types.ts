@@ -77,6 +77,6 @@ export interface ProgramStepProps {
   tags: ProgramTag[];
   definitions: ComponentDefinition[];
   programs: Program[];
-  initialBatches: ProgramBatch[];
+  initialBatches?: ProgramBatch[];
   programId?: number;
 }

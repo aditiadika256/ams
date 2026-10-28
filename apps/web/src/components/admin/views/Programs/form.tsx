@@ -236,7 +236,7 @@ export function ProgramForm({
           tags={tags}
           definitions={definitions}
           programs={availablePrograms}
-          initialBatches={initialBatches}
+          initialBatches={initialBatches ?? []}
           programId={initialData?.id}
         />
       </div>

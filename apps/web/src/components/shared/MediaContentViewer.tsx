@@ -22,13 +22,13 @@ import {
   resolveMediaViewerData,
   formatBytes,
   type MediaViewerData,
+  type SupportedMediaAsset,
 } from '@/lib/media';
-import type { WorkspaceMediaAsset } from '@/types/workspace';
 
 interface MediaContentViewerProps {
   title?: string;
   externalUrl?: string | null;
-  mediaAsset?: WorkspaceMediaAsset | null;
+  mediaAsset?: SupportedMediaAsset | null;
   className?: string;
   defaultHeight?: number | string;
   showDownloadButton?: boolean;

@@ -64,9 +64,13 @@ export function ProgramTagsStep({ state, setState, tags: initialTags }: ProgramS
       }
     } catch (err: unknown) {
       // If code is already taken or tag exists, search existing tags from server
-      try {
         const searchRes = await apiClient.admin.tags.list({ search: trimmed });
-        const found = searchRes.data?.find(
+        const listData = Array.isArray(searchRes.data)
+          ? searchRes.data
+          : Array.isArray((searchRes as unknown as { data?: unknown })?.data)
+            ? ((searchRes as unknown as { data: ProgramTag[] }).data)
+            : [];
+        const found = listData.find(
           (t) => t.name.toLowerCase() === trimmed.toLowerCase() || t.code.toLowerCase() === code.toLowerCase()
         );
         if (found) {
