@@ -199,10 +199,10 @@ export default function FinanceView() {
         <div className="flex gap-2">
             <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700 border-0">
+                <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-sm">
                   <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">New Transaction</span></Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
+              <DialogContent className="sm:max-w-[425px] border border-border/60 bg-card/95 backdrop-blur-xl">
                <DialogHeader>
                  <DialogTitle>Add Transaction</DialogTitle>
                  <DialogDescription>
@@ -226,14 +226,14 @@ export default function FinanceView() {
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-3">
          <motion.div variants={itemVariants}>
-           <GlassCard className="relative overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-900/50">
+           <GlassCard className="relative overflow-hidden border border-border/60 shadow-sm bg-card/60 backdrop-blur-sm">
              <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                <GlassCardTitle className="text-sm font-medium">Total Income</GlassCardTitle>
                <DollarSign className="h-4 w-4 text-muted-foreground transition-colors" />
              </GlassCardHeader>
              <GlassCardContent className="relative z-10">
                <div className="text-2xl font-bold">{stats ? formatCurrency(stats.total_income) : 'Rp 0'}</div>
-               <div className="flex items-center text-xs text-green-500 mt-1">
+               <div className="flex items-center text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">
                  <TrendingUp className="h-3 w-3 mr-1" />
                  Recorded Income
                </div>
@@ -242,14 +242,14 @@ export default function FinanceView() {
          </motion.div>
          
          <motion.div variants={itemVariants}>
-           <GlassCard className="relative overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-900/50">
+           <GlassCard className="relative overflow-hidden border border-border/60 shadow-sm bg-card/60 backdrop-blur-sm">
              <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                <GlassCardTitle className="text-sm font-medium">Total Expenses</GlassCardTitle>
                <CreditCard className="h-4 w-4 text-muted-foreground transition-colors" />
              </GlassCardHeader>
              <GlassCardContent className="relative z-10">
                <div className="text-2xl font-bold">{stats ? formatCurrency(stats.total_expense) : 'Rp 0'}</div>
-               <div className="flex items-center text-xs text-red-500 mt-1">
+               <div className="flex items-center text-xs text-rose-600 dark:text-rose-400 font-medium mt-1">
                  <TrendingDown className="h-3 w-3 mr-1" />
                  Recorded Expenses
                </div>
@@ -258,14 +258,14 @@ export default function FinanceView() {
          </motion.div>
          
          <motion.div variants={itemVariants}>
-           <GlassCard className="relative overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-sm bg-zinc-50 dark:bg-zinc-900/50">
+           <GlassCard className="relative overflow-hidden border border-border/60 shadow-sm bg-card/60 backdrop-blur-sm">
              <GlassCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
                <GlassCardTitle className="text-sm font-medium">Net Profit</GlassCardTitle>
                <TrendingUp className="h-4 w-4 text-muted-foreground transition-colors" />
              </GlassCardHeader>
              <GlassCardContent className="relative z-10">
                <div className="text-2xl font-bold">{stats ? formatCurrency(stats.net_profit) : 'Rp 0'}</div>
-               <div className={cn("flex items-center text-xs mt-1", (stats?.net_profit || 0) >= 0 ? "text-green-500" : "text-red-500")}>
+               <div className={cn("flex items-center text-xs font-medium mt-1", (stats?.net_profit || 0) >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
                  {(stats?.net_profit || 0) >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
                  Net Result
                </div>
@@ -276,7 +276,7 @@ export default function FinanceView() {
 
       <motion.div variants={itemVariants}>
         <Tabs value={activeTabId} onValueChange={setActiveTabId} className="space-y-4">
-          <TabsList className="bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+          <TabsList className="bg-muted/60 border border-border/60 backdrop-blur-sm">
             <TabsTrigger value="transactions" className="data-[state=active]:bg-background">Transactions</TabsTrigger>
             <TabsTrigger value="invoices" className="data-[state=active]:bg-background">Invoices</TabsTrigger>
             <TabsTrigger value="reports" className="data-[state=active]:bg-background">Reports</TabsTrigger>

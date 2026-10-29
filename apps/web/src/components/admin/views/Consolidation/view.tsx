@@ -101,14 +101,14 @@ export default function ConsolidationView() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-white sm:text-3xl">
+            <h1 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
               AMS: Konsolidasi Multi-Cabang
             </h1>
             <Badge variant="outline" className="border-rose-500/30 bg-rose-500/10 text-rose-500 font-extrabold text-xs">
               Super Admin Only
             </Badge>
           </div>
-          <p className="mt-1 text-sm text-zinc-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Agregasi arus kas global, metrik retensi siswa, dan kinerja operasional seluruh cabang Arkanin.
           </p>
         </div>
@@ -122,58 +122,58 @@ export default function ConsolidationView() {
 
       {/* Global Stat Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="rounded-2xl border-zinc-200/80 bg-white/70 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur-sm">
+        <Card className="rounded-2xl border-border/60 bg-card/70 shadow-sm backdrop-blur-xl">
           <CardHeader className="p-5 pb-2">
-            <span className="text-xs font-semibold text-zinc-400">Total Arus Kas Masuk</span>
+            <span className="text-xs font-semibold text-muted-foreground">Total Arus Kas Masuk</span>
             <CardTitle className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
               {currency(data.global.total_revenue)}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-5 pt-0">
-            <p className="text-xs text-zinc-500">{data.global.total_orders} transaksi lunas terverifikasi</p>
+            <p className="text-xs text-muted-foreground">{data.global.total_orders} transaksi lunas terverifikasi</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-zinc-200/80 bg-white/70 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur-sm">
+        <Card className="rounded-2xl border-border/60 bg-card/70 shadow-sm backdrop-blur-xl">
           <CardHeader className="p-5 pb-2">
-            <span className="text-xs font-semibold text-zinc-400">Total Siswa Terdaftar</span>
+            <span className="text-xs font-semibold text-muted-foreground">Total Siswa Terdaftar</span>
             <CardTitle className="text-2xl font-black text-primary">
               {data.global.total_students.toLocaleString('id-ID')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-5 pt-0">
-            <p className="text-xs text-zinc-500">Tersebar di {data.global.total_branches} cabang aktif</p>
+            <p className="text-xs text-muted-foreground">Tersebar di {data.global.total_branches} cabang aktif</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-zinc-200/80 bg-white/70 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur-sm">
+        <Card className="rounded-2xl border-border/60 bg-card/70 shadow-sm backdrop-blur-xl">
           <CardHeader className="p-5 pb-2">
-            <span className="text-xs font-semibold text-zinc-400">Tingkat Retensi Multi-Program</span>
-            <CardTitle className="text-2xl font-black text-indigo-600 dark:text-indigo-400">
+            <span className="text-xs font-semibold text-muted-foreground">Tingkat Retensi Multi-Program</span>
+            <CardTitle className="text-2xl font-black text-primary">
               {data.global.retention_rate}%
             </CardTitle>
           </CardHeader>
           <CardContent className="p-5 pt-0">
-            <p className="text-xs text-zinc-500">Siswa mengambil lebih dari 1 program</p>
+            <p className="text-xs text-muted-foreground">Siswa mengambil lebih dari 1 program</p>
           </CardContent>
         </Card>
 
-        <Card className="rounded-2xl border-zinc-200/80 bg-white/70 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur-sm">
+        <Card className="rounded-2xl border-border/60 bg-card/70 shadow-sm backdrop-blur-xl">
           <CardHeader className="p-5 pb-2">
-            <span className="text-xs font-semibold text-zinc-400">Sertifikat Kelulusan Diterbitkan</span>
-            <CardTitle className="text-2xl font-black text-amber-500">
+            <span className="text-xs font-semibold text-muted-foreground">Sertifikat Kelulusan Diterbitkan</span>
+            <CardTitle className="text-2xl font-black text-amber-600 dark:text-amber-400">
               {data.global.total_certificates.toLocaleString('id-ID')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-5 pt-0">
-            <p className="text-xs text-zinc-500">Syarat CBT &ge; 60 & Presensi &ge; 80%</p>
+            <p className="text-xs text-muted-foreground">Syarat CBT &ge; 60 & Presensi &ge; 80%</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Branch Breakdown Table */}
-      <Card className="overflow-hidden rounded-2xl border-zinc-200/80 bg-white/70 shadow-sm dark:border-zinc-800 dark:bg-zinc-900/60 backdrop-blur-sm">
-        <CardHeader className="border-b border-zinc-100 p-5 dark:border-zinc-800/60">
+      <Card className="overflow-hidden rounded-2xl border-border/60 bg-card/70 shadow-sm backdrop-blur-xl">
+        <CardHeader className="border-b border-border/50 p-5">
           <CardTitle className="text-base font-bold">Kinerja Finansial & Operasional Per Cabang</CardTitle>
           <CardDescription className="text-xs">
             Perbandingan omzet, populasi siswa, dan kelulusan antar cabang secara terisolasi (`branch_id`).
@@ -182,7 +182,7 @@ export default function ConsolidationView() {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-zinc-200/80 bg-zinc-50/75 text-xs uppercase tracking-wider text-zinc-500 dark:border-zinc-800 dark:bg-zinc-800/40">
+            <thead className="border-b border-border/60 bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-6 py-4">Cabang</th>
                 <th className="px-6 py-4">Kode Cabang</th>
@@ -192,7 +192,7 @@ export default function ConsolidationView() {
                 <th className="px-6 py-4 text-right">Total Omzet Cabang</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200/80 dark:divide-zinc-800">
+            <tbody className="divide-y divide-border/50">
               {data.branches.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-zinc-500">
@@ -201,14 +201,14 @@ export default function ConsolidationView() {
                 </tr>
               ) : (
                 data.branches.map((br) => (
-                  <tr key={br.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20">
-                    <td className="px-6 py-4 font-bold text-zinc-900 dark:text-white">
+                  <tr key={br.id} className="hover:bg-muted/40 transition-colors">
+                    <td className="px-6 py-4 font-bold text-foreground">
                       <div className="flex items-center gap-2">
-                        <Building2 className="size-4 text-zinc-400" />
+                        <Building2 className="size-4 text-muted-foreground" />
                         {br.name}
                       </div>
                     </td>
-                    <td className="px-6 py-4 font-mono text-xs text-zinc-500">
+                    <td className="px-6 py-4 font-mono text-xs text-muted-foreground">
                       {br.code}
                     </td>
                     <td className="px-6 py-4 font-semibold">

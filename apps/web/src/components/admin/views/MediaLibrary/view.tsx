@@ -611,18 +611,18 @@ export default function MediaLibraryView() {
 
       {/* Interactive Media Viewer & Detail Modal */}
       <Dialog open={Boolean(previewAsset)} onOpenChange={(open) => !open && setPreviewAsset(null)}>
-        <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border border-zinc-200 bg-white p-6 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden">
+        <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col rounded-2xl border border-border/60 bg-card/95 p-6 shadow-2xl backdrop-blur-xl overflow-hidden">
           <DialogHeader className="shrink-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-100 p-2.5 dark:border-zinc-800 dark:bg-zinc-900 shrink-0">
+                <div className="rounded-xl border border-border/60 bg-muted/50 p-2.5 shrink-0">
                   {previewAsset ? getMediaIcon(previewAsset.mime_type, previewAsset.extension) : null}
                 </div>
                 <div className="min-w-0">
-                  <DialogTitle className="text-base font-bold text-zinc-900 dark:text-zinc-100 truncate" title={previewAsset?.original_name}>
+                  <DialogTitle className="text-base font-bold text-foreground truncate" title={previewAsset?.original_name}>
                     {previewAsset?.original_name}
                   </DialogTitle>
-                  <DialogDescription className="text-xs text-zinc-500 flex flex-wrap items-center gap-2 mt-0.5">
+                  <DialogDescription className="text-xs text-muted-foreground flex flex-wrap items-center gap-2 mt-0.5">
                     <span>{previewAsset?.size_bytes ? formatBytes(previewAsset.size_bytes) : '0 Bytes'}</span>
                     <span>·</span>
                     <span className="font-mono">{previewAsset?.mime_type || '-'}</span>
@@ -645,7 +645,7 @@ export default function MediaLibraryView() {
                     {previewAsset.program.name}
                   </Badge>
                 ) : (
-                  <Badge variant="outline" className="text-xs text-zinc-500">
+                  <Badge variant="outline" className="text-xs text-muted-foreground">
                     Aset Global
                   </Badge>
                 )}
@@ -666,62 +666,62 @@ export default function MediaLibraryView() {
               />
 
               {/* Technical Details & Audit Trail Card */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-4 dark:border-zinc-800 dark:bg-zinc-900/60">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs rounded-2xl border border-border/60 bg-muted/30 p-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between border-b border-zinc-200/50 pb-1.5 dark:border-zinc-800">
-                    <span className="text-zinc-500">Nama Asli Berkas:</span>
-                    <span className="font-semibold text-zinc-800 dark:text-zinc-200 truncate max-w-48" title={previewAsset.original_name}>
+                  <div className="flex justify-between border-b border-border/40 pb-1.5">
+                    <span className="text-muted-foreground">Nama Asli Berkas:</span>
+                    <span className="font-semibold text-foreground truncate max-w-48" title={previewAsset.original_name}>
                       {previewAsset.original_name}
                     </span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-200/50 pb-1.5 dark:border-zinc-800">
-                    <span className="text-zinc-500">Tipe MIME:</span>
-                    <span className="font-mono text-zinc-800 dark:text-zinc-200">{previewAsset.mime_type}</span>
+                  <div className="flex justify-between border-b border-border/40 pb-1.5">
+                    <span className="text-muted-foreground">Tipe MIME:</span>
+                    <span className="font-mono text-foreground">{previewAsset.mime_type}</span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-200/50 pb-1.5 dark:border-zinc-800">
-                    <span className="text-zinc-500">Kapasitas Penyimpanan:</span>
-                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                  <div className="flex justify-between border-b border-border/40 pb-1.5">
+                    <span className="text-muted-foreground">Kapasitas Penyimpanan:</span>
+                    <span className="font-semibold text-foreground">
                       {formatBytes(previewAsset.size_bytes)} ({previewAsset.size_bytes ? previewAsset.size_bytes.toLocaleString() : '0'} bytes)
                     </span>
                   </div>
                   <div className="flex justify-between pb-0.5">
-                    <span className="text-zinc-500">Folder Penyimpanan:</span>
+                    <span className="text-muted-foreground">Folder Penyimpanan:</span>
                     <Badge variant="outline" className="text-[10px] py-0 px-1.5">{previewAsset.folder || 'general'}</Badge>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex justify-between border-b border-zinc-200/50 pb-1.5 dark:border-zinc-800">
-                    <span className="text-zinc-500">Diunggah Oleh:</span>
-                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">
+                  <div className="flex justify-between border-b border-border/40 pb-1.5">
+                    <span className="text-muted-foreground">Diunggah Oleh:</span>
+                    <span className="font-semibold text-foreground">
                       {previewAsset.uploader_name || (previewAsset.created_by ? `User #${previewAsset.created_by}` : 'Administrator')}
                     </span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-200/50 pb-1.5 dark:border-zinc-800">
-                    <span className="text-zinc-500">Waktu Dibuat:</span>
-                    <span className="text-zinc-800 dark:text-zinc-200">
+                  <div className="flex justify-between border-b border-border/40 pb-1.5">
+                    <span className="text-muted-foreground">Waktu Dibuat:</span>
+                    <span className="text-foreground">
                       {previewAsset.created_at ? new Date(previewAsset.created_at).toLocaleString('id-ID') : '-'}
                     </span>
                   </div>
-                  <div className="flex justify-between border-b border-zinc-200/50 pb-1.5 dark:border-zinc-800">
-                    <span className="text-zinc-500">Pembaruan Terakhir:</span>
-                    <span className="text-zinc-800 dark:text-zinc-200">
+                  <div className="flex justify-between border-b border-border/40 pb-1.5">
+                    <span className="text-muted-foreground">Pembaruan Terakhir:</span>
+                    <span className="text-foreground">
                       {previewAsset.updated_at ? new Date(previewAsset.updated_at).toLocaleString('id-ID') : '-'}
                     </span>
                   </div>
                   <div className="flex justify-between pb-0.5">
-                    <span className="text-zinc-500">Storage Disk:</span>
-                    <span className="font-mono text-zinc-800 dark:text-zinc-200">{previewAsset.storage_disk || 'cloudflare_r2'}</span>
+                    <span className="text-muted-foreground">Storage Disk:</span>
+                    <span className="font-mono text-foreground">{previewAsset.storage_disk || 'cloudflare_r2'}</span>
                   </div>
                 </div>
 
                 {/* Checksum SHA-256 Full Width */}
                 {previewAsset.checksum_sha256 && (
-                  <div className="md:col-span-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 pt-2 border-t border-zinc-200/60 dark:border-zinc-800">
+                  <div className="md:col-span-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 pt-2 border-t border-border/50">
                     <div className="flex items-center gap-1.5">
                       <ShieldCheck className="size-3.5 text-emerald-500 shrink-0" />
-                      <span className="text-zinc-500 font-medium">Integritas Hash SHA-256:</span>
-                      <span className="font-mono text-[10px] text-zinc-700 dark:text-zinc-300 break-all">
+                      <span className="text-muted-foreground font-medium">Integritas Hash SHA-256:</span>
+                      <span className="font-mono text-[10px] text-foreground break-all">
                         {previewAsset.checksum_sha256}
                       </span>
                     </div>
@@ -730,7 +730,7 @@ export default function MediaLibraryView() {
               </div>
 
               {/* Bottom Actions Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/60">
                 <div className="flex items-center gap-2">
                   <Button
                     type="button"
@@ -783,19 +783,19 @@ export default function MediaLibraryView() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={Boolean(deletingAsset)} onOpenChange={(open) => !isDeleting && setDeletingAsset(null)}>
-        <DialogContent className="max-w-md rounded-2xl bg-white/95 backdrop-blur-xl dark:bg-zinc-950/95">
+        <DialogContent className="max-w-md rounded-2xl border border-border/60 bg-card/95 backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-rose-600 dark:text-rose-400">
+            <DialogTitle className="text-base font-semibold text-destructive">
               Konfirmasi Hapus Berkas Media
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500">
+            <DialogDescription className="text-xs text-muted-foreground">
               Apakah Anda yakin ingin menghapus berkas <strong>{deletingAsset?.original_name}</strong>? Tindakan ini akan menghapus berkas dari Cloud storage.
             </DialogDescription>
           </DialogHeader>
 
           <div className="mt-3 space-y-3">
             <div className="grid gap-1.5">
-              <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+              <label className="text-xs font-medium text-foreground">
                 Alasan Penghapusan (Audit)
               </label>
               <Input
@@ -808,13 +808,14 @@ export default function MediaLibraryView() {
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 onClick={() => setDeletingAsset(null)}
                 disabled={isDeleting}
+                className="w-full sm:w-auto"
               >
                 Batal
               </Button>
@@ -824,6 +825,7 @@ export default function MediaLibraryView() {
                 size="sm"
                 onClick={handleDeleteConfirm}
                 disabled={isDeleting || !deleteReason.trim()}
+                className="w-full sm:w-auto"
               >
                 {isDeleting ? <Loader2 className="size-4 animate-spin mr-1.5" /> : null}
                 Hapus Berkas

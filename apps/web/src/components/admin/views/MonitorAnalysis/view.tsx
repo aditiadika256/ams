@@ -170,7 +170,7 @@ export default function MonitorAnalysisView() {
             <div>
               <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 Analisis Butir Soal & IRT Engine
-                <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-[10px]">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
                   Psychometrics 2PL
                 </Badge>
               </h1>
@@ -230,8 +230,8 @@ export default function MonitorAnalysisView() {
         <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-md flex items-center justify-between">
           <div>
             <div className="text-xs font-medium text-muted-foreground">Butir Soal Valid (Fit)</div>
-            <div className="text-2xl font-extrabold text-emerald-400 mt-1">{summary.fit_count}</div>
-            <div className="text-[10px] text-emerald-500/80">Daya pembeda & kesukaran ideal</div>
+            <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">{summary.fit_count}</div>
+            <div className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium">Daya pembeda & kesukaran ideal</div>
           </div>
           <CheckCircle2 className="size-8 text-emerald-400/40" />
         </div>
@@ -240,8 +240,8 @@ export default function MonitorAnalysisView() {
         <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex items-center justify-between">
           <div>
             <div className="text-xs font-medium text-muted-foreground">Perlu Revisi (Unfit)</div>
-            <div className="text-2xl font-extrabold text-amber-400 mt-1">{summary.unfit_count}</div>
-            <div className="text-[10px] text-amber-500/80">Daya pembeda lemah (a &lt; 0.25)</div>
+            <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{summary.unfit_count}</div>
+            <div className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">Daya pembeda lemah (a &lt; 0.25)</div>
           </div>
           <AlertTriangle className="size-8 text-amber-400/40" />
         </div>
@@ -250,8 +250,8 @@ export default function MonitorAnalysisView() {
         <div className="p-4 rounded-xl border border-red-500/20 bg-red-500/5 backdrop-blur-md flex items-center justify-between">
           <div>
             <div className="text-xs font-medium text-muted-foreground">Soal Dianulir (Dropped)</div>
-            <div className="text-2xl font-extrabold text-red-400 mt-1">{summary.dropped_count}</div>
-            <div className="text-[10px] text-red-500/80">Dikecualikan dari skor total siswa</div>
+            <div className="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-1">{summary.dropped_count}</div>
+            <div className="text-[10px] text-rose-700 dark:text-rose-400 font-medium">Dikecualikan dari skor total siswa</div>
           </div>
           <XCircle className="size-8 text-red-400/40" />
         </div>
@@ -352,7 +352,7 @@ export default function MonitorAnalysisView() {
                             ? 'text-emerald-400'
                             : item.discrimination_a < 0.2
                             ? 'text-red-400'
-                            : 'text-amber-400'
+                            : 'text-amber-600 dark:text-amber-400'
                         }`}
                       >
                         {item.discrimination_a}
@@ -374,7 +374,7 @@ export default function MonitorAnalysisView() {
                               opt.percentage > 40
                                 ? 'bg-primary/20 text-primary font-bold'
                                 : opt.percentage < 5
-                                ? 'bg-red-500/10 text-red-400'
+                                ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400'
                                 : 'bg-muted/40 text-muted-foreground'
                             }`}
                             title={`${opt.key}: ${opt.percentage}% (${opt.count} siswa)`}
@@ -388,15 +388,15 @@ export default function MonitorAnalysisView() {
                     {/* Status Badge */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       {item.is_dropped ? (
-                        <Badge className="bg-red-500/20 text-red-300 border-red-500/40 text-[10px]">
+                        <Badge className="bg-destructive/15 text-destructive border-destructive/30 text-[10px]">
                           DROPPED
                         </Badge>
                       ) : item.fit_status === 'fit' ? (
-                        <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px]">
+                        <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[10px]">
                           FIT (VALID)
                         </Badge>
                       ) : (
-                        <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[10px]">
+                        <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px]">
                           UNFIT
                         </Badge>
                       )}
@@ -413,7 +413,7 @@ export default function MonitorAnalysisView() {
                             setDropReason('Daya pembeda tidak signifikan dan opsi pengecoh membingungkan peserta.');
                             setIsDropModalOpen(true);
                           }}
-                          className="h-7 px-2 text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-300 border-red-500/30"
+                          className="h-7 px-2 text-[10px] bg-destructive/15 hover:bg-destructive/25 text-destructive border-destructive/30"
                         >
                           Anulir Soal
                         </Button>
@@ -433,14 +433,14 @@ export default function MonitorAnalysisView() {
       <Dialog open={isDropModalOpen} onOpenChange={setIsDropModalOpen}>
         <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-border/60">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold flex items-center gap-2 text-red-400">
+            <DialogTitle className="text-sm font-semibold flex items-center gap-2 text-rose-600 dark:text-rose-400">
               <AlertTriangle className="size-4" /> Anulir Butir Soal (Drop & Recalculate)
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleDropQuestion} className="space-y-4 pt-2">
             <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs space-y-1">
-              <div className="font-semibold text-red-300">Konsekuensi Pembatalan Butir Soal:</div>
+              <div className="font-semibold text-rose-700 dark:text-rose-300">Konsekuensi Pembatalan Butir Soal:</div>
               <ul className="list-disc list-inside text-muted-foreground text-[11px] space-y-0.5">
                 <li>Soal akan diabaikan dari perhitungan nilai paket ujian ini.</li>
                 <li>Seluruh nilai peserta akan dihitung ulang secara otomatis.</li>

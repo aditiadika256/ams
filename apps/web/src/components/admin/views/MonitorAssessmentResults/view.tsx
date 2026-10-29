@@ -150,7 +150,7 @@ export default function MonitorAssessmentResultsView() {
             <div>
               <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 Rekapitulasi Nilai & Scoreboard
-                <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/20 text-[10px]">
+                <Badge variant="outline" className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30 text-[10px]">
                   Papan Peringkat
                 </Badge>
               </h1>
@@ -212,8 +212,8 @@ export default function MonitorAssessmentResultsView() {
         <div className="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 backdrop-blur-md flex items-center justify-between">
           <div>
             <div className="text-xs font-medium text-muted-foreground">Total Peserta</div>
-            <div className="text-2xl font-extrabold text-blue-400 mt-1">{statistics.total_participants}</div>
-            <div className="text-[10px] text-blue-500/80">Siswa telah submit ujian</div>
+            <div className="text-2xl font-extrabold text-blue-600 dark:text-blue-400 mt-1">{statistics.total_participants}</div>
+            <div className="text-[10px] text-blue-700 dark:text-blue-400 font-medium">Siswa telah submit ujian</div>
           </div>
           <Users className="size-8 text-blue-400/40" />
         </div>
@@ -232,8 +232,8 @@ export default function MonitorAssessmentResultsView() {
         <div className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-md flex items-center justify-between">
           <div>
             <div className="text-xs font-medium text-muted-foreground">Nilai Tertinggi</div>
-            <div className="text-2xl font-extrabold text-amber-400 mt-1">{statistics.highest_score}</div>
-            <div className="text-[10px] text-amber-500/80">Peringkat 1 Nasional</div>
+            <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1">{statistics.highest_score}</div>
+            <div className="text-[10px] text-amber-700 dark:text-amber-400 font-medium">Peringkat 1 Nasional</div>
           </div>
           <Medal className="size-8 text-amber-400/40" />
         </div>
@@ -336,8 +336,8 @@ export default function MonitorAssessmentResultsView() {
                         variant="outline"
                         className={`text-[10px] ${
                           item.status === 'completed'
-                            ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                            : 'bg-blue-500/10 text-blue-300 border-blue-500/30'
+                            ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                            : 'bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30'
                         }`}
                       >
                         {item.status.toUpperCase()}

@@ -53,24 +53,33 @@ export function CMSPostForm({ editingId, initialData, onCancel, onSave }: CMSPos
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button type="button" variant="ghost" size="icon" onClick={onCancel} className="hover:bg-white/10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onCancel}
+            className="hover:bg-accent rounded-xl"
+            aria-label="Kembali ke daftar pos"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">{editingId ? 'Edit Post' : 'New Post'}</h2>
-            <p className="text-muted-foreground">Create or edit your content.</p>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+              {editingId ? 'Edit Post' : 'New Post'}
+            </h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Buat atau perbarui konten artikel.</p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <Button 
             type="submit"
             name="status"
             value="Draft"
             disabled={isSaving}
             variant="outline" 
-            className="bg-transparent border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5"
+            className="border-border/70 hover:bg-accent hover:text-accent-foreground min-h-11 sm:min-h-10 text-xs font-medium"
           >
             Save Draft
           </Button>
@@ -79,9 +88,10 @@ export function CMSPostForm({ editingId, initialData, onCancel, onSave }: CMSPos
             name="status"
             value="Published"
             disabled={isSaving}
-            className="bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 border-0"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground min-h-11 sm:min-h-10 text-xs font-semibold shadow-xs"
           >
-            <Save className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Publish</span>
+            <Save className="h-4 w-4 mr-2" />
+            <span>Publish</span>
           </Button>
         </div>
       </div>
@@ -89,35 +99,35 @@ export function CMSPostForm({ editingId, initialData, onCancel, onSave }: CMSPos
       <div className="grid gap-6 lg:grid-cols-3">
         <motion.div variants={itemVariants} className="lg:col-span-2 space-y-6">
           <GlassCard>
-            <GlassCardContent className="p-6 space-y-4">
+            <GlassCardContent className="p-4 sm:p-6 space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Title</label>
+                <label className="text-sm font-medium text-foreground">Title</label>
                 <Input 
                   placeholder="Enter post title" 
                   value={title} 
                   onChange={(e) => setTitle(e.target.value)} 
                   required
-                  className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10" 
+                  className="bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground" 
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Slug</label>
+                <label className="text-sm font-medium text-foreground">Slug</label>
                 <Input 
                   value={initialData?.slug || 'Dibuat otomatis setelah post disimpan'}
                   disabled
-                  className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10" 
+                  className="bg-muted/40 border-input/60 text-muted-foreground" 
                 />
                 <p className="text-xs text-muted-foreground">
                   Slug dibuat otomatis dari judul untuk menjaga URL tetap konsisten.
                 </p>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Content</label>
+                <label className="text-sm font-medium text-foreground">Content</label>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Write your article content here..."
-                  className="w-full min-h-[400px] p-4 rounded-md border border-input/50 bg-background/50 font-mono text-sm focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none dark:border-white/10 dark:bg-white/5 text-foreground"
+                  className="w-full min-h-[400px] p-4 rounded-xl border border-input/60 bg-background/70 font-mono text-sm focus:ring-2 focus:ring-ring/40 focus:outline-none text-foreground placeholder:text-muted-foreground leading-relaxed"
                 />
               </div>
             </GlassCardContent>
@@ -131,20 +141,20 @@ export function CMSPostForm({ editingId, initialData, onCancel, onSave }: CMSPos
             </GlassCardHeader>
             <GlassCardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm">Status</span>
+                <span className="text-sm text-foreground">Status</span>
                 <Badge 
                   variant={status === 'Published' ? 'default' : 'secondary'}
-                  className={status === 'Published' ? 'bg-green-500/20 text-green-500 border-green-500/20' : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500 border-yellow-500/20'}
+                  className={status === 'Published' ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30' : 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30'}
                 >
                   {status}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">Visibility</span>
+                <span className="text-sm text-foreground">Visibility</span>
                 <span className="text-sm text-muted-foreground">Public</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">Author</span>
+                <span className="text-sm text-foreground">Author</span>
                 <span className="text-sm text-muted-foreground">Admin</span>
               </div>
             </GlassCardContent>
@@ -154,9 +164,9 @@ export function CMSPostForm({ editingId, initialData, onCancel, onSave }: CMSPos
               <GlassCardTitle>Featured Image</GlassCardTitle>
             </GlassCardHeader>
             <GlassCardContent>
-              <div className="aspect-video rounded-md border-2 border-dashed border-border/30 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/20 cursor-pointer transition-colors">
-                <ImageIcon className="h-8 w-8 mb-2" />
-                <span className="text-xs">Click to upload</span>
+              <div className="aspect-video rounded-xl border-2 border-dashed border-border/60 flex flex-col items-center justify-center text-muted-foreground hover:bg-muted/30 cursor-pointer transition-colors">
+                <ImageIcon className="h-8 w-8 mb-2 text-primary" />
+                <span className="text-xs font-medium">Click to upload</span>
               </div>
             </GlassCardContent>
           </GlassCard>

@@ -98,23 +98,28 @@ export default function UsersView() {
       setError(null);
       const response = await apiClient.admin.users.list({ 
         page: currentPage, 
-        search: searchQuery 
+        per_page: perPage,
+        limit: perPage,
+        search: searchQuery
       });
-      if (requestId !== latestUsersRequestId.current) return;
+      if (requestId !== latestUsersRequestId.current) {
+        return;
+      }
       
-      const paginatedData = response.data;
-      if (paginatedData && Array.isArray(paginatedData.data)) {
-        setUsers(paginatedData.data);
-        setTotalPages(paginatedData.last_page || 1);
-        setTotalUsers(paginatedData.total || 0);
-        setPerPage(paginatedData.per_page || 15);
-      } else {
-        setUsers(Array.isArray(response.data) ? response.data : []);
+      const payload = response.data;
+      if (payload) {
+        // Backend returns standard Laravel pagination
+        const items = payload.data || [];
+        setUsers(items);
+        setTotalPages(payload.last_page || 1);
+        setTotalUsers(payload.total || items.length);
       }
     } catch (err: any) {
-      if (requestId !== latestUsersRequestId.current) return;
-      console.error('Failed to fetch users:', err);
-      setError(err.message || 'Failed to fetch users');
+      if (requestId !== latestUsersRequestId.current) {
+        return;
+      }
+      console.error(err);
+      setError('Gagal memuat data pengguna');
     } finally {
       if (requestId === latestUsersRequestId.current) {
         setIsLoading(false);
@@ -215,25 +220,27 @@ export default function UsersView() {
           <h2 className="text-3xl font-bold tracking-tight text-foreground">User Management</h2>
           <p className="text-muted-foreground">Manage users, roles, and branch assignments.</p>
         </div>
-        <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0">
-          <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Add New User</span></Button>
+        <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium">
+          <Plus className="h-4 w-4 mr-2" />
+          <span>Add New User</span>
+        </Button>
       </motion.div>
       
       <motion.div variants={itemVariants}>
         <GlassCard>
           <GlassCardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <GlassCardTitle>All Users</GlassCardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <ViewToggle view={viewMode} onViewChange={setViewMode} />
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Search users..."
                     value={search}
                     onChange={handleSearch}
-                    className="pl-8 w-[200px] lg:w-[300px] bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+                    className="pl-8 w-full sm:w-[200px] lg:w-[300px] h-10 text-xs bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
               </div>
@@ -243,14 +250,14 @@ export default function UsersView() {
             {isLoading ? (
                <div className="py-8 text-center text-muted-foreground"><Spinner className="mx-auto mb-2" />Loading users...</div>
             ) : error ? (
-               <div className="py-8 text-center text-red-400">{error}</div>
+               <div className="py-8 text-center text-destructive">{error}</div>
             ) : users.length === 0 ? (
                <div className="py-8 text-center text-muted-foreground">No users found.</div>
             ) : (
                <div className={viewMode === 'list' ? "overflow-x-auto" : ""}>
                  {viewMode === 'list' ? (
                    <table className="w-full text-sm text-left">
-                     <thead className="text-xs text-muted-foreground uppercase bg-white/5 border-b border-white/10">
+                     <thead className="text-xs text-muted-foreground uppercase bg-muted/40 border-b border-border/60">
                        <tr>
                          <th className="px-4 py-3 font-medium">Name</th>
                          <th className="px-4 py-3 font-medium">Role</th>
@@ -259,7 +266,7 @@ export default function UsersView() {
                          <th className="px-4 py-3 font-medium text-right">Actions</th>
                        </tr>
                      </thead>
-                     <tbody className="divide-y divide-white/5">
+                     <tbody className="divide-y divide-border/40">
                        {users.map((user) => {
                          const userRole = user.roles && user.roles.length > 0 ? user.roles[0].name : 'User';
                          const userStatus = user.status || 'Active'; // Mock status if not returned
@@ -268,14 +275,14 @@ export default function UsersView() {
                          return (
                            <motion.tr 
                              key={user.id} 
-                             className="hover:bg-white/5 transition-colors"
+                             className="hover:bg-muted/30 transition-colors"
                              initial={{ opacity: 0 }}
                              animate={{ opacity: 1 }}
                              transition={{ duration: 0.3 }}
                            >
                              <td className="px-4 py-3">
                                <div className="flex items-center gap-3">
-                                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
+                                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-border/60">
                                    {user.name.charAt(0).toUpperCase()}
                                  </div>
                                  <div>
@@ -287,11 +294,11 @@ export default function UsersView() {
                              <td className="px-4 py-3">
                                <div className="flex items-center gap-2">
                                  {userRole.toLowerCase() === 'admin' || userRole.toLowerCase() === 'superadmin' ? <Shield className="h-3 w-3 text-primary" /> : <User className="h-3 w-3" />}
-                                 <span className="capitalize">{userRole.replace('_', ' ')}</span>
+                                 <span className="capitalize text-foreground">{userRole.replace('_', ' ')}</span>
                                </div>
                              </td>
                              <td className="px-4 py-3">
-                               <Badge variant={userStatus === 'Active' ? 'default' : 'secondary'} className={userStatus === 'Active' ? "bg-green-500/20 text-green-400 hover:bg-green-500/30" : ""}>
+                               <Badge variant={userStatus === 'Active' ? 'default' : 'secondary'} className={userStatus === 'Active' ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" : ""}>
                                  {userStatus}
                                </Badge>
                              </td>
@@ -301,11 +308,11 @@ export default function UsersView() {
                              <td className="px-4 py-3 text-right">
                                <DropdownMenu>
                                  <DropdownMenuTrigger asChild>
-                                   <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-white/5">
+                                   <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-foreground">
                                      <MoreHorizontal className="h-4 w-4" />
                                    </Button>
                                  </DropdownMenuTrigger>
-                                 <DropdownMenuContent align="end">
+                                 <DropdownMenuContent align="end" className="bg-card/95 border-border/60">
                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                    <DropdownMenuItem onClick={() => handleOpenEdit(user)} className="cursor-pointer">
                                      <Edit className="mr-2 h-4 w-4" /> Edit
@@ -332,28 +339,28 @@ export default function UsersView() {
                        return (
                          <motion.div 
                            key={user.id} 
-                           className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col hover:bg-white/10 transition-colors"
+                           className="bg-card/80 border border-border/60 rounded-2xl p-4 flex flex-col hover:bg-muted/30 transition-colors shadow-sm"
                            initial={{ opacity: 0, scale: 0.95 }}
                            animate={{ opacity: 1, scale: 1 }}
                            transition={{ duration: 0.3 }}
                          >
                            <div className="flex justify-between items-start mb-3">
                              <div className="flex items-center gap-3">
-                               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
+                               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-border/60">
                                  {user.name.charAt(0).toUpperCase()}
                                </div>
                                <div>
-                                 <h3 className="font-semibold text-base line-clamp-1">{user.name}</h3>
+                                 <h3 className="font-semibold text-base text-foreground line-clamp-1">{user.name}</h3>
                                  <p className="text-xs text-muted-foreground line-clamp-1">{user.email}</p>
                                </div>
                              </div>
                              <DropdownMenu>
                                <DropdownMenuTrigger asChild>
-                                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-slate-100 dark:hover:bg-white/5 shrink-0">
+                                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted shrink-0 text-muted-foreground hover:text-foreground">
                                    <MoreHorizontal className="h-4 w-4" />
                                  </Button>
                                </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end">
+                               <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-xl border-border/60">
                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                  <DropdownMenuItem onClick={() => handleOpenEdit(user)} className="cursor-pointer">
                                    <Edit className="mr-2 h-4 w-4" /> Edit
@@ -367,16 +374,16 @@ export default function UsersView() {
                            </div>
                            
                            <div className="flex gap-2 mb-4">
-                             <Badge variant="outline" className="border-white/20 bg-white/5 text-xs flex items-center gap-1">
+                             <Badge variant="outline" className="border-border/60 bg-muted/40 text-xs flex items-center gap-1 text-foreground">
                                {userRole.toLowerCase() === 'admin' || userRole.toLowerCase() === 'superadmin' ? <Shield className="h-3 w-3 text-primary" /> : <User className="h-3 w-3" />}
                                <span className="capitalize">{userRole.replace('_', ' ')}</span>
                              </Badge>
-                             {userBranch !== '-' && <Badge variant="outline" className="border-white/20 bg-white/5 text-xs">{userBranch}</Badge>}
+                             {userBranch !== '-' && <Badge variant="outline" className="border-border/60 bg-muted/40 text-xs text-foreground">{userBranch}</Badge>}
                            </div>
                            
-                           <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/5">
+                           <div className="mt-auto pt-4 flex justify-between items-center border-t border-border/40">
                              <div className="text-xs text-muted-foreground">ID: {user.id}</div>
-                             <Badge variant={userStatus === 'Active' ? 'default' : 'secondary'} className={userStatus === 'Active' ? "bg-green-500/20 text-green-400" : "text-xs"}>
+                             <Badge variant={userStatus === 'Active' ? 'default' : 'secondary'} className={userStatus === 'Active' ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" : "text-xs"}>
                                {userStatus}
                              </Badge>
                            </div>
@@ -403,9 +410,9 @@ export default function UsersView() {
 
       {/* Form Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg border border-border/60 bg-card/95 backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle>{selectedUser ? 'Edit User' : 'Tambah User Baru'}</DialogTitle>
+            <DialogTitle className="text-foreground">{selectedUser ? 'Edit User' : 'Tambah User Baru'}</DialogTitle>
           </DialogHeader>
           <UserForm 
             initialData={selectedUser}

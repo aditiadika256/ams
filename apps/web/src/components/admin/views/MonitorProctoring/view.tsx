@@ -219,31 +219,31 @@ export default function MonitorProctoringView() {
     switch (status) {
       case 'active':
         return (
-          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px] animate-pulse">
+          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 text-[10px] animate-pulse">
             <Radio className="size-3 mr-1" /> AKTIF
           </Badge>
         );
       case 'warned':
         return (
-          <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-[10px]">
+          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 text-[10px]">
             <AlertTriangle className="size-3 mr-1" /> DIPERINGATKAN
           </Badge>
         );
       case 'paused':
         return (
-          <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/40 text-[10px]">
+          <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30 text-[10px]">
             <Pause className="size-3 mr-1" /> DIJEDA
           </Badge>
         );
       case 'disqualified':
         return (
-          <Badge className="bg-red-500/20 text-red-300 border-red-500/40 text-[10px]">
+          <Badge className="bg-destructive/15 text-destructive border-destructive/30 text-[10px]">
             <UserX className="size-3 mr-1" /> DIDISKUALIFIKASI
           </Badge>
         );
       case 'completed':
         return (
-          <Badge className="bg-zinc-500/20 text-zinc-300 border-zinc-500/40 text-[10px]">
+          <Badge className="bg-muted text-muted-foreground border-border/60 text-[10px]">
             <CheckCircle className="size-3 mr-1" /> SELESAI
           </Badge>
         );
@@ -268,7 +268,7 @@ export default function MonitorProctoringView() {
             <div>
               <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 Live Proctoring Control Center
-                <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/20 text-[10px]">
+                <Badge variant="outline" className="bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20 text-[10px]">
                   Layer 4 CBT
                 </Badge>
               </h1>
@@ -335,7 +335,7 @@ export default function MonitorProctoringView() {
                   className="p-1 rounded hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
                   title="Salin Token"
                 >
-                  {copiedToken ? <Check className="size-3.5 text-emerald-400" /> : <Copy className="size-3.5" />}
+                  {copiedToken ? <Check className="size-3.5 text-emerald-600 dark:text-emerald-400" /> : <Copy className="size-3.5" />}
                 </button>
               </div>
             ))}
@@ -422,7 +422,7 @@ export default function MonitorProctoringView() {
                 <div className="flex items-center justify-between text-[10px] text-muted-foreground border-t border-border/30 pt-2">
                   <span>Mulai: {new Date(att.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                   {att.proctor_logs && att.proctor_logs.length > 0 && (
-                    <span className="text-amber-400 font-semibold flex items-center gap-1">
+                    <span className="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
                       <AlertTriangle className="size-3" /> {att.proctor_logs.length} Log
                     </span>
                   )}
@@ -435,7 +435,7 @@ export default function MonitorProctoringView() {
                   variant="outline"
                   size="sm"
                   onClick={() => openActionModal(att, 'warn')}
-                  className="h-7 px-2 text-[10px] bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/30 flex-1"
+                  className="h-7 px-2 text-[10px] bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border-amber-500/30 flex-1"
                 >
                   <AlertTriangle className="size-3 mr-1" /> Peringatkan
                 </Button>
@@ -445,7 +445,7 @@ export default function MonitorProctoringView() {
                     variant="outline"
                     size="sm"
                     onClick={() => openActionModal(att, 'resume')}
-                    className="h-7 px-2 text-[10px] bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border-blue-500/30"
+                    className="h-7 px-2 text-[10px] bg-blue-500/15 hover:bg-blue-500/25 text-blue-700 dark:text-blue-300 border-blue-500/30"
                   >
                     <Play className="size-3" />
                   </Button>
@@ -474,7 +474,7 @@ export default function MonitorProctoringView() {
                   variant="outline"
                   size="sm"
                   onClick={() => openActionModal(att, 'disqualify')}
-                  className="h-7 px-2 text-[10px] bg-red-500/10 hover:bg-red-500/20 text-red-300 border-red-500/30"
+                  className="h-7 px-2 text-[10px] bg-destructive/15 hover:bg-destructive/25 text-destructive border-destructive/30"
                   title="Diskualifikasi"
                 >
                   <UserX className="size-3" />

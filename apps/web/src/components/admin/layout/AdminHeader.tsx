@@ -40,7 +40,7 @@ export function AdminHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-30 flex flex-col w-full glass border-b border-white/10 shadow-sm">
+    <header className="sticky top-0 z-30 flex flex-col w-full bg-card/85 backdrop-blur-xl border-b border-border/60 shadow-sm">
       {/* Top Bar */}
       <div className="flex h-16 items-center justify-between px-3 sm:px-4">
         <div className="flex items-center gap-2 sm:gap-4">
@@ -59,7 +59,7 @@ export function AdminHeader() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search anything (Ctrl + K)"
-              className="pl-9 bg-white/10 border-white/10 focus-visible:ring-1 focus-visible:bg-white/20 transition-all text-foreground placeholder:text-muted-foreground/70"
+              className="pl-9 bg-background/60 border-input/60 focus-visible:ring-1 focus-visible:ring-primary text-foreground placeholder:text-muted-foreground"
             />
           </div>
         </div>
@@ -116,7 +116,7 @@ export function AdminHeader() {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 cursor-pointer focus:bg-red-50">
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer focus:bg-destructive/10">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

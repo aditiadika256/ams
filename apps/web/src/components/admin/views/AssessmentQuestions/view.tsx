@@ -226,22 +226,22 @@ export default function AssessmentQuestionsView() {
   const getDifficultyBadge = (diff: string) => {
     switch (diff) {
       case 'easy':
-        return <Badge variant="outline" className="text-emerald-600 border-emerald-500/30">Mudah</Badge>;
+        return <Badge variant="outline" className="text-emerald-600 dark:text-emerald-400 border-emerald-500/30">Mudah</Badge>;
       case 'medium':
-        return <Badge variant="outline" className="text-blue-600 border-blue-500/30">Sedang</Badge>;
+        return <Badge variant="outline" className="text-blue-600 dark:text-blue-400 border-blue-500/30">Sedang</Badge>;
       case 'hard':
-        return <Badge variant="outline" className="text-amber-600 border-amber-500/30">Sulit</Badge>;
+        return <Badge variant="outline" className="text-amber-600 dark:text-amber-400 border-amber-500/30">Sulit</Badge>;
       case 'hots':
-        return <Badge variant="outline" className="text-rose-600 border-rose-500/30 font-semibold">HOTS</Badge>;
+        return <Badge variant="outline" className="text-rose-600 dark:text-rose-400 border-rose-500/30 font-semibold">HOTS</Badge>;
       default:
         return <Badge variant="outline">{diff}</Badge>;
     }
   };
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header section */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200/80 pb-6 dark:border-zinc-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20">
@@ -249,30 +249,30 @@ export default function AssessmentQuestionsView() {
               Layer 1 CBT: Master Assessment
             </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 flex items-center gap-2.5">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2.5">
             <Radio className="size-7 text-primary" />
             Question Bank (Bank Soal)
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 max-w-2xl">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-2xl">
             Pengelolaan butir soal multi-format (Pilihan Ganda, Skala Likert/TKP 1–5, Esai), kunci jawaban, tagging topik, estimasi durasi, dan pembahasan TeX/LaTeX.
           </p>
         </div>
 
-        <Button onClick={handleOpenCreate} className="gap-2 shrink-0 shadow-sm">
+        <Button onClick={handleOpenCreate} className="gap-2 shrink-0 shadow-sm min-h-11 sm:min-h-10 font-semibold">
           <Plus className="size-4" />
           Tambah Soal Baru
         </Button>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col lg:flex-row gap-3 items-center justify-between rounded-2xl border border-zinc-200/80 bg-white/70 p-4 shadow-sm backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/60">
+      <div className="flex flex-col lg:flex-row gap-3 items-center justify-between rounded-2xl border border-border/60 bg-card/80 p-4 shadow-sm backdrop-blur-xl">
         <div className="relative w-full lg:w-72">
-          <Search className="absolute left-3 top-2.5 size-4 text-zinc-400" />
+          <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
           <Input
             placeholder="Cari teks soal atau pembahasan..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 text-xs"
+            className="pl-9 h-10 text-xs bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
@@ -282,7 +282,7 @@ export default function AssessmentQuestionsView() {
             value={selectedDifficulty}
             aria-label="Filter tingkat kesulitan"
             onChange={(e) => setSelectedDifficulty(e.target.value)}
-            className="h-9 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+            className="h-10 rounded-xl border border-input/60 bg-background/70 px-3 text-xs font-medium text-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-ring/40"
           >
             <option value="all">Semua Kesulitan</option>
             <option value="easy">Mudah</option>
@@ -296,7 +296,7 @@ export default function AssessmentQuestionsView() {
             value={selectedType}
             aria-label="Filter tipe pertanyaan"
             onChange={(e) => setSelectedType(e.target.value)}
-            className="h-9 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+            className="h-10 rounded-xl border border-input/60 bg-background/70 px-3 text-xs font-medium text-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-ring/40"
           >
             <option value="all">Semua Format</option>
             <option value="single">Pilihan Ganda Biasa</option>
@@ -310,7 +310,7 @@ export default function AssessmentQuestionsView() {
             value={selectedContextId}
             aria-label="Filter wacana induk"
             onChange={(e) => setSelectedContextId(e.target.value)}
-            className="h-9 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200 max-w-44 truncate"
+            className="h-10 rounded-xl border border-input/60 bg-background/70 px-3 text-xs font-medium text-foreground shadow-sm transition focus:outline-none focus:ring-2 focus:ring-ring/40 max-w-44 truncate"
           >
             <option value="all">Semua Wacana</option>
             {contexts.map((ctx) => (
@@ -328,22 +328,22 @@ export default function AssessmentQuestionsView() {
           {[1, 2, 3].map((n) => (
             <div
               key={n}
-              className="h-28 rounded-2xl border border-zinc-200/60 bg-white/40 p-5 animate-pulse dark:border-zinc-800/60 dark:bg-zinc-900/40"
+              className="h-28 rounded-2xl border border-border/60 bg-card/40 p-5 animate-pulse"
             />
           ))}
         </div>
       ) : questions.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-zinc-300 p-12 text-center dark:border-zinc-800">
-          <div className="mx-auto size-14 rounded-2xl bg-zinc-100 flex items-center justify-center text-zinc-400 dark:bg-zinc-900">
+        <div className="rounded-2xl border border-dashed border-border/80 p-8 sm:p-12 text-center bg-card/30">
+          <div className="mx-auto size-14 rounded-2xl bg-muted/60 flex items-center justify-center text-muted-foreground">
             <Radio className="size-7" />
           </div>
-          <h3 className="mt-3 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          <h3 className="mt-3 text-base font-semibold text-foreground">
             Belum Ada Butir Soal
           </h3>
-          <p className="mt-1 text-xs text-zinc-500 max-w-sm mx-auto">
+          <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
             Mulai tambahkan butir soal baru, tentukan kunci jawaban, atau tautkan ke wacana induk stimulus.
           </p>
-          <Button onClick={handleOpenCreate} variant="outline" className="mt-4 gap-2 text-xs">
+          <Button onClick={handleOpenCreate} variant="outline" className="mt-4 gap-2 text-xs border-border/70 hover:bg-accent">
             <Plus className="size-3.5" /> Buat Soal Pertama
           </Button>
         </div>
@@ -352,7 +352,7 @@ export default function AssessmentQuestionsView() {
           {questions.map((q, idx) => (
             <div
               key={q.id}
-              className="group rounded-2xl border border-zinc-200/80 bg-white/70 p-5 shadow-sm backdrop-blur-md transition-all duration-200 hover:shadow-md hover:border-primary/40 dark:border-zinc-800/80 dark:bg-zinc-950/60"
+              className="group rounded-2xl border border-border/60 bg-card/80 p-5 shadow-sm backdrop-blur-xl transition-all duration-200 hover:shadow-md hover:border-primary/50"
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="space-y-2 flex-1">
@@ -362,21 +362,21 @@ export default function AssessmentQuestionsView() {
                     <Badge variant="secondary" className="text-[10px] uppercase font-mono">
                       {q.type}
                     </Badge>
-                    <span className="inline-flex items-center gap-1 text-[11px] text-zinc-400">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                       <Clock className="size-3" /> {q.estimated_seconds} dtk
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] text-zinc-400">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                       <Award className="size-3" /> Bobot {q.score_weight}
                     </span>
                     {q.context && (
-                      <Badge variant="outline" className="gap-1 text-purple-600 border-purple-500/30 text-[10px]">
+                      <Badge variant="outline" className="gap-1 text-purple-600 dark:text-purple-400 border-purple-500/30 text-[10px]">
                         <FileText className="size-2.5" /> Wacana: {q.context.title}
                       </Badge>
                     )}
                   </div>
 
                   {/* Stem preview */}
-                  <p className="text-sm text-zinc-800 dark:text-zinc-200 leading-relaxed font-medium">
+                  <p className="text-sm text-foreground leading-relaxed font-medium">
                     {q.stem}
                   </p>
 
@@ -386,9 +386,9 @@ export default function AssessmentQuestionsView() {
                       {q.options.map((opt) => (
                         <div
                           key={opt.key}
-                          className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400 bg-zinc-50/80 dark:bg-zinc-900/60 px-2.5 py-1 rounded-lg border border-zinc-100 dark:border-zinc-800"
+                          className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-lg border border-border/40"
                         >
-                          <span className="font-semibold text-zinc-800 dark:text-zinc-200">{opt.key}.</span>
+                          <span className="font-semibold text-foreground">{opt.key}.</span>
                           <span className="truncate">{opt.text}</span>
                         </div>
                       ))}
@@ -402,7 +402,7 @@ export default function AssessmentQuestionsView() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleOpenEdit(q)}
-                    className="h-8 w-8 p-0 text-zinc-500 hover:text-primary"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
                     aria-label={`Ubah soal #${q.id}`}
                   >
                     <Edit2 className="size-3.5" />
@@ -411,7 +411,7 @@ export default function AssessmentQuestionsView() {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDelete(q.id)}
-                    className="h-8 w-8 p-0 text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     aria-label={`Hapus soal #${q.id}`}
                   >
                     <Trash2 className="size-3.5" />
@@ -425,9 +425,9 @@ export default function AssessmentQuestionsView() {
 
       {/* Create / Edit Modal Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto border border-border/60 bg-card/95 backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold">
+            <DialogTitle className="text-base font-semibold text-foreground">
               {editingId ? 'Edit Butir Soal' : 'Tambah Butir Soal Baru'}
             </DialogTitle>
           </DialogHeader>
@@ -443,7 +443,7 @@ export default function AssessmentQuestionsView() {
                   aria-label="Pilih wacana induk untuk butir soal"
                   value={contextId}
                   onChange={(e) => setContextId(e.target.value ? Number(e.target.value) : '')}
-                  className="w-full h-9 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+                  className="w-full h-10 rounded-xl border border-input/60 bg-background/70 px-3 text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                 >
                   <option value="">Tanpa Wacana (Mandiri)</option>
                   {contexts.map((ctx) => (
@@ -463,7 +463,7 @@ export default function AssessmentQuestionsView() {
                   aria-label="Pilih tingkat kesulitan soal"
                   value={difficulty}
                   onChange={(e) => setDifficulty(e.target.value as any)}
-                  className="w-full h-9 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+                  className="w-full h-10 rounded-xl border border-input/60 bg-background/70 px-3 text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                 >
                   <option value="easy">Mudah</option>
                   <option value="medium">Sedang</option>
@@ -481,7 +481,7 @@ export default function AssessmentQuestionsView() {
                   aria-label="Pilih format pertanyaan"
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="w-full h-9 rounded-xl border border-zinc-200 bg-white/80 px-3 text-xs font-medium text-zinc-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+                  className="w-full h-10 rounded-xl border border-input/60 bg-background/70 px-3 text-xs font-medium text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-ring/40"
                 >
                   <option value="single">Pilihan Ganda (PG 1 Kunci)</option>
                   <option value="scale">Skala 1–5 (TKP CPNS)</option>
@@ -495,9 +495,9 @@ export default function AssessmentQuestionsView() {
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="q-stem" className="text-xs">
-                  Pertanyaan / Soal <span className="text-rose-500">*</span>
+                  Pertanyaan / Soal <span className="text-destructive">*</span>
                 </Label>
-                <span className="text-[11px] text-zinc-400">
+                <span className="text-[11px] text-muted-foreground">
                   Mendukung sintaks TeX ($$x^2$$)
                 </span>
               </div>
@@ -508,20 +508,20 @@ export default function AssessmentQuestionsView() {
                 placeholder="Tuliskan pertanyaan soal di sini..."
                 value={stem}
                 onChange={(e) => setStem(e.target.value)}
-                className="text-xs leading-relaxed"
+                className="text-xs leading-relaxed bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
               />
             </div>
 
             {/* Options Builder */}
             {type !== 'essay' && (
-              <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
-                <Label className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 block">
+              <div className="space-y-2 pt-2 border-t border-border/40">
+                <Label className="text-xs font-semibold text-foreground block">
                   Opsi Pilihan Jawaban:
                 </Label>
                 <div className="space-y-2">
                   {options.map((opt, i) => (
                     <div key={opt.key} className="flex items-center gap-2">
-                      <span className="font-semibold text-xs size-6 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0">
+                      <span className="font-semibold text-xs size-7 rounded-lg bg-muted text-foreground flex items-center justify-center shrink-0 border border-border/60">
                         {opt.key}
                       </span>
                       <Input
@@ -533,12 +533,12 @@ export default function AssessmentQuestionsView() {
                           updated[i].text = e.target.value;
                           setOptions(updated);
                         }}
-                        className="text-xs h-8 flex-1"
+                        className="text-xs h-9 flex-1 bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                       />
 
                       {type === 'scale' ? (
                         <div className="flex items-center gap-1 shrink-0">
-                          <span className="text-[11px] text-zinc-400">Skor:</span>
+                          <span className="text-[11px] text-muted-foreground">Skor:</span>
                           <Input
                             type="number"
                             aria-label={`Skor opsi ${opt.key}`}
@@ -550,19 +550,19 @@ export default function AssessmentQuestionsView() {
                               updated[i].score = Number(e.target.value);
                               setOptions(updated);
                             }}
-                            className="text-xs h-8 w-14 text-center"
+                            className="text-xs h-9 w-14 text-center bg-background/70 border-input/60 text-foreground"
                           />
                         </div>
                       ) : (
-                        <label className="flex items-center gap-1 text-xs shrink-0 cursor-pointer">
+                        <label className="flex items-center gap-1.5 text-xs shrink-0 cursor-pointer">
                           <input
                             type="radio"
                             name="correct_answer"
                             checked={correctKey === opt.key}
                             onChange={() => setCorrectKey(opt.key)}
-                            className="size-3.5 accent-primary"
+                            className="size-4 accent-primary"
                           />
-                          <span className="text-[11px] text-zinc-500">Kunci</span>
+                          <span className="text-[11px] text-muted-foreground font-medium">Kunci</span>
                         </label>
                       )}
                     </div>
@@ -584,7 +584,7 @@ export default function AssessmentQuestionsView() {
                   max={1800}
                   value={estimatedSeconds}
                   onChange={(e) => setEstimatedSeconds(Number(e.target.value))}
-                  className="text-xs h-9"
+                  className="text-xs h-10 bg-background/70 border-input/60 text-foreground"
                 />
               </div>
 
@@ -600,7 +600,7 @@ export default function AssessmentQuestionsView() {
                   max={100}
                   value={scoreWeight}
                   onChange={(e) => setScoreWeight(Number(e.target.value))}
-                  className="text-xs h-9"
+                  className="text-xs h-10 bg-background/70 border-input/60 text-foreground"
                 />
               </div>
             </div>
@@ -616,21 +616,25 @@ export default function AssessmentQuestionsView() {
                 placeholder="Penjelasan cara penyelesaian butir soal..."
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
-                className="text-xs leading-relaxed"
+                className="text-xs leading-relaxed bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring/40"
               />
             </div>
 
-            <DialogFooter className="pt-2">
+            <DialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2 border-t border-border/50">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsModalOpen(false)}
                 disabled={isSubmitting}
-                className="text-xs"
+                className="w-full sm:w-auto text-xs min-h-10"
               >
                 Batal
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="text-xs">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto text-xs min-h-10 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+              >
                 {isSubmitting ? 'Menyimpan…' : editingId ? 'Perbarui Soal' : 'Simpan Soal'}
               </Button>
             </DialogFooter>
