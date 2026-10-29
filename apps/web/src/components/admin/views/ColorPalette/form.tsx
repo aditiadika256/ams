@@ -63,7 +63,7 @@ export function ColorPaletteForm({
 }: ColorPaletteFormProps) {
   return (
     <motion.div
-      className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-background rounded-xl border border-border/20 shadow-xl p-6"
+      className="w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-border/60 bg-card/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6"
       initial={{ y: 20 }}
       animate={{ y: 0 }}
     >
@@ -243,11 +243,11 @@ export function ColorPaletteForm({
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-3">
-        <Button variant="outline" onClick={handleCancel}>
+      <div className="flex flex-col-reverse sm:flex-row justify-end gap-3">
+        <Button variant="outline" onClick={handleCancel} className="min-h-11 sm:min-h-10 w-full sm:w-auto">
           Cancel
         </Button>
-        <Button onClick={handleSave} disabled={isLoading}>
+        <Button onClick={handleSave} disabled={isLoading} className="min-h-11 sm:min-h-10 w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
           <Save className="mr-2 h-4 w-4" />
           {isLoading ? 'Saving...' : 'Save Palette'}
         </Button>

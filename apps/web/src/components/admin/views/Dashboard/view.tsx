@@ -84,7 +84,7 @@ export default function DashboardView() {
               <div className="h-[350px] w-full min-w-0 relative">
                 <ResponsiveContainer width="99%" height="100%" minWidth={0} minHeight={350}>
                   <BarChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-white/10" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border/40" />
                     <XAxis 
                       dataKey="name" 
                       stroke="#888888" 
@@ -102,11 +102,11 @@ export default function DashboardView() {
                     <Tooltip 
                       cursor={{ fill: 'rgba(255,255,255,0.05)' }}
                       contentStyle={{ 
-                        backgroundColor: 'rgba(23, 23, 23, 0.8)', 
+                        backgroundColor: 'hsl(var(--card) / 0.95)', 
                         backdropFilter: 'blur(12px)',
                         borderRadius: '8px', 
-                        border: '1px solid rgba(255,255,255,0.1)',
-                        color: '#fff'
+                        border: '1px solid hsl(var(--border) / 0.6)',
+                        color: 'hsl(var(--foreground))'
                       }}
                       formatter={(value: any) => [`Rp ${value}`, 'Revenue']}
                     />

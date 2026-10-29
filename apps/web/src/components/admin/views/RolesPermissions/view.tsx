@@ -211,12 +211,14 @@ export default function RolesPermissionsView() {
         </div>
         <Dialog open={isAddRoleOpen} onOpenChange={setIsAddRoleOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0  shadow-lg">
-              <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Tambah Role Baru</span></Button>
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-sm w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium">
+              <Plus className="h-4 w-4 mr-2" />
+              <span>Tambah Role Baru</span>
+            </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md border border-border/60 bg-card/95 backdrop-blur-xl">
             <DialogHeader>
-              <DialogTitle>Add New Role</DialogTitle>
+              <DialogTitle className="text-foreground">Add New Role</DialogTitle>
             </DialogHeader>
             <RoleForm 
               newRoleName={newRoleName}
@@ -232,7 +234,7 @@ export default function RolesPermissionsView() {
         <motion.div variants={itemVariants} className="md:col-span-1">
           <GlassCard className="h-full relative overflow-hidden">
             <div className="absolute inset-0 bg-primary/5" />
-          <GlassCardHeader className="relative z-10 flex flex-row items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
+          <GlassCardHeader className="relative z-10 flex flex-row items-center justify-between pb-2 border-b border-border/60">
             <GlassCardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
               Daftar Role
@@ -246,9 +248,9 @@ export default function RolesPermissionsView() {
               else setSelectedRoleId(null);
             }} className="w-full flex flex-col h-full">
               <div className="px-6 pt-4">
-                <TabsList className="w-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10">
-                  <TabsTrigger value="web" className="flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-white/10">Akses Web</TabsTrigger>
-                  <TabsTrigger value="sanctum" className="flex-1 data-[state=active]:bg-white dark:data-[state=active]:bg-white/10">Akses API</TabsTrigger>
+                <TabsList className="w-full bg-muted/50 border border-border/60">
+                  <TabsTrigger value="web" className="flex-1 data-[state=active]:bg-background data-[state=active]:text-foreground">Akses Web</TabsTrigger>
+                  <TabsTrigger value="sanctum" className="flex-1 data-[state=active]:bg-background data-[state=active]:text-foreground">Akses API</TabsTrigger>
                 </TabsList>
               </div>
 
@@ -257,13 +259,13 @@ export default function RolesPermissionsView() {
                   <Button
                     key={r.id}
                     variant={selectedRoleId === r.id ? 'default' : 'outline'}
-                    className={`w-full justify-start transition-all duration-200 ${selectedRoleId === r.id
-                      ? 'bg-primary/10 dark:bg-primary/20 hover:bg-blue-200 dark:hover:bg-primary/30 text-primary dark:text-primary-foreground border-primary/30 dark:border-primary/50'
-                      : 'bg-slate-100/50 dark:bg-white/5 hover:bg-slate-200/50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                    className={`w-full justify-start transition-all duration-200 text-xs min-h-10 ${selectedRoleId === r.id
+                      ? 'bg-primary/10 border-primary/40 text-primary font-medium hover:bg-primary/15'
+                      : 'bg-card/60 hover:bg-muted/40 border-border/60 text-foreground'
                       }`}
                     onClick={() => setSelectedRoleId(r.id)}
                   >
-                    <Shield className={`mr-2 h-4 w-4 ${selectedRoleId === r.id ? 'text-primary dark:text-primary' : 'text-muted-foreground'}`} />
+                    <Shield className={`mr-2 h-4 w-4 ${selectedRoleId === r.id ? 'text-primary' : 'text-muted-foreground'}`} />
                     {r.name}
                   </Button>
                 ))}
@@ -279,7 +281,7 @@ export default function RolesPermissionsView() {
       <motion.div variants={itemVariants} className="md:col-span-2">
         <GlassCard className="h-full relative overflow-hidden">
           <div className="absolute inset-0 bg-primary/5" />
-          <GlassCardHeader className="relative z-10">
+          <GlassCardHeader className="relative z-10 border-b border-border/60">
             <GlassCardTitle className="flex items-center gap-2">
               <Lock className="h-5 w-5 text-primary" />
               Permissions Management
@@ -292,12 +294,12 @@ export default function RolesPermissionsView() {
               </div>
             ) : selectedRole ? (
               <div className="space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border/60">
                   <div>
                     <div className="text-sm text-muted-foreground">Selected Role</div>
-                    <div className="text-lg font-semibold text-primary dark:text-primary-foreground">{selectedRole.name}</div>
+                    <div className="text-lg font-semibold text-foreground">{selectedRole.name}</div>
                   </div>
-                  <Shield className="h-8 w-8 text-purple-200 dark:text-primary/20" />
+                  <Shield className="h-8 w-8 text-primary/30" />
                 </div>
 
                 <div className="space-y-6">
@@ -307,10 +309,10 @@ export default function RolesPermissionsView() {
 
                     return (
                       <div key={category} className="space-y-3">
-                        <div className="flex items-center justify-between pb-2 border-b border-slate-200 dark:border-white/10">
+                        <div className="flex items-center justify-between pb-2 border-b border-border/60">
                           <div className="flex items-center gap-3">
-                            <h3 className="font-medium text-primary dark:text-primary-foreground">{category}</h3>
-                            <Badge variant="outline" className="bg-slate-100/50 dark:bg-white/5 border-slate-200 dark:border-white/10">
+                            <h3 className="font-semibold text-primary">{category}</h3>
+                            <Badge variant="outline" className="bg-muted/50 border-border/60 text-foreground text-xs">
                               {groupSelectedCount} / {perms.length}
                             </Badge>
                           </div>
@@ -318,7 +320,7 @@ export default function RolesPermissionsView() {
                             variant="ghost"
                             size="sm"
                             onClick={() => toggleAllGroup(perms)}
-                            className="text-xs text-muted-foreground hover:text-slate-800 dark:hover:text-white"
+                            className="text-xs text-muted-foreground hover:text-foreground"
                           >
                             {isAllSelected ? 'Deselect All' : 'Select All'}
                           </Button>
@@ -329,16 +331,16 @@ export default function RolesPermissionsView() {
                             return (
                               <motion.label
                                 key={p.id}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all duration-200 ${checked
-                                  ? 'bg-primary/10 dark:bg-primary/20 border-primary/30 dark:border-primary/50 text-primary dark:text-primary-foreground shadow-[0_0_10px_rgba(168,85,247,0.05)] dark:shadow-[0_0_10px_rgba(168,85,247,0.15)]'
-                                  : 'bg-slate-100/50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:bg-slate-200/50 dark:hover:bg-white/10 text-muted-foreground'
+                                whileHover={{ scale: 1.01 }}
+                                whileTap={{ scale: 0.99 }}
+                                className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 ${checked
+                                  ? 'bg-primary/10 border-primary/40 text-primary font-medium shadow-sm'
+                                  : 'bg-muted/30 border-border/60 text-muted-foreground hover:bg-muted/50 hover:text-foreground'
                                   }`}
                               >
-                                <div className={`flex items-center justify-center w-5 h-5 rounded border ${checked ? 'bg-primary border-primary' : 'border-slate-300 dark:border-white/30'
+                                <div className={`flex items-center justify-center w-5 h-5 rounded border ${checked ? 'bg-primary border-primary' : 'border-input/60'
                                   }`}>
-                                  {checked && <CheckCircle2 className="w-4 h-4 text-white" />}
+                                  {checked && <CheckCircle2 className="w-4 h-4 text-primary-foreground" />}
                                 </div>
                                 <input
                                   type="checkbox"
@@ -356,24 +358,26 @@ export default function RolesPermissionsView() {
                   })}
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 border-t border-slate-200 dark:border-white/10">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-border/60">
                   <Button
                     variant="outline"
                     onClick={loadData}
-                    className="border-slate-200 dark:border-white/10 hover:bg-slate-200/50 dark:hover:bg-white/10 hover:text-slate-800 dark:hover:text-white"
+                    className="border-border/60 bg-card hover:bg-muted text-foreground w-full sm:w-auto min-h-11 sm:min-h-10 text-xs"
                   >
-                    <RotateCcw className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Reset</span></Button>
+                    <RotateCcw className="h-4 w-4 mr-2" /> <span>Reset</span>
+                  </Button>
                   <Button
                     onClick={savePermissions}
                     disabled={isLoading}
-                    className="bg-primary/10 dark:bg-primary/20 hover:bg-purple-200 dark:hover:bg-primary/40 text-primary dark:text-primary-foreground border border-primary/30 dark:border-primary/30"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium shadow-sm w-full sm:w-auto min-h-11 sm:min-h-10 text-xs"
                   >
-                    <Save className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Save Changes</span></Button>
+                    <Save className="h-4 w-4 mr-2" /> <span>Save Changes</span>
+                  </Button>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-60 text-muted-foreground space-y-4">
-                <Shield className="h-16 w-16 text-slate-200 dark:text-white/10" />
+                <Shield className="h-16 w-16 text-muted-foreground/30" />
                 <p>Select a role to manage permissions</p>
               </div>
             )}

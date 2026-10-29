@@ -214,9 +214,9 @@ export function ProgramForm({
                 disabled={index > activeStep}
                 className={cn(
                   'flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors',
-                  index === activeStep && 'border-primary bg-primary text-primary-foreground',
+                  index === activeStep && 'border-primary bg-primary text-primary-foreground shadow-sm',
                   index < activeStep && 'border-primary/30 bg-primary/10 text-primary',
-                  index > activeStep && 'cursor-not-allowed border-zinc-200 text-zinc-400 dark:border-zinc-800',
+                  index > activeStep && 'cursor-not-allowed border-border/50 text-muted-foreground/50',
                 )}
               >
                 <span className="grid size-5 place-items-center rounded-full border border-current text-xs">
@@ -241,15 +241,21 @@ export function ProgramForm({
         />
       </div>
 
-      <div className="flex flex-col-reverse gap-3 border-t border-zinc-200 pt-5 dark:border-zinc-800 sm:flex-row sm:justify-between">
-        <Button type="button" variant="ghost" onClick={onCancel}>Batal</Button>
-        <div className="flex gap-2">
+      <div className="flex flex-col-reverse gap-3 border-t border-border/60 pt-5 sm:flex-row sm:justify-between items-center">
+        <Button type="button" variant="ghost" onClick={onCancel} className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs">
+          Batal
+        </Button>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           {activeStep > 0 && (
-            <Button type="button" variant="outline" onClick={() => setActiveStep((current) => current - 1)}>
+            <Button type="button" variant="outline" onClick={() => setActiveStep((current) => current - 1)} className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs">
               <ArrowLeft className="mr-2 size-4" />Kembali
             </Button>
           )}
-          <Button type="submit" disabled={isLoading || (activeStep === 0 && !basicsValid) || (activeStep === steps.length - 1 && !reviewValid)}>
+          <Button
+            type="submit"
+            disabled={isLoading || (activeStep === 0 && !basicsValid) || (activeStep === steps.length - 1 && !reviewValid)}
+            className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium"
+          >
             {activeStep === steps.length - 1 ? (isLoading ? 'Menyimpan…' : 'Simpan program') : <>Lanjut<ArrowRight className="ml-2 size-4" /></>}
           </Button>
         </div>

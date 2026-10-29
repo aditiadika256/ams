@@ -219,28 +219,28 @@ export function ProgramDeliveryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92dvh] max-w-4xl overflow-y-auto bg-white dark:bg-zinc-950">
+      <DialogContent className="max-h-[92dvh] max-w-4xl overflow-y-auto border border-border/60 bg-card/95 backdrop-blur-xl">
         <DialogHeader>
-          <DialogTitle>Batch & sesi · {program?.name}</DialogTitle>
+          <DialogTitle className="text-foreground">Batch & sesi · {program?.name}</DialogTitle>
           <DialogDescription className="sr-only">Pengaturan jadwal batch dan sesi belajar program</DialogDescription>
         </DialogHeader>
         {batches.length === 0 && !loading ? (
-          <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-zinc-500">
+          <div className="rounded-2xl border border-dashed border-border/80 p-8 text-center text-sm text-muted-foreground">
             Buat Batch melalui editor Program sebelum menambahkan sesi.
           </div>
         ) : (
           <div className="grid gap-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div className="grid min-w-64 gap-2">
-                <Label htmlFor="delivery-batch">Batch</Label>
+                <Label htmlFor="delivery-batch" className="text-foreground">Batch</Label>
                 <Select
                   value={batchId ? String(batchId) : undefined}
                   onValueChange={(value) => void chooseBatch(value)}
                 >
-                  <SelectTrigger id="delivery-batch">
+                  <SelectTrigger id="delivery-batch" className="h-10 bg-background/70 border-input/60 text-foreground">
                     <SelectValue placeholder="Pilih Batch" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-card/95 border-border/60">
                     {batches.map((batch) => (
                       <SelectItem key={batch.id} value={String(batch.id)}>
                         {batch.name} · {batch.code}
@@ -249,7 +249,7 @@ export function ProgramDeliveryDialog({
                   </SelectContent>
                 </Select>
               </div>
-              <Button onClick={() => openForm()} disabled={!batchId}>
+              <Button onClick={() => openForm()} disabled={!batchId} className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs">
                 <Plus className="mr-2 size-4" />
                 Tambah sesi
               </Button>
@@ -257,47 +257,50 @@ export function ProgramDeliveryDialog({
             {editing && (
               <form
                 onSubmit={submit}
-                className="grid gap-4 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-800 md:grid-cols-2"
+                className="grid gap-4 rounded-2xl border border-border/60 bg-muted/20 p-5 md:grid-cols-2"
               >
                 <div className="grid gap-2 md:col-span-2">
-                  <Label htmlFor="session-title">Judul sesi</Label>
+                  <Label htmlFor="session-title" className="text-foreground">Judul sesi</Label>
                   <Input
                     id="session-title"
                     required
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
+                    className="h-10 bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="session-start">Mulai</Label>
+                  <Label htmlFor="session-start" className="text-foreground">Mulai</Label>
                   <Input
                     id="session-start"
                     required
                     type="datetime-local"
                     value={startsAt}
                     onChange={(event) => setStartsAt(event.target.value)}
+                    className="h-10 bg-background/70 border-input/60 text-foreground"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="session-end">Selesai</Label>
+                  <Label htmlFor="session-end" className="text-foreground">Selesai</Label>
                   <Input
                     id="session-end"
                     required
                     type="datetime-local"
                     value={endsAt}
                     onChange={(event) => setEndsAt(event.target.value)}
+                    className="h-10 bg-background/70 border-input/60 text-foreground"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="session-mode">Mode delivery</Label>
+                  <Label htmlFor="session-mode" className="text-foreground">Mode delivery</Label>
                   <Select
                     value={mode}
                     onValueChange={(value) => setMode(value as BatchMode)}
                   >
-                    <SelectTrigger id="session-mode">
+                    <SelectTrigger id="session-mode" className="h-10 bg-background/70 border-input/60 text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-card/95 border-border/60">
                       <SelectItem value="ONLINE">Online</SelectItem>
                       <SelectItem value="OFFLINE">Offline</SelectItem>
                       <SelectItem value="HYBRID">Hybrid</SelectItem>
@@ -305,7 +308,7 @@ export function ProgramDeliveryDialog({
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="mentor-assignment-mode">
+                  <Label htmlFor="mentor-assignment-mode" className="text-foreground">
                     Penetapan mentor
                   </Label>
                   <Select
@@ -314,10 +317,10 @@ export function ProgramDeliveryDialog({
                       setMentorMode(value as MentorMode)
                     }
                   >
-                    <SelectTrigger id="mentor-assignment-mode">
+                    <SelectTrigger id="mentor-assignment-mode" className="h-10 bg-background/70 border-input/60 text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-card/95 border-border/60">
                       <SelectItem value="ADMIN">Ditentukan admin</SelectItem>
                       <SelectItem value="STUDENT">Dipilih peserta</SelectItem>
                       <SelectItem value="HYBRID">
@@ -327,43 +330,47 @@ export function ProgramDeliveryDialog({
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="session-capacity">Kapasitas</Label>
+                  <Label htmlFor="session-capacity" className="text-foreground">Kapasitas</Label>
                   <Input
                     id="session-capacity"
                     type="number"
                     min="1"
                     value={capacity}
                     onChange={(event) => setCapacity(event.target.value)}
+                    className="h-10 bg-background/70 border-input/60 text-foreground"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="session-location">Lokasi</Label>
+                  <Label htmlFor="session-location" className="text-foreground">Lokasi</Label>
                   <Input
                     id="session-location"
                     required={mode !== "ONLINE"}
                     value={location}
                     onChange={(event) => setLocation(event.target.value)}
+                    className="h-10 bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
                 <div className="grid gap-2 md:col-span-2">
-                  <Label htmlFor="session-url">Meeting URL</Label>
+                  <Label htmlFor="session-url" className="text-foreground">Meeting URL</Label>
                   <Input
                     id="session-url"
                     type="url"
                     required={mode !== "OFFLINE"}
                     value={meetingUrl}
                     onChange={(event) => setMeetingUrl(event.target.value)}
+                    className="h-10 bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                   />
                 </div>
-                <div className="flex justify-end gap-2 md:col-span-2">
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 md:col-span-2">
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={() => setEditing(false)}
+                    className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs"
                   >
                     Batal
                   </Button>
-                  <Button type="submit" disabled={loading}>
+                  <Button type="submit" disabled={loading} className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium">
                     {loading ? "Menyimpan…" : "Simpan sesi"}
                   </Button>
                 </div>
@@ -373,7 +380,7 @@ export function ProgramDeliveryDialog({
               {sessions.map((session) => (
                 <article
                   key={session.id}
-                  className="rounded-2xl border border-zinc-200 p-4 dark:border-zinc-800"
+                  className="rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm p-4 hover:border-primary/40 transition-colors"
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex gap-3">
@@ -382,8 +389,8 @@ export function ProgramDeliveryDialog({
                         aria-hidden="true"
                       />
                       <div>
-                        <h3 className="font-semibold">{session.title}</h3>
-                        <p className="mt-1 text-sm text-zinc-500">
+                        <h3 className="font-semibold text-foreground">{session.title}</h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {new Date(session.starts_at).toLocaleString("id-ID")}{" "}
                           · {session.mode} · mentor{" "}
                           {session.mentor_assignment_mode.toLowerCase()}
@@ -395,6 +402,7 @@ export function ProgramDeliveryDialog({
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="text-muted-foreground hover:text-foreground"
                         aria-label={`Edit ${session.title}`}
                         onClick={() => openForm(session)}
                       >
@@ -406,13 +414,14 @@ export function ProgramDeliveryDialog({
                             variant="outline"
                             size="sm"
                             onClick={() => void schedule(session)}
+                            className="text-xs"
                           >
                             Jadwalkan
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-red-600"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
                             aria-label={`Hapus ${session.title}`}
                             onClick={() => void remove(session)}
                           >
@@ -434,7 +443,7 @@ export function ProgramDeliveryDialog({
                 </article>
               ))}
               {sessions.length === 0 && !loading && (
-                <p className="rounded-2xl border border-dashed p-8 text-center text-sm text-zinc-500">
+                <p className="rounded-2xl border border-dashed border-border/80 p-8 text-center text-sm text-muted-foreground">
                   Belum ada sesi pada Batch ini.
                 </p>
               )}

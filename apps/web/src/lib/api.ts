@@ -578,7 +578,7 @@ export const apiClient = {
   // CMS endpoints
   cms: {
     posts: {
-      list: async (params?: { page?: number; limit?: number; search?: string; status?: string }) => {
+      list: async (params?: { page?: number; limit?: number; per_page?: number; search?: string; status?: string }) => {
         const response = await api.get<ApiResponse<any>>('/cms/posts', { params });
         return response.data;
       },
@@ -916,6 +916,7 @@ export const apiClient = {
         type?: 'all' | 'pdf' | 'video' | 'audio' | 'image' | 'document';
         folder?: string;
         page?: number;
+        limit?: number;
         per_page?: number;
       }) => {
         const response = await api.get<ApiResponse<MediaAsset[]> & { meta?: { total_storage_bytes?: number; total_storage_mb?: number } }>(
@@ -962,7 +963,7 @@ export const apiClient = {
       },
     },
     users: {
-      list: async (params?: { page?: number; limit?: number; search?: string; role?: string; branch_id?: number; fields?: string }) => {
+      list: async (params?: { page?: number; limit?: number; per_page?: number; search?: string; role?: string; branch_id?: number; fields?: string }) => {
         const response = await api.get<ApiResponse<any>>('/admin/users', { params });
         return response.data;
       },
@@ -1039,7 +1040,7 @@ export const apiClient = {
       },
     },
     withdrawals: {
-      list: async (params?: { status?: string; page?: number }) => {
+      list: async (params?: { status?: string; search?: string; page?: number; limit?: number; per_page?: number }) => {
         const response = await api.get<ApiResponse<any>>('/admin/withdrawals', { params });
         return response.data;
       },
@@ -1053,7 +1054,7 @@ export const apiClient = {
       },
     },
     mentorApplications: {
-      list: async (params?: { status?: string; search?: string; page?: number }) => {
+      list: async (params?: { status?: string; search?: string; page?: number; limit?: number; per_page?: number }) => {
         const response = await api.get<ApiResponse<any>>('/admin/mentor-applications', { params });
         return response.data;
       },
@@ -1072,7 +1073,7 @@ export const apiClient = {
       },
     },
     store: {
-      products: async (params?: { category?: string; search?: string; page?: number }) => {
+      products: async (params?: { category?: string; search?: string; page?: number; limit?: number; per_page?: number }) => {
         const response = await api.get<ApiResponse<any>>('/admin/store/products', { params });
         return response.data;
       },
@@ -1088,7 +1089,7 @@ export const apiClient = {
         const response = await api.delete<ApiResponse<any>>(`/admin/store/products/${id}`);
         return response.data;
       },
-      orders: async (params?: { status?: string; page?: number }) => {
+      orders: async (params?: { status?: string; search?: string; page?: number; limit?: number; per_page?: number }) => {
         const response = await api.get<ApiResponse<any>>('/admin/store/orders', { params });
         return response.data;
       },
@@ -1205,7 +1206,7 @@ export const apiClient = {
 
   // CBT Layer 1: Assessment Contexts & Questions
   assessment: {
-    getContexts: async (params?: { search?: string; media_type?: string; page?: number; per_page?: number }) => {
+    getContexts: async (params?: { search?: string; media_type?: string; page?: number; limit?: number; per_page?: number }) => {
       const response = await api.get<ApiResponse<any>>('/assessment/contexts', { params });
       return response.data;
     },
@@ -1234,6 +1235,7 @@ export const apiClient = {
       type?: string;
       status?: string;
       page?: number;
+      limit?: number;
       per_page?: number;
     }) => {
       const response = await api.get<ApiResponse<any>>('/assessment/questions', { params });
@@ -1262,6 +1264,7 @@ export const apiClient = {
       visual_mode?: string;
       scoring_mode?: string;
       page?: number;
+      limit?: number;
       per_page?: number;
     }) => {
       const response = await api.get<ApiResponse<any>>('/assessment/blueprints', { params });
@@ -1284,7 +1287,7 @@ export const apiClient = {
       return response.data;
     },
     // Layer 4 Live Proctoring & IRT Engine
-    getLiveAttempts: async (params?: { package_id?: number; status?: string; search?: string; per_page?: number }) => {
+    getLiveAttempts: async (params?: { package_id?: number; status?: string; search?: string; page?: number; limit?: number; per_page?: number }) => {
       const response = await api.get<ApiResponse<any>>('/assessment/proctor/live', { params });
       return response.data;
     },
@@ -1300,7 +1303,7 @@ export const apiClient = {
       const response = await api.post<ApiResponse<any>>(`/assessment/proctor/attempts/${attemptId}/action`, data);
       return response.data;
     },
-    getProctorIncidents: async (params?: { severity?: string; per_page?: number }) => {
+    getProctorIncidents: async (params?: { severity?: string; page?: number; limit?: number; per_page?: number }) => {
       const response = await api.get<ApiResponse<any>>('/assessment/proctor/incidents', { params });
       return response.data;
     },
@@ -1316,7 +1319,7 @@ export const apiClient = {
       const response = await api.post<ApiResponse<any>>(`/assessment/analysis/${packageId}/drop-question`, data);
       return response.data;
     },
-    getAssessmentResults: async (packageId: number, params?: { search?: string; page?: number; per_page?: number }) => {
+    getAssessmentResults: async (packageId: number, params?: { search?: string; page?: number; limit?: number; per_page?: number }) => {
       const response = await api.get<ApiResponse<any>>(`/assessment/results/${packageId}`, { params });
       return response.data;
     },
@@ -1324,7 +1327,7 @@ export const apiClient = {
 
   // Installments & Drip Lock
   installments: {
-    getTrackers: async (params?: { status?: string; program_id?: number; search?: string; page?: number; per_page?: number }) => {
+    getTrackers: async (params?: { status?: string; program_id?: number; search?: string; page?: number; limit?: number; per_page?: number }) => {
       const response = await api.get<ApiResponse<any>>('/admin/enrollments/installments', { params });
       return response.data;
     },
@@ -1340,7 +1343,7 @@ export const apiClient = {
 
   // Physical Rooms (Branch Classrooms)
   physicalRooms: {
-    list: async (params?: { branch_id?: number; is_active?: boolean; search?: string; page?: number; per_page?: number }) => {
+    list: async (params?: { branch_id?: number; is_active?: boolean; search?: string; page?: number; limit?: number; per_page?: number }) => {
       const response = await api.get<ApiResponse<any>>('/admin/physical-rooms', { params });
       return response.data;
     },
@@ -1360,7 +1363,7 @@ export const apiClient = {
 
   // Wallet Holds (Hold Balance & Disputes)
   walletHolds: {
-    list: async (params?: { status?: string; search?: string; page?: number; per_page?: number }) => {
+    list: async (params?: { status?: string; search?: string; page?: number; limit?: number; per_page?: number }) => {
       const response = await api.get<ApiResponse<any>>('/finance/holds', { params });
       return response.data;
     },

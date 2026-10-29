@@ -180,35 +180,35 @@ export default function SchedulePhysicalRoomView() {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-6">
         <div>
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/20 text-primary">
               <DoorClosed className="size-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 Inventaris Ruang Fisik Cabang
-                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20 text-[10px]">
                   Schedule Tool
                 </Badge>
               </h1>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 Pengelolaan ruang kelas tatap muka, alokasi kapasitas kursi, dan mitigasi bentrok jadwal
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="sm"
             onClick={fetchRooms}
             disabled={isLoading}
-            className="text-xs h-9 bg-card/60 backdrop-blur-md border-border/40 hover:bg-card/90"
+            className="w-full sm:w-auto min-h-11 sm:min-h-9 text-xs bg-card/85 backdrop-blur-xl border-border/60 hover:bg-muted"
           >
             <RefreshCw className={`size-3.5 mr-1.5 ${isLoading ? 'animate-spin' : ''}`} /> Segarkan
           </Button>
@@ -216,7 +216,7 @@ export default function SchedulePhysicalRoomView() {
           <Button
             size="sm"
             onClick={openCreateModal}
-            className="text-xs h-9 bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+            className="w-full sm:w-auto min-h-11 sm:min-h-9 text-xs bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
           >
             <Plus className="size-3.5 mr-1.5" /> Tambah Ruangan Baru
           </Button>
@@ -224,21 +224,22 @@ export default function SchedulePhysicalRoomView() {
       </div>
 
       {/* Filters & Search */}
-      <div className="flex flex-col md:flex-row items-center gap-3">
+      <div className="flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             placeholder="Cari nomor atau nama ruangan..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 text-xs bg-card/40 backdrop-blur-md border-border/40 focus:border-primary/60"
+            className="pl-9 h-10 text-xs bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/40"
           />
         </div>
 
         <select
           value={selectedBranchId}
+          aria-label="Filter kantor cabang"
           onChange={(e) => setSelectedBranchId(e.target.value)}
-          className="h-9 px-3 rounded-lg text-xs bg-card/40 backdrop-blur-md border border-border/40 text-foreground focus:outline-none focus:border-primary/60 min-w-[200px]"
+          className="h-10 px-3 rounded-xl text-xs bg-background/70 border border-input/60 text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40 w-full sm:w-auto min-w-[200px]"
         >
           <option value="all">Semua Kantor Cabang</option>
           {branches.map((b) => (
@@ -256,13 +257,13 @@ export default function SchedulePhysicalRoomView() {
           Memuat inventaris ruangan fisik…
         </div>
       ) : rooms.length === 0 ? (
-        <div className="p-12 text-center rounded-xl border border-dashed border-border/60 bg-card/20 backdrop-blur-md">
+        <div className="p-8 sm:p-12 text-center rounded-2xl border border-dashed border-border/80 bg-card/40 backdrop-blur-sm">
           <DoorClosed className="size-10 mx-auto text-muted-foreground/40 mb-3" />
           <div className="text-sm font-semibold text-foreground">Belum Ada Ruang Kelas</div>
           <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
             Mulai tambahkan inventaris ruang kelas untuk mendukung pelaksanaan program belajar offline tatap muka.
           </p>
-          <Button size="sm" onClick={openCreateModal} className="mt-4 text-xs">
+          <Button size="sm" onClick={openCreateModal} className="mt-4 text-xs min-h-10">
             <Plus className="size-3.5 mr-1" /> Tambah Ruangan Pertama
           </Button>
         </div>
@@ -271,12 +272,12 @@ export default function SchedulePhysicalRoomView() {
           {rooms.map((room) => (
             <div
               key={room.id}
-              className="p-5 rounded-xl border border-border/50 bg-card/40 backdrop-blur-md hover:border-primary/40 transition-all shadow-sm flex flex-col justify-between gap-4 group"
+              className="p-5 rounded-2xl border border-border/60 bg-card/85 backdrop-blur-xl hover:border-primary/40 transition-all shadow-sm flex flex-col justify-between gap-4 group"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-primary px-2 py-0.5 rounded bg-primary/10 border border-primary/20">
+                    <span className="font-mono font-bold text-sm text-primary px-2 py-0.5 rounded-lg bg-primary/10 border border-primary/20">
                       {room.room_number}
                     </span>
                     <Badge variant="outline" className="text-[10px] text-muted-foreground">
@@ -288,8 +289,8 @@ export default function SchedulePhysicalRoomView() {
                     variant="outline"
                     className={`text-[10px] ${
                       room.is_active
-                        ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                        : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/30'
+                        ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                        : 'bg-muted text-muted-foreground border-border/60'
                     }`}
                   >
                     {room.is_active ? 'TERSEDIA' : 'NON-AKTIF'}
@@ -306,11 +307,11 @@ export default function SchedulePhysicalRoomView() {
                 </div>
 
                 {/* Facilities Tags */}
-                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/30">
+                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/40">
                   {room.facilities?.map((f) => (
                     <span
                       key={f}
-                      className="px-2 py-0.5 rounded text-[10px] bg-muted/40 text-muted-foreground border border-border/30"
+                      className="px-2 py-0.5 rounded-md text-[10px] bg-muted/50 text-muted-foreground border border-border/40"
                     >
                       {f}
                     </span>
@@ -319,12 +320,12 @@ export default function SchedulePhysicalRoomView() {
               </div>
 
               {/* Actions Footer */}
-              <div className="flex items-center justify-end gap-2 border-t border-border/30 pt-3">
+              <div className="flex items-center justify-end gap-2 border-t border-border/40 pt-3">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => openEditModal(room)}
-                  className="h-7 px-2.5 text-[11px] bg-card hover:bg-card/80 border-border/40"
+                  className="h-8 px-2.5 text-[11px] bg-card hover:bg-muted border-border/60 text-foreground"
                 >
                   <Edit2 className="size-3 mr-1" /> Ubah
                 </Button>
@@ -332,7 +333,7 @@ export default function SchedulePhysicalRoomView() {
                   variant="outline"
                   size="sm"
                   onClick={() => handleDelete(room.id)}
-                  className="h-7 px-2.5 text-[11px] bg-red-500/10 hover:bg-red-500/20 text-red-300 border-red-500/30"
+                  className="h-8 px-2.5 text-[11px] bg-destructive/10 hover:bg-destructive/20 text-destructive border-destructive/30"
                 >
                   <Trash2 className="size-3" />
                 </Button>
@@ -346,7 +347,7 @@ export default function SchedulePhysicalRoomView() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-md bg-card/95 backdrop-blur-xl border-border/60">
           <DialogHeader>
-            <DialogTitle className="text-sm font-semibold flex items-center gap-2">
+            <DialogTitle className="text-base font-semibold flex items-center gap-2 text-foreground">
               <DoorClosed className="size-4 text-primary" />{' '}
               {editingId ? 'Perbarui Ruang Kelas' : 'Tambah Ruang Kelas Baru'}
             </DialogTitle>
@@ -354,11 +355,12 @@ export default function SchedulePhysicalRoomView() {
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
             <div className="space-y-1.5">
-              <Label className="text-xs">Kantor Cabang</Label>
+              <Label className="text-xs text-foreground">Kantor Cabang</Label>
               <select
                 value={branchId ?? ''}
+                aria-label="Pilih kantor cabang"
                 onChange={(e) => setBranchId(e.target.value ? Number(e.target.value) : null)}
-                className="w-full h-9 px-3 rounded-lg text-xs bg-background/50 border border-border/50 text-foreground focus:outline-none focus:border-primary/60"
+                className="w-full h-10 px-3 rounded-xl text-xs bg-background/70 border border-input/60 text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
               >
                 <option value="">Pusat / Tanpa Cabang Khusus</option>
                 {branches.map((b) => (
@@ -369,47 +371,47 @@ export default function SchedulePhysicalRoomView() {
               </select>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label className="text-xs">Kode / Nomor Ruang</Label>
+                <Label className="text-xs text-foreground">Kode / Nomor Ruang</Label>
                 <Input
                   value={roomNumber}
                   onChange={(e) => setRoomNumber(e.target.value)}
                   placeholder="misal: R.101"
-                  className="h-9 text-xs font-mono"
+                  className="h-10 text-xs font-mono bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Kapasitas Kursi</Label>
+                <Label className="text-xs text-foreground">Kapasitas Kursi</Label>
                 <Input
                   type="number"
                   min={1}
                   max={500}
                   value={capacity}
                   onChange={(e) => setCapacity(Number(e.target.value))}
-                  className="h-9 text-xs font-mono"
+                  className="h-10 text-xs font-mono bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Nama Deskriptif Ruang</Label>
+              <Label className="text-xs text-foreground">Nama Deskriptif Ruang</Label>
               <Input
                 value={roomName}
                 onChange={(e) => setRoomName(e.target.value)}
                 placeholder="misal: Ruang Teori Al-Khawarizmi"
-                className="h-9 text-xs"
+                className="h-10 text-xs bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                 required
               />
             </div>
 
             {/* Facilities Selector */}
             <div className="space-y-2">
-              <Label className="text-xs">Fasilitas Tersedia</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <Label className="text-xs text-foreground">Fasilitas Tersedia</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {AVAILABLE_FACILITIES.map((fac) => {
                   const checked = facilities.includes(fac);
                   return (
@@ -417,10 +419,10 @@ export default function SchedulePhysicalRoomView() {
                       key={fac}
                       type="button"
                       onClick={() => toggleFacility(fac)}
-                      className={`flex items-center gap-2 p-2 rounded-lg text-left text-xs transition-all border ${
+                      className={`flex items-center gap-2 p-2.5 rounded-xl text-left text-xs transition-all border ${
                         checked
                           ? 'bg-primary/10 border-primary/40 text-primary font-medium'
-                          : 'bg-card/40 border-border/30 text-muted-foreground hover:bg-card/70'
+                          : 'bg-background/60 border-border/50 text-muted-foreground hover:bg-muted/50'
                       }`}
                     >
                       <div
@@ -440,7 +442,7 @@ export default function SchedulePhysicalRoomView() {
             </div>
 
             {/* Active Toggle */}
-            <div className="flex items-center justify-between p-3 rounded-lg bg-card/40 border border-border/30">
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/50">
               <div>
                 <div className="text-xs font-semibold text-foreground">Status Ruangan Aktif</div>
                 <div className="text-[10px] text-muted-foreground">
@@ -450,16 +452,16 @@ export default function SchedulePhysicalRoomView() {
               <Switch checked={isActive} onCheckedChange={setIsActive} />
             </div>
 
-            <DialogFooter className="pt-2">
+            <DialogFooter className="pt-2 flex-col-reverse sm:flex-row gap-2">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsModalOpen(false)}
-                className="text-xs"
+                className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs"
               >
                 Batal
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="text-xs">
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium">
                 {isSubmitting ? 'Menyimpan…' : editingId ? 'Perbarui Ruang' : 'Simpan Ruangan'}
               </Button>
             </DialogFooter>

@@ -100,13 +100,13 @@ export function ProgramMentorAssignments({
   };
 
   return (
-    <div className="mt-4 grid gap-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+    <div className="mt-4 grid gap-3 border-t border-border/60 pt-4">
       <div className="flex flex-wrap gap-2">
         {(session.mentor_assignments ?? []).map((assignment) => (
           <Badge
             key={assignment.id}
             variant="secondary"
-            className="min-h-8 gap-2 pl-3"
+            className="min-h-8 gap-2 pl-3 bg-muted/60 text-foreground border-border/60"
           >
             <span>
               {assignment.mentor.name}
@@ -119,25 +119,25 @@ export function ProgramMentorAssignments({
               aria-label={`Akhiri assignment ${assignment.mentor.name}`}
               disabled={saving}
               onClick={() => void end(assignment.id)}
-              className="grid size-6 place-items-center rounded-full hover:bg-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary dark:hover:bg-zinc-700"
+              className="grid size-6 place-items-center rounded-full hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 text-muted-foreground hover:text-foreground"
             >
               <X className="size-3" aria-hidden="true" />
             </button>
           </Badge>
         ))}
         {!session.mentor_assignments?.length && (
-          <span className="text-sm text-zinc-500">Belum ada mentor aktif.</span>
+          <span className="text-sm text-muted-foreground">Belum ada mentor aktif.</span>
         )}
       </div>
       {canAssign ? (
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_120px_auto] sm:items-end">
           <div className="grid gap-2">
-            <Label htmlFor={`mentor-${session.id}`}>Tambah mentor</Label>
+            <Label htmlFor={`mentor-${session.id}`} className="text-foreground">Tambah mentor</Label>
             <Select value={mentorId} onValueChange={setMentorId}>
-              <SelectTrigger id={`mentor-${session.id}`}>
+              <SelectTrigger id={`mentor-${session.id}`} className="h-10 bg-background/70 border-input/60 text-foreground">
                 <SelectValue placeholder="Pilih mentor aktif" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-card/95 border-border/60">
                 {available.map((mentor) => (
                   <SelectItem key={mentor.id} value={String(mentor.id)}>
                     {mentor.name}
@@ -148,7 +148,7 @@ export function ProgramMentorAssignments({
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor={`mentor-capacity-${session.id}`}>Kapasitas</Label>
+            <Label htmlFor={`mentor-capacity-${session.id}`} className="text-foreground">Kapasitas</Label>
             <Input
               id={`mentor-capacity-${session.id}`}
               type="number"
@@ -156,19 +156,21 @@ export function ProgramMentorAssignments({
               value={capacity}
               onChange={(event) => setCapacity(event.target.value)}
               placeholder="Tanpa batas"
+              className="h-10 bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
             />
           </div>
           <Button
             type="button"
             disabled={!mentorId || saving}
             onClick={() => void assign()}
+            className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium"
           >
             <UserPlus className="mr-2 size-4" aria-hidden="true" />
             Tetapkan
           </Button>
         </div>
       ) : (
-        <p className="text-sm text-zinc-500" role="status">
+        <p className="text-sm text-muted-foreground" role="status">
           Mentor baru hanya dapat ditetapkan pada sesi terjadwal atau
           berlangsung. Assignment aktif tetap dapat diakhiri.
         </p>

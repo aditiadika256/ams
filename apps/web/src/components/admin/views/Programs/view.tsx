@@ -261,20 +261,20 @@ export default function ProgramsView() {
       <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">Learning operations</p>
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">Master Program</h1>
-          <p className="mt-2 max-w-2xl text-sm text-zinc-500">Kelola katalog, komponen, collection, dan batch dari satu workspace administrasi.</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Master Program</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Kelola katalog, komponen, collection, dan batch dari satu workspace administrasi.</p>
         </div>
-        {canCreate && <Button onClick={openCreate} className="min-h-11"><Plus className="mr-2 size-4" />Tambah program</Button>}
+        {canCreate && <Button onClick={openCreate} className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium"><Plus className="mr-2 size-4" />Tambah program</Button>}
       </header>
 
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-950 dark:bg-red-950/40 dark:text-red-300">{error}</div>}
 
-      <Card className="border-zinc-200 shadow-none dark:border-zinc-800">
-        <CardHeader className="gap-4 border-b border-zinc-200 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between">
+      <Card className="border border-border/60 bg-card/85 backdrop-blur-xl rounded-2xl shadow-sm">
+        <CardHeader className="gap-4 border-b border-border/60 sm:flex-row sm:items-center sm:justify-between">
           <CardTitle className="text-lg">Semua program</CardTitle>
           <div className="relative w-full sm:w-80">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-zinc-400" />
-            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama, slug, status, atau tag" className="min-h-11 pl-9" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari nama, slug, status, atau tag" className="min-h-10 pl-9 text-xs bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground" />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -310,14 +310,14 @@ export default function ProgramsView() {
               ))}
             </div>
           )}
-          <div className="border-t border-zinc-200 p-4 dark:border-zinc-800">
+          <div className="border-t border-border/60 p-4">
             <PaginationControls currentPage={page} lastPage={Math.max(1, Math.ceil(filtered.length / perPage))} total={filtered.length} from={filtered.length ? (page - 1) * perPage + 1 : 0} to={Math.min(page * perPage, filtered.length)} onPageChange={setPage} itemLabel="program" isLoading={isLoading} />
           </div>
         </CardContent>
       </Card>
 
       <Dialog open={dialogOpen} onOpenChange={(open) => !formLoading && setDialogOpen(open)}>
-        <DialogContent className="max-h-[92dvh] max-w-5xl overflow-y-auto bg-white dark:bg-zinc-950">
+        <DialogContent className="max-h-[92dvh] max-w-5xl overflow-y-auto border border-border/60 bg-card/95 backdrop-blur-xl">
           <DialogHeader>
             <DialogTitle>{selectedProgram ? `Edit ${selectedProgram.name}` : 'Tambah program baru'}</DialogTitle>
             <DialogDescription className="sr-only">Form wizard konfigurasi program dan silabus</DialogDescription>

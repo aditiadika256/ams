@@ -11,14 +11,19 @@ export function ProgramCollectionStep({ state, setState, programs }: ProgramStep
 
   return (
     <div className="grid gap-3">
-      <p className="text-sm text-zinc-500">Kosongkan jika program ini bukan collection. Cycle akan ditolak oleh backend.</p>
+      <p className="text-sm text-muted-foreground">Kosongkan jika program ini bukan collection. Cycle akan ditolak oleh backend.</p>
       {programs.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-6 text-sm text-zinc-500">Belum ada program lain yang dapat dipilih.</p>
+        <p className="rounded-2xl border border-dashed border-border/80 bg-card/40 backdrop-blur-sm p-6 text-sm text-muted-foreground text-center">
+          Belum ada program lain yang dapat dipilih.
+        </p>
       ) : programs.map((program) => (
-        <label key={program.id} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-zinc-200 px-4 py-3 dark:border-zinc-800">
-          <input type="checkbox" checked={state.childIds.includes(program.id)} onChange={() => toggle(program.id)} className="size-4 accent-primary" />
+        <label key={program.id} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl border border-border/60 bg-card/60 backdrop-blur-sm px-4 py-3 hover:bg-muted/40 transition-colors">
+          <input type="checkbox" checked={state.childIds.includes(program.id)} onChange={() => toggle(program.id)} className="size-4 accent-primary rounded" />
           <PackageOpen className="size-4 text-primary" aria-hidden="true" />
-          <span className="min-w-0"><span className="block truncate text-sm font-medium">{program.name}</span><span className="block truncate text-xs text-zinc-500">{program.slug}</span></span>
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-medium text-foreground">{program.name}</span>
+            <span className="block truncate text-xs text-muted-foreground">{program.slug}</span>
+          </span>
         </label>
       ))}
     </div>

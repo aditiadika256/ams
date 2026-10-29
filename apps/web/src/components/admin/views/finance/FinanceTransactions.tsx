@@ -49,8 +49,8 @@ export default function FinanceTransactions() {
         <div className="absolute inset-0 bg-primary/5" />
         <GlassCardHeader className="relative z-10">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-emerald-500/20">
-              <ArrowRightLeft className="h-5 w-5 text-emerald-400" />
+            <div className="p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/25">
+              <ArrowRightLeft className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
             </div>
             <div>
               <GlassCardTitle>Recent Transactions</GlassCardTitle>
@@ -61,7 +61,7 @@ export default function FinanceTransactions() {
           </div>
         </GlassCardHeader>
         <GlassCardContent className="relative z-10">
-          <div className="rounded-md border border-white/10 bg-white/5 overflow-hidden">
+          <div className="rounded-xl border border-border/60 bg-card/50 backdrop-blur-sm overflow-hidden">
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="border-border/20 hover:bg-muted/40">
@@ -91,14 +91,14 @@ export default function FinanceTransactions() {
                       <TableCell>
                         <span className={cn(
                           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border",
-                          trx.type === 'income' ? "bg-green-500/20 text-green-200 border-green-500/30" : "bg-red-500/20 text-red-200 border-red-500/30"
+                          trx.type === 'income' ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" : "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30"
                         )}>
                           {trx.type.toUpperCase()}
                         </span>
                       </TableCell>
                       <TableCell>{trx.category}</TableCell>
                       <TableCell>{trx.description}</TableCell>
-                      <TableCell className={cn("text-right font-medium", trx.type === 'income' ? "text-green-400" : "text-red-400")}>
+                      <TableCell className={cn("text-right font-medium", trx.type === 'income' ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400")}>
                         {trx.type === 'income' ? '+' : '-'}{formatCurrency(trx.amount)}
                       </TableCell>
                       <TableCell>
