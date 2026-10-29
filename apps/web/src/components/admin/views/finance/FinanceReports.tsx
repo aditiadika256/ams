@@ -77,7 +77,7 @@ export default function FinanceReports() {
           </div>
         </GlassCardHeader>
         <GlassCardContent className="relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 p-4 rounded-xl bg-background/50 border border-slate-200 dark:border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 p-4 rounded-xl bg-card/60 backdrop-blur-sm border border-border/60">
             <div>
               <label className="text-sm font-medium mb-1 flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-3 w-3" /> Start Date
@@ -103,7 +103,7 @@ export default function FinanceReports() {
             <div>
               <label className="text-sm font-medium mb-1 block text-muted-foreground">Type</label>
               <Select value={reportType} onValueChange={setReportType}>
-                <SelectTrigger className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
+                <SelectTrigger className="bg-background/70 border-input/60 text-foreground">
                   <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -115,7 +115,7 @@ export default function FinanceReports() {
             <div>
               <label className="text-sm font-medium mb-1 block text-muted-foreground">Group By</label>
               <Select value={groupBy} onValueChange={setGroupBy}>
-                <SelectTrigger className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
+                <SelectTrigger className="bg-background/70 border-input/60 text-foreground">
                   <SelectValue placeholder="Group By" />
                 </SelectTrigger>
                 <SelectContent>
@@ -128,7 +128,7 @@ export default function FinanceReports() {
               <Button 
                 onClick={generateReport} 
                 disabled={loading} 
-                className="w-full bg-primary/20 hover:bg-primary/40 text-primary-foreground border border-primary/30"
+                className="w-full min-h-10 bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-sm"
               >
                 {loading ? 'Generating...' : 'Generate Report'}
               </Button>
@@ -142,12 +142,12 @@ export default function FinanceReports() {
               className="space-y-4"
             >
               <div className="flex justify-end">
-                 <Button variant="outline" onClick={exportPDF} className="border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5">
+                 <Button variant="outline" onClick={exportPDF} className="border-border/60 hover:bg-muted/60">
                    <Download className="mr-2 h-4 w-4" />
                    Export PDF
                  </Button>
               </div>
-              <div className="rounded-md border border-border/20 overflow-hidden">
+              <div className="rounded-xl border border-border/60 bg-card/50 backdrop-blur-sm overflow-hidden">
                 <Table>
                   <TableHeader className="bg-muted/30">
                     <TableRow className="border-border/20 hover:bg-muted/40">

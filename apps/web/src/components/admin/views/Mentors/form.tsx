@@ -104,7 +104,7 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-4">
+    <form onSubmit={handleSubmit} className="space-y-4 py-3">
       <div className="space-y-2">
         <Label htmlFor="mentor-name">Nama Lengkap</Label>
         {initialData ? (
@@ -112,14 +112,14 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
             id="mentor-name"
             value={initialData.user?.name || ''}
             readOnly
-            className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+            className="bg-background/70 border-input/60 text-foreground"
           />
         ) : (
           <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={isLoadingUsers}>
-            <SelectTrigger id="mentor-name" className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
+            <SelectTrigger id="mentor-name" className="bg-background/70 border-input/60 text-foreground">
               <SelectValue placeholder={isLoadingUsers ? 'Loading users...' : 'Pilih user'} />
             </SelectTrigger>
-            <SelectContent className="border-slate-200 dark:border-white/10">
+            <SelectContent className="border-border/60 bg-popover text-popover-foreground">
               {isLoadingUsers ? (
                 <SelectItem value="loading" disabled className="cursor-not-allowed opacity-50">
                   Memuat user...
@@ -150,7 +150,7 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
           required
           placeholder="mentor@arkanin.id"
           readOnly
-          className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+          className="bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
@@ -162,7 +162,7 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
           onChange={(e) => setSpecialization(e.target.value)}
           required
           placeholder="Contoh: Frontend Development, UI/UX"
-          className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+          className="bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
@@ -174,7 +174,7 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
           value={experienceYears}
           onChange={(e) => setExperienceYears(Number(e.target.value))}
           required
-          className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+          className="bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
@@ -186,7 +186,7 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
           onChange={(e) => setBio(e.target.value)}
           rows={3}
           placeholder="Ceritakan sedikit tentang mentor..."
-          className="w-full p-2.5 rounded-md border border-input/50 bg-background/50 text-foreground text-sm focus:ring-1 focus:ring-primary focus:border-primary focus:outline-none dark:border-white/10 dark:bg-white/5"
+          className="w-full p-3 rounded-xl border border-input/60 bg-background/70 text-foreground text-sm placeholder:text-muted-foreground focus:ring-2 focus:ring-ring/40 focus:outline-none"
         />
       </div>
 
@@ -196,19 +196,24 @@ export function MentorForm({ initialData, onSubmit, onCancel, isLoading }: Mento
           type="checkbox"
           checked={isActive}
           onChange={(e) => setIsActive(e.target.checked)}
-          className="rounded border-input/50 bg-background/50 text-primary focus:ring-primary focus:ring-opacity-50 dark:border-white/10 dark:bg-white/5"
+          className="size-4 rounded border-input/60 bg-background/70 accent-primary"
         />
-        <Label htmlFor="is_active" className="cursor-pointer">Status Aktif</Label>
+        <Label htmlFor="is_active" className="cursor-pointer text-sm font-medium">Status Aktif</Label>
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 dark:border-white/10">
-        <Button type="button" variant="outline" onClick={onCancel} className="border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5">
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-2 pt-4 border-t border-border/60">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="w-full sm:w-auto min-h-11 sm:min-h-10 border-border/70 hover:bg-accent hover:text-accent-foreground"
+        >
           Batal
         </Button>
         <Button
           type="submit"
           disabled={isLoading || isLoadingUsers || (!initialData && !selectedUserId)}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="w-full sm:w-auto min-h-11 sm:min-h-10 bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           {isLoading ? 'Menyimpan...' : 'Simpan Mentor'}
         </Button>

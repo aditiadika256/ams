@@ -90,7 +90,7 @@ export default function DatabaseManagerView() {
             <div>
               <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
                 Database Manager & Maintenance
-                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">
+                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 text-[10px]">
                   PostgreSQL Cloud
                 </Badge>
               </h1>
@@ -194,8 +194,8 @@ export default function DatabaseManagerView() {
                 variant="outline"
                 className={`text-[9px] ${
                   t.status === 'HEALTHY'
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                    : 'bg-red-500/10 text-red-400 border-red-500/30'
+                    ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                    : 'bg-destructive/15 text-destructive border-destructive/30'
                 }`}
               >
                 {t.status}
@@ -254,8 +254,8 @@ export default function DatabaseManagerView() {
                           variant="outline"
                           className={`text-[9px] ${
                             log.status === 'success'
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                              : 'bg-red-500/10 text-red-400 border-red-500/30'
+                              ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+                              : 'bg-destructive/15 text-destructive border-destructive/30'
                           }`}
                         >
                           {log.status.toUpperCase()}

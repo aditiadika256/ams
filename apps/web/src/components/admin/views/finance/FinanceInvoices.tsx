@@ -48,7 +48,7 @@ export default function FinanceInvoices() {
       className="space-y-6"
     >
       <div className="flex justify-end mb-4">
-         <Button className="bg-primary/20 hover:bg-primary/40 text-primary-foreground border border-primary/30 backdrop-blur-sm">
+         <Button className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 shadow-sm min-h-11 sm:min-h-10">
            <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Create Invoice</span></Button>
       </div>
       <GlassCard className="overflow-hidden relative">
@@ -67,7 +67,7 @@ export default function FinanceInvoices() {
           </div>
         </GlassCardHeader>
         <GlassCardContent className="relative z-10">
-          <div className="rounded-md border border-border/20 bg-background/30 overflow-hidden">
+          <div className="rounded-xl border border-border/60 bg-card/50 backdrop-blur-sm overflow-hidden">
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="border-border/20 hover:bg-muted/40">
@@ -93,16 +93,16 @@ export default function FinanceInvoices() {
                       <TableCell>
                         <span className={cn(
                           "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border",
-                          inv.status === 'paid' ? "bg-green-500/20 text-green-500 border-green-500/30" : 
-                          inv.status === 'overdue' ? "bg-red-500/20 text-red-500 border-red-500/30" :
-                          "bg-muted text-muted-foreground border-muted"
+                          inv.status === 'paid' ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" : 
+                          inv.status === 'overdue' ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30" :
+                          "bg-muted text-muted-foreground border-border/60"
                         )}>
                           {inv.status.toUpperCase()}
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-medium text-foreground">{formatCurrency(inv.total_amount)}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="sm" className="hover:bg-white/10 hover:text-white">
+                        <Button variant="ghost" size="sm" className="hover:bg-muted/60 text-muted-foreground hover:text-foreground">
                           <FileText className="h-4 w-4" />
                         </Button>
                       </TableCell>

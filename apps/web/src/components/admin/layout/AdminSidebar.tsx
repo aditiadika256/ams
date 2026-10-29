@@ -497,7 +497,7 @@ export function AdminSidebar() {
         inert={isMobile && !sidebarMobileOpen}
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex h-dvh w-[86vw] max-w-80 flex-col overflow-hidden border-r border-border/70 bg-background shadow-[12px_0_40px_-24px_rgba(15,23,42,0.45)] transition-transform duration-300 ease-out',
-          'md:h-auto md:max-w-none md:border-white/10 md:bg-background/70 md:backdrop-blur-xl md:shadow-xl md:transition-[width,transform]',
+          'md:h-auto md:max-w-none md:border-border/60 md:bg-card/75 md:backdrop-blur-xl md:shadow-xl md:transition-[width,transform]',
           sidebarMobileOpen ? 'translate-x-0' : '-translate-x-full',
           'md:translate-x-0',
           sidebarOpen ? 'md:w-[280px]' : 'md:w-[80px] md:items-center',
@@ -505,7 +505,7 @@ export function AdminSidebar() {
       >
         <div
           className={cn(
-            'flex h-16 w-full shrink-0 items-center border-b border-border/70 md:border-white/10',
+            'flex h-16 w-full shrink-0 items-center border-b border-border/60',
             isSidebarExpanded ? 'justify-between px-4' : 'justify-center px-2',
           )}
         >

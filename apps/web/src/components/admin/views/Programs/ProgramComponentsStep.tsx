@@ -486,14 +486,14 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
       </div>
 
       {/* Component Add Control */}
-      <div className="rounded-2xl border border-zinc-200/80 bg-white/70 p-5 shadow-sm backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/60">
+      <div className="rounded-2xl border border-border/60 bg-card/85 p-5 shadow-sm backdrop-blur-xl">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
               <Layers className="size-4 text-primary" />
               Komposisi Komponen & Konten Program
             </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Tambahkan komponen ke kurikulum dan atur file materi, video stream, atau wacana bacaan langsung di sini.
             </p>
           </div>
@@ -513,7 +513,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                     handleAddComponent(Number(val));
                   }
                 }}
-                className="h-10 rounded-xl border border-zinc-200 bg-white/80 px-3 pr-8 text-xs font-medium text-zinc-800 shadow-sm transition hover:border-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary/40 dark:border-zinc-800 dark:bg-zinc-900/80 dark:text-zinc-200"
+                className="h-10 rounded-xl border border-input/60 bg-background/70 px-3 pr-8 text-xs font-medium text-foreground shadow-sm transition hover:border-input focus:outline-none focus:ring-2 focus:ring-ring/40"
               >
                 <option value="">+ Tambah Komponen Baru…</option>
                 {definitions.map((def) => (
@@ -527,8 +527,8 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
         </div>
 
         {/* Quick Add Chips */}
-        <div className="mt-3 flex flex-wrap items-center gap-1.5 pt-3 border-t border-zinc-100 dark:border-zinc-800/50">
-          <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 mr-1 flex items-center gap-1">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5 pt-3 border-t border-border/60">
+          <span className="text-[11px] font-medium text-muted-foreground mr-1 flex items-center gap-1">
             <Plus className="size-3" /> Tambah Cepat:
           </span>
           {definitions.filter((d) => d.is_available).map((def) => (
@@ -536,7 +536,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
               key={def.id}
               type="button"
               onClick={() => handleAddComponent(def.id)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200/70 bg-zinc-50/60 px-2.5 py-1 text-xs font-medium text-zinc-700 transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-2.5 py-1 text-xs font-medium text-foreground transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
             >
               {getComponentIcon(def.code)}
               {def.name}
@@ -579,8 +579,8 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                 key={component.instanceKey}
                 className={`group relative overflow-hidden rounded-2xl border transition-all duration-300 ${
                   component.isEnabled
-                    ? 'border-zinc-200/90 bg-white/80 shadow-sm backdrop-blur-md dark:border-zinc-800/90 dark:bg-zinc-950/70'
-                    : 'border-zinc-200/40 bg-zinc-50/40 opacity-60 dark:border-zinc-800/40 dark:bg-zinc-900/30'
+                    ? 'border-border/60 bg-card/85 shadow-sm backdrop-blur-xl'
+                    : 'border-border/40 bg-muted/20 opacity-60'
                 }`}
               >
                 {/* Top Header Row */}
@@ -594,38 +594,38 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                         aria-label="Geser ke atas"
                         disabled={index === 0}
                         onClick={() => handleMove(index, 'up')}
-                        className="rounded p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 transition-colors"
                       >
                         <ChevronUp className="size-3.5" />
                       </button>
-                      <span className="text-[10px] font-semibold text-zinc-400">{index + 1}</span>
+                      <span className="text-[10px] font-semibold text-muted-foreground">{index + 1}</span>
                       <button
                         type="button"
                         aria-label="Geser ke bawah"
                         disabled={index === state.components.length - 1}
                         onClick={() => handleMove(index, 'down')}
-                        className="rounded p-0.5 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 disabled:opacity-30 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30 transition-colors"
                       >
                         <ChevronDown className="size-3.5" />
                       </button>
                     </div>
 
                     {/* Icon */}
-                    <div className="rounded-xl border border-zinc-200/60 bg-zinc-100/80 p-2.5 dark:border-zinc-800 dark:bg-zinc-900/80">
+                    <div className="rounded-xl border border-border/60 bg-muted/50 p-2.5">
                       {getComponentIcon(definition?.code ?? '')}
                     </div>
 
                     {/* Name and description */}
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                        <span className="text-sm font-semibold text-foreground">
                           {definition?.name ?? 'Komponen'}
                         </span>
                         <Badge variant="outline" className="text-[10px] py-0 px-1.5 font-normal">
                           #{index + 1}
                         </Badge>
                       </div>
-                      <span className="block text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1">
+                      <span className="block text-xs text-muted-foreground line-clamp-1">
                         {definition?.description || definition?.code}
                       </span>
                     </div>
@@ -639,7 +639,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                         placeholder="Label tampilan (opsional)"
                         value={component.label}
                         onChange={(e) => handleLabelChange(component.instanceKey, e.target.value)}
-                        className="h-9 text-xs"
+                        className="h-10 text-xs bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                       />
                     </div>
 
@@ -650,7 +650,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                         checked={component.isEnabled}
                         onCheckedChange={(checked) => handleToggle(component.instanceKey, checked)}
                       />
-                      <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 min-w-8">
+                      <span className="text-xs font-medium text-foreground min-w-8">
                         {component.isEnabled ? 'Aktif' : 'Off'}
                       </span>
                     </div>
@@ -661,7 +661,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                       variant="ghost"
                       size="sm"
                       onClick={() => handleRemove(component.instanceKey)}
-                      className="h-8 w-8 p-0 text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                       title="Hapus instance komponen ini"
                       aria-label="Hapus instance komponen ini"
                     >
@@ -671,7 +671,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                 </div>
 
                 {/* Content Bar & Expand Button */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 bg-zinc-50/50 px-4 py-2.5 dark:border-zinc-800/60 dark:bg-zinc-900/40">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/40 bg-muted/30 px-4 py-2.5">
                   <div className="flex flex-wrap items-center gap-2">
                     <Button
                       type="button"
@@ -681,7 +681,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                       className={`h-7 rounded-lg text-xs font-medium transition ${
                         isExpanded
                           ? 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15'
-                          : 'border-zinc-200/80 bg-white/80 hover:bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200'
+                          : 'border-border/60 bg-background/80 hover:bg-muted text-foreground'
                       }`}
                     >
                       {isExpanded ? <ChevronUp className="mr-1.5 size-3.5" /> : <ChevronDown className="mr-1.5 size-3.5" />}
@@ -773,14 +773,14 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
 
                 {/* Expandable Inline Content Management Panel */}
                 {isExpanded && (
-                  <div className="border-t border-zinc-200/80 bg-zinc-50/70 p-5 dark:border-zinc-800/80 dark:bg-zinc-900/60">
-                    <div className="flex items-center justify-between pb-3 border-b border-zinc-200/60 dark:border-zinc-800">
+                  <div className="border-t border-border/60 bg-muted/20 p-5">
+                    <div className="flex items-center justify-between pb-3 border-b border-border/60">
                       <div>
-                        <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                        <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
                           <FileUp className="size-4 text-primary" />
                           Kelola Isi & Materi: {component.label || definition?.name}
                         </h4>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           Tentukan sumber materi, unggah dokumen privat, atau sematkan video streaming tanpa harus membuka menu terpisah.
                         </p>
                       </div>
@@ -789,7 +789,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                         variant="ghost"
                         size="sm"
                         onClick={() => setExpandedInstanceKey(null)}
-                        className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                         title="Tutup panel kelola isi"
                       >
                         <X className="size-4" />
@@ -799,7 +799,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                     {/* Content Source Type Selector */}
                     <div className="mt-4 grid gap-4">
                       <div>
-                        <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2 block">
+                        <label className="text-xs font-semibold text-foreground mb-2 block">
                           Jenis Materi / Sumber Konten
                         </label>
                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
@@ -819,13 +819,13 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
                                 onClick={() => handleContentConfigChange(component.instanceKey, { content_type: item.type })}
                                 className={`flex flex-col items-center justify-center rounded-xl border p-2.5 text-center transition-all ${
                                   isSelected
-                                    ? 'border-primary bg-primary/10 text-primary shadow-sm dark:bg-primary/20'
-                                    : 'border-zinc-200 bg-white hover:border-zinc-300 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300'
+                                    ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                                    : 'border-border/60 bg-card/70 hover:border-border text-foreground hover:bg-muted/40'
                                 }`}
                               >
                                 <IconComponent className="size-4 mb-1" />
                                 <span className="text-xs font-medium">{item.label}</span>
-                                <span className="text-[10px] text-zinc-400 mt-0.5">{item.desc}</span>
+                                <span className="text-[10px] text-muted-foreground mt-0.5">{item.desc}</span>
                               </button>
                             );
                           })}
@@ -834,7 +834,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
 
                       {/* 1. File Upload / Media Library Section */}
                       {(config.content_type ?? 'file') === 'file' && (
-                        <div className="grid gap-3 rounded-xl border border-zinc-200/80 bg-white/90 p-4 dark:border-zinc-800 dark:bg-zinc-950/80">
+                        <div className="grid gap-3 rounded-xl border border-border/60 bg-card/60 backdrop-blur-sm p-4">
                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5">
                               <FileUp className="size-3.5 text-primary" />
@@ -1263,11 +1263,11 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
         open={Boolean(mediaLibraryModalKey)}
         onOpenChange={(open) => !open && setMediaLibraryModalKey(null)}
       >
-        <DialogContent className="max-w-4xl max-h-[88vh] flex flex-col rounded-3xl border border-white/30 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:border-zinc-800 dark:bg-zinc-950/95">
+        <DialogContent className="max-w-4xl max-h-[88vh] flex flex-col rounded-3xl border border-border/60 bg-card/95 p-6 shadow-2xl backdrop-blur-2xl">
           <DialogHeader className="shrink-0">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <DialogTitle className="flex items-center gap-2.5 text-base font-bold text-zinc-900 dark:text-zinc-100">
+                <DialogTitle className="flex items-center gap-2.5 text-base font-bold text-foreground">
                   <div className="rounded-xl bg-primary/10 p-2 text-primary dark:bg-primary/20">
                     <FolderOpen className="size-5" />
                   </div>
@@ -1503,13 +1503,13 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
 
       {/* Live Preview Modal for View Page */}
       <Dialog open={Boolean(livePreviewData)} onOpenChange={(open) => !open && setLivePreviewData(null)}>
-        <DialogContent className="max-w-4xl border-white/20 bg-white/95 p-6 shadow-2xl backdrop-blur-2xl dark:border-white/10 dark:bg-zinc-950/95 sm:rounded-2xl">
+        <DialogContent className="max-w-4xl border border-border/60 bg-card/95 p-6 shadow-2xl backdrop-blur-2xl sm:rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+            <DialogTitle className="flex items-center gap-2 text-base font-semibold text-foreground">
               <Eye className="size-4 text-primary" />
               Pratinjau Tampilan Siswa (View Page Interaktif)
             </DialogTitle>
-            <DialogDescription className="text-xs text-zinc-500">
+            <DialogDescription className="text-xs text-muted-foreground">
               Berikut simulasi interaktif bagaimana siswa akan melihat materi Google Drive / PDF / Media di portal belajar.
             </DialogDescription>
           </DialogHeader>
@@ -1527,7 +1527,7 @@ export function ProgramComponentsStep({ state, setState, definitions, programId 
         </DialogContent>
       </Dialog>
 
-      <div className="flex items-center gap-2 rounded-xl bg-zinc-50 p-3 text-xs text-zinc-500 dark:bg-zinc-900/50 dark:text-zinc-400">
+      <div className="flex items-center gap-2 rounded-xl bg-muted/50 p-3 text-xs text-muted-foreground border border-border/40">
         <Info className="size-4 shrink-0 text-primary" />
         <span>
           Setiap komponen yang berstatus <strong>Aktif</strong> akan otomatis muncul di kurikulum silabus siswa.

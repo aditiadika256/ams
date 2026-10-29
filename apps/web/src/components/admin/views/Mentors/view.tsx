@@ -128,15 +128,15 @@ export default function MentorsView() {
           <p className="text-muted-foreground">Manage mentor profiles, schedules, and assignments.</p>
         </div>
         {canManageMentors && (
-          <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0">
-            <Plus className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Add New Mentor</span>
+          <Button onClick={handleOpenAdd} className="bg-primary hover:bg-primary/90 text-primary-foreground border-0 w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium">
+            <Plus className="h-4 w-4 mr-2" />
+            <span>Add New Mentor</span>
           </Button>
         )}
       </motion.div>
 
       {error && (
-        <motion.div variants={itemVariants} className="bg-destructive/15 text-destructive px-4 py-3 rounded-md text-sm border border-destructive/20 backdrop-blur-sm">
+        <motion.div variants={itemVariants} className="bg-destructive/15 text-destructive px-4 py-3 rounded-xl text-sm border border-destructive/20 backdrop-blur-sm">
           {error}
         </motion.div>
       )}
@@ -144,16 +144,16 @@ export default function MentorsView() {
       <motion.div variants={itemVariants}>
         <GlassCard>
           <GlassCardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <GlassCardTitle>All Mentors</GlassCardTitle>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <ViewToggle view={viewMode} onViewChange={setViewMode} />
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
                     placeholder="Search mentors..."
-                    className="pl-8 w-[200px] lg:w-[300px] bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+                    className="pl-8 w-full sm:w-[200px] lg:w-[300px] h-10 text-xs bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -170,7 +170,7 @@ export default function MentorsView() {
                <div className={viewMode === 'list' ? "overflow-x-auto" : ""}>
                  {viewMode === 'list' ? (
                    <table className="w-full text-sm text-left">
-                     <thead className="text-xs text-muted-foreground uppercase bg-white/5 border-b border-white/10">
+                     <thead className="text-xs text-muted-foreground uppercase bg-muted/40 border-b border-border/60">
                        <tr>
                          <th className="px-4 py-3 font-medium">Name</th>
                          <th className="px-4 py-3 font-medium">Specialization</th>
@@ -179,18 +179,18 @@ export default function MentorsView() {
                          <th className="px-4 py-3 font-medium text-right">Actions</th>
                        </tr>
                      </thead>
-                     <tbody className="divide-y divide-white/5">
+                     <tbody className="divide-y divide-border/40">
                        {paginatedMentors.map((mentor) => (
                          <motion.tr 
                            key={mentor.id} 
-                           className="hover:bg-white/5 transition-colors"
+                           className="hover:bg-muted/30 transition-colors"
                            initial={{ opacity: 0 }}
                            animate={{ opacity: 1 }}
                            transition={{ duration: 0.3 }}
                          >
                            <td className="px-4 py-3">
                              <div className="flex items-center gap-3">
-                               <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
+                               <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-border/60">
                                  {mentor.user?.name ? mentor.user.name.charAt(0) : 'M'}
                                </div>
                                <div>
@@ -202,28 +202,28 @@ export default function MentorsView() {
                            <td className="px-4 py-3">
                              <div className="flex items-center gap-2">
                                <GraduationCap className="h-3 w-3 text-muted-foreground" />
-                               <span>{mentor.specialization}</span>
+                               <span className="text-foreground">{mentor.specialization}</span>
                              </div>
                            </td>
                            <td className="px-4 py-3">
                              <div className="flex items-center gap-2">
                                 <Clock className="h-3 w-3 text-muted-foreground" />
-                                <span>{mentor.experience_years} Years</span>
+                                <span className="text-foreground">{mentor.experience_years} Years</span>
                              </div>
                            </td>
                            <td className="px-4 py-3">
-                             <Badge variant={mentor.is_active ? 'default' : 'secondary'} className={mentor.is_active ? "bg-green-500/20 text-green-400 hover:bg-green-500/30" : ""}>
+                             <Badge variant={mentor.is_active ? 'default' : 'secondary'} className={mentor.is_active ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" : ""}>
                                {mentor.is_active ? 'Active' : 'Inactive'}
                              </Badge>
                            </td>
                            <td className="px-4 py-3 text-right">
                              <DropdownMenu>
                                <DropdownMenuTrigger asChild>
-                                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10">
+                                 <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
                                    <MoreHorizontal className="h-4 w-4" />
                                  </Button>
                                </DropdownMenuTrigger>
-                               <DropdownMenuContent align="end">
+                               <DropdownMenuContent align="end" className="bg-card/95 border-border/60">
                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                  {canManageMentors && (
                                    <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="cursor-pointer">
@@ -235,7 +235,7 @@ export default function MentorsView() {
                                  </DropdownMenuItem>
                                  {canManageMentors && (
                                    <>
-                                     <DropdownMenuSeparator className="bg-white/10" />
+                                     <DropdownMenuSeparator className="bg-border/60" />
                                      <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive cursor-pointer">
                                        <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
                                      </DropdownMenuItem>
@@ -253,41 +253,41 @@ export default function MentorsView() {
                      {paginatedMentors.map((mentor) => (
                        <motion.div 
                          key={mentor.id} 
-                         className="bg-white/5 border border-white/10 rounded-xl p-4 flex flex-col hover:bg-white/10 transition-colors"
+                         className="bg-card/80 border border-border/60 rounded-2xl p-4 flex flex-col hover:bg-muted/30 transition-colors shadow-sm"
                          initial={{ opacity: 0, scale: 0.95 }}
                          animate={{ opacity: 1, scale: 1 }}
                          transition={{ duration: 0.3 }}
                        >
                          <div className="flex justify-between items-start mb-3">
                            <div className="flex items-center gap-3">
-                             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-white/10">
+                             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium border border-border/60">
                                {mentor.user?.name ? mentor.user.name.charAt(0) : 'M'}
                              </div>
                              <div>
-                               <h3 className="font-semibold text-base line-clamp-1">{mentor.user?.name || 'Unknown User'}</h3>
+                               <h3 className="font-semibold text-base text-foreground line-clamp-1">{mentor.user?.name || 'Unknown User'}</h3>
                                <p className="text-xs text-muted-foreground line-clamp-1">{mentor.user?.email || 'No Email'}</p>
                              </div>
                            </div>
                            <DropdownMenu>
                              <DropdownMenuTrigger asChild>
-                               <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/10 shrink-0">
+                               <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted shrink-0 text-muted-foreground hover:text-foreground">
                                  <MoreHorizontal className="h-4 w-4" />
                                </Button>
                              </DropdownMenuTrigger>
-                             <DropdownMenuContent align="end" className="bg-black/80 backdrop-blur-xl border-white/10">
+                             <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-xl border-border/60">
                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                {canManageMentors && (
-                                 <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="focus:bg-white/10">
+                                 <DropdownMenuItem onClick={() => handleOpenEdit(mentor)} className="cursor-pointer">
                                    <Edit className="mr-2 h-4 w-4" /> Edit Profile
                                  </DropdownMenuItem>
                                )}
-                               <DropdownMenuItem className="focus:bg-white/10">
+                               <DropdownMenuItem className="cursor-pointer">
                                   <Clock className="mr-2 h-4 w-4" /> Manage Schedule
                                </DropdownMenuItem>
                                {canManageMentors && (
                                  <>
-                                   <DropdownMenuSeparator className="bg-white/10" />
-                                   <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20">
+                                   <DropdownMenuSeparator className="bg-border/60" />
+                                   <DropdownMenuItem onClick={() => handleDelete(mentor.id)} className="text-destructive focus:bg-destructive/20 cursor-pointer">
                                      <Trash2 className="mr-2 h-4 w-4" /> Delete / Deactivate
                                    </DropdownMenuItem>
                                  </>
@@ -297,19 +297,19 @@ export default function MentorsView() {
                          </div>
                          
                          <div className="flex gap-2 mb-4">
-                           <Badge variant="outline" className="border-white/20 bg-white/5 text-xs flex items-center gap-1">
+                           <Badge variant="outline" className="border-border/60 bg-muted/40 text-xs flex items-center gap-1 text-foreground">
                              <GraduationCap className="h-3 w-3 text-muted-foreground" />
                              <span className="truncate max-w-[120px]">{mentor.specialization}</span>
                            </Badge>
-                           <Badge variant="outline" className="border-white/20 bg-white/5 text-xs flex items-center gap-1">
+                           <Badge variant="outline" className="border-border/60 bg-muted/40 text-xs flex items-center gap-1 text-foreground">
                               <Clock className="h-3 w-3 text-muted-foreground" />
                               <span>{mentor.experience_years} Yrs</span>
                            </Badge>
                          </div>
                          
-                         <div className="mt-auto pt-4 flex justify-between items-center border-t border-white/5">
+                         <div className="mt-auto pt-4 flex justify-between items-center border-t border-border/40">
                            <div className="text-xs text-muted-foreground">ID: {mentor.id}</div>
-                           <Badge variant={mentor.is_active ? 'default' : 'secondary'} className={mentor.is_active ? "bg-green-500/20 text-green-400" : "text-xs"}>
+                           <Badge variant={mentor.is_active ? 'default' : 'secondary'} className={mentor.is_active ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30" : "text-xs"}>
                              {mentor.is_active ? 'Active' : 'Inactive'}
                            </Badge>
                          </div>
@@ -335,9 +335,9 @@ export default function MentorsView() {
 
       {/* Form Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg border border-border/60 bg-card/95 backdrop-blur-xl">
           <DialogHeader>
-            <DialogTitle>{selectedMentor ? 'Edit Mentor' : 'Tambah Mentor Baru'}</DialogTitle>
+            <DialogTitle className="text-foreground">{selectedMentor ? 'Edit Mentor' : 'Tambah Mentor Baru'}</DialogTitle>
           </DialogHeader>
           <MentorForm 
             initialData={selectedMentor}

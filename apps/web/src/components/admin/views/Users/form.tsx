@@ -97,7 +97,7 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 py-4">
+    <form onSubmit={handleSubmit} className="space-y-4 py-3">
       <div className="space-y-2">
         <Label htmlFor="user-name">Nama Lengkap</Label>
         <Input
@@ -106,7 +106,7 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
           onChange={(e) => setName(e.target.value)}
           required
           placeholder="Masukkan nama lengkap"
-          className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+          className="bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
@@ -119,7 +119,7 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="user@arkanin.id"
-          className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+          className="bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
         />
       </div>
 
@@ -133,19 +133,19 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
             onChange={(e) => setPassword(e.target.value)}
             required={!initialData}
             placeholder="••••••••"
-            className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10"
+            className="bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground"
           />
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="user-role">Role</Label>
           <Select value={role} onValueChange={setRole} disabled={isLoadingMetadata}>
-            <SelectTrigger id="user-role" className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
+            <SelectTrigger id="user-role" className="bg-background/70 border-input/60 text-foreground">
               <SelectValue placeholder={isLoadingMetadata ? "Loading roles..." : "Pilih Role"} />
             </SelectTrigger>
-            <SelectContent className="border-slate-200 dark:border-white/10">
+            <SelectContent className="border-border/60 bg-popover text-popover-foreground">
               {roles.map((r) => (
                 <SelectItem key={`${r.guard_name}:${r.name}`} value={r.name}>
                   {r.name.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}
@@ -158,10 +158,10 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
         <div className="space-y-2">
           <Label htmlFor="user-branch">Cabang / Branch</Label>
           <Select value={branchId} onValueChange={setBranchId} disabled={isLoadingMetadata}>
-            <SelectTrigger id="user-branch" className="bg-background/50 border-input/50 dark:bg-white/5 dark:border-white/10">
+            <SelectTrigger id="user-branch" className="bg-background/70 border-input/60 text-foreground">
               <SelectValue placeholder={isLoadingMetadata ? "Loading branches..." : "Pilih Cabang"} />
             </SelectTrigger>
-            <SelectContent className="border-slate-200 dark:border-white/10">
+            <SelectContent className="border-border/60 bg-popover text-popover-foreground">
               <SelectItem value="none">Tidak Ada</SelectItem>
               {branches.map((b) => (
                 <SelectItem key={b.id} value={b.id.toString()}>
@@ -173,11 +173,20 @@ export function UserForm({ initialData, onSubmit, onCancel, isLoading }: UserFor
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200 dark:border-white/10">
-        <Button type="button" variant="outline" onClick={onCancel} className="border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5">
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 sm:gap-2 pt-4 border-t border-border/60">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="w-full sm:w-auto min-h-11 sm:min-h-10 border-border/70 hover:bg-accent hover:text-accent-foreground"
+        >
           Batal
         </Button>
-        <Button type="submit" disabled={isLoading || isLoadingMetadata} className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button
+          type="submit"
+          disabled={isLoading || isLoadingMetadata}
+          className="w-full sm:w-auto min-h-11 sm:min-h-10 bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
           {isLoading ? 'Menyimpan...' : 'Simpan User'}
         </Button>
       </div>

@@ -177,7 +177,7 @@ export default function MenuManagementView() {
               <Plus className="h-4 w-4 sm:mr-2" /> <span className="hidden sm:inline">Tambah Menu</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto border border-border/60 bg-card/95 backdrop-blur-xl">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Edit Menu' : 'Tambah Menu'}</DialogTitle>
             </DialogHeader>
@@ -215,31 +215,31 @@ export default function MenuManagementView() {
                   .map((m, index) => (
                     <motion.div 
                       key={m.id} 
-                      className="border border-white/10 rounded-lg p-4 bg-white/5 hover:bg-white/10 transition-colors"
+                      className="border border-border/60 rounded-xl p-4 bg-card/60 hover:bg-card/90 backdrop-blur-sm transition-colors shadow-sm"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                          <div className="font-semibold flex items-center gap-2">
-                            <span className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs text-primary/80 border border-primary/20">
+                          <div className="font-semibold flex items-center gap-2 text-foreground">
+                            <span className="h-6 w-6 rounded-full bg-primary/15 flex items-center justify-center text-xs text-primary font-medium border border-primary/25">
                               {m.order}
                             </span>
                             {m.name}
                           </div>
                           <div className="text-sm text-muted-foreground mt-1 ml-8">{m.url}</div>
-                          <div className="text-xs text-muted-foreground ml-8 flex gap-2 mt-1">
-                            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5">Layout: {m.layout}</span>
-                            <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5">Section: {m.section}</span>
+                          <div className="text-xs text-muted-foreground ml-8 flex flex-wrap gap-2 mt-1.5">
+                            <span className="px-2 py-0.5 rounded-full bg-muted/70 border border-border/50 text-muted-foreground">Layout: {m.layout}</span>
+                            <span className="px-2 py-0.5 rounded-full bg-muted/70 border border-border/50 text-muted-foreground">Section: {m.section}</span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" onClick={() => startEdit(m)} className="border-white/10 hover:bg-white/10">
+                        <div className="flex items-center gap-2 self-end sm:self-center">
+                          <Button variant="outline" size="sm" onClick={() => startEdit(m)} className="h-9 sm:h-8 border-border/60 hover:bg-muted/60">
                             <Edit className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => removeMenu(m.id)} disabled={deletingId !== null} className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20">
+                          <Button variant="destructive" size="sm" onClick={() => removeMenu(m.id)} disabled={deletingId !== null} className="h-9 sm:h-8 bg-destructive/15 text-destructive hover:bg-destructive/25 border border-destructive/25">
                             <Trash2 className="h-4 w-4 mr-1" />
                             Hapus
                           </Button>
@@ -249,27 +249,27 @@ export default function MenuManagementView() {
                         .filter(c => c.parent_id === m.id)
                         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
                         .map((c) => (
-                          <div key={c.id} className="mt-3 ml-6 border-l border-white/10 pl-4">
-                            <div className="flex items-center justify-between p-2 rounded-md hover:bg-white/5 transition-colors">
+                          <div key={c.id} className="mt-3 ml-4 sm:ml-6 border-l border-border/50 pl-3 sm:pl-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-lg hover:bg-muted/40 transition-colors gap-2">
                               <div>
-                                <div className="flex items-center gap-2">
-                                  <span className="h-5 w-5 rounded-full bg-pink-500/20 flex items-center justify-center text-[10px] text-pink-300 border border-pink-500/20">
+                                <div className="flex items-center gap-2 self-end sm:self-center">
+                                  <span className="h-5 w-5 rounded-full bg-pink-500/15 flex items-center justify-center text-[10px] text-pink-700 dark:text-pink-300 font-medium border border-pink-500/25">
                                     {c.order}
                                   </span>
                                   {c.name}
                                 </div>
                                 <div className="text-sm text-muted-foreground mt-1 ml-7">{c.url}</div>
-                                <div className="text-xs text-muted-foreground ml-7 flex gap-2 mt-1">
-                                  <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5">Layout: {c.layout}</span>
-                                  <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/5">Section: {c.section}</span>
+                                <div className="text-xs text-muted-foreground ml-7 flex flex-wrap gap-2 mt-1">
+                                  <span className="px-2 py-0.5 rounded-full bg-muted/70 border border-border/50 text-muted-foreground">Layout: {c.layout}</span>
+                                  <span className="px-2 py-0.5 rounded-full bg-muted/70 border border-border/50 text-muted-foreground">Section: {c.section}</span>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm" onClick={() => startEdit(c)} className="h-8 border-white/10 hover:bg-white/10">
+                              <div className="flex items-center gap-2 self-end sm:self-center">
+                                <Button variant="outline" size="sm" onClick={() => startEdit(c)} className="h-8 border-border/60 hover:bg-muted/60">
                                   <Edit className="h-3 w-3 mr-1" />
                                   Edit
                                 </Button>
-                                <Button variant="destructive" size="sm" onClick={() => removeMenu(c.id)} disabled={deletingId !== null} className="h-8 bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/20">
+                                <Button variant="destructive" size="sm" onClick={() => removeMenu(c.id)} disabled={deletingId !== null} className="h-8 bg-destructive/15 text-destructive hover:bg-destructive/25 border border-destructive/25">
                                   <Trash2 className="h-3 w-3 mr-1" />
                                   Hapus
                                 </Button>

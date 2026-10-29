@@ -89,13 +89,99 @@ export function GenericContentEditor({ programId, component, canManage, canPubli
   };
 
   return (
-    <Card className="border-zinc-200 shadow-none dark:border-zinc-800">
-      <CardHeader className="gap-4 border-b border-zinc-200 dark:border-zinc-800 sm:flex-row sm:items-center sm:justify-between"><div><CardTitle className="text-lg">Isi {component.label || component.name}</CardTitle><p className="mt-1 text-sm text-zinc-500">Template {handler}. Item baru dimulai sebagai draft bila belum siap.</p></div>{canManage && <Button className="min-h-11" onClick={() => { setSelected(null); setDialogOpen(true); }}><Plus className="mr-2 size-4" />Tambah isi</Button>}</CardHeader>
+    <Card className="border border-border/60 bg-card/85 backdrop-blur-xl rounded-2xl shadow-sm">
+      <CardHeader className="gap-4 border-b border-border/60 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <CardTitle className="text-lg text-foreground">Isi {component.label || component.name}</CardTitle>
+          <p className="mt-1 text-sm text-muted-foreground">Template {handler}. Item baru dimulai sebagai draft bila belum siap.</p>
+        </div>
+        {canManage && (
+          <Button className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium" onClick={() => { setSelected(null); setDialogOpen(true); }}>
+            <Plus className="mr-2 size-4" />Tambah isi
+          </Button>
+        )}
+      </CardHeader>
       <CardContent className="p-0">
-        {loading && contents.length === 0 ? <div className="p-8 text-center text-sm text-zinc-500">Memuat isi...</div> : contents.length === 0 ? <div className="grid min-h-56 place-items-center p-8 text-center"><div><FileText className="mx-auto mb-3 size-8 text-zinc-400" /><p className="font-medium">Belum ada isi</p><p className="mt-1 text-sm text-zinc-500">Buat draft pertama untuk component ini.</p></div></div> : <div className="divide-y divide-zinc-200 dark:divide-zinc-800">{contents.map((content) => <article key={content.id} className="flex items-center gap-4 p-4 sm:px-6"><div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="truncate font-medium">{content.title}</h3><Badge variant={content.status === 'PUBLISHED' ? 'default' : 'secondary'}>{content.deleted_at ? 'ARCHIVED' : content.status}</Badge></div><p className="mt-1 line-clamp-1 text-sm text-zinc-500">{content.summary || content.slug}</p></div>{canManage && <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label={`Aksi ${content.title}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end">{!content.deleted_at && (content.status !== 'PUBLISHED' || canPublish) && <DropdownMenuItem onClick={() => { setSelected(content); setDialogOpen(true); }}><Edit3 className="mr-2 size-4" />Edit</DropdownMenuItem>}{!content.deleted_at ? <DropdownMenuItem onClick={() => { setArchiving(content); setReason(''); }}><Archive className="mr-2 size-4" />Arsipkan</DropdownMenuItem> : <DropdownMenuItem onClick={() => { setArchiving(content); setReason(''); }}><RefreshCcw className="mr-2 size-4" />Pulihkan</DropdownMenuItem>}</DropdownMenuContent></DropdownMenu>}</article>)}</div>}
+        {loading && contents.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">Memuat isi...</div>
+        ) : contents.length === 0 ? (
+          <div className="grid min-h-56 place-items-center p-8 text-center">
+            <div>
+              <FileText className="mx-auto mb-3 size-8 text-muted-foreground/60" />
+              <p className="font-semibold text-foreground">Belum ada isi</p>
+              <p className="mt-1 text-sm text-muted-foreground">Buat draft pertama untuk component ini.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="divide-y divide-border/40">
+            {contents.map((content) => (
+              <article key={content.id} className="flex items-center gap-4 p-4 sm:px-6 hover:bg-muted/30 transition-colors">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="truncate font-medium text-foreground">{content.title}</h3>
+                    <Badge variant={content.status === 'PUBLISHED' ? 'default' : 'secondary'} className={content.status === 'PUBLISHED' ? 'bg-primary text-primary-foreground text-[10px]' : 'text-[10px]'}>
+                      {content.deleted_at ? 'ARCHIVED' : content.status}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{content.summary || content.slug}</p>
+                </div>
+                {canManage && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="min-h-10 min-w-10 text-muted-foreground hover:text-foreground" aria-label={`Aksi ${content.title}`}>
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-card/95 border-border/60">
+                      {!content.deleted_at && (content.status !== 'PUBLISHED' || canPublish) && (
+                        <DropdownMenuItem onClick={() => { setSelected(content); setDialogOpen(true); }}>
+                          <Edit3 className="mr-2 size-4" />Edit
+                        </DropdownMenuItem>
+                      )}
+                      {!content.deleted_at ? (
+                        <DropdownMenuItem onClick={() => { setArchiving(content); setReason(''); }}>
+                          <Archive className="mr-2 size-4" />Arsipkan
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem onClick={() => { setArchiving(content); setReason(''); }}>
+                          <RefreshCcw className="mr-2 size-4" />Pulihkan
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </article>
+            ))}
+          </div>
+        )}
       </CardContent>
-      <Dialog open={dialogOpen} onOpenChange={(open) => !loading && setDialogOpen(open)}><DialogContent className="max-h-[92dvh] max-w-2xl overflow-y-auto bg-white dark:bg-zinc-950"><DialogHeader><DialogTitle>{selected ? `Edit ${selected.title}` : `Tambah isi ${component.label || component.name}`}</DialogTitle></DialogHeader><ContentForm handler={handler} initial={selected} loading={loading} uploadProgress={uploadProgress} canPublish={canPublish} canUpload={canUpload} onUpload={upload} onCancel={() => setDialogOpen(false)} onSubmit={save} /></DialogContent></Dialog>
-      <Dialog open={Boolean(archiving)} onOpenChange={(open) => !loading && !open && setArchiving(null)}><DialogContent className="bg-white dark:bg-zinc-950"><DialogHeader><DialogTitle>{archiving?.deleted_at ? 'Pulihkan isi' : 'Arsipkan isi'}</DialogTitle></DialogHeader><form onSubmit={changeArchive} className="grid gap-5"><div className="grid gap-2"><Label htmlFor="content-archive-reason">Alasan</Label><Input id="content-archive-reason" required minLength={5} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} /></div><div className="flex justify-end gap-2"><Button type="button" variant="ghost" onClick={() => setArchiving(null)}>Batal</Button><Button disabled={loading}>{loading ? 'Memproses...' : 'Konfirmasi'}</Button></div></form></DialogContent></Dialog>
+
+      <Dialog open={dialogOpen} onOpenChange={(open) => !loading && setDialogOpen(open)}>
+        <DialogContent className="max-h-[92dvh] max-w-2xl overflow-y-auto border border-border/60 bg-card/95 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">{selected ? `Edit ${selected.title}` : `Tambah isi ${component.label || component.name}`}</DialogTitle>
+          </DialogHeader>
+          <ContentForm handler={handler} initial={selected} loading={loading} uploadProgress={uploadProgress} canPublish={canPublish} canUpload={canUpload} onUpload={upload} onCancel={() => setDialogOpen(false)} onSubmit={save} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(archiving)} onOpenChange={(open) => !loading && !open && setArchiving(null)}>
+        <DialogContent className="border border-border/60 bg-card/95 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">{archiving?.deleted_at ? 'Pulihkan isi' : 'Arsipkan isi'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={changeArchive} className="grid gap-5">
+            <div className="grid gap-2">
+              <Label htmlFor="content-archive-reason" className="text-foreground">Alasan</Label>
+              <Input id="content-archive-reason" required minLength={5} maxLength={1000} value={reason} onChange={(event) => setReason(event.target.value)} className="h-10 text-xs bg-background/70 border-input/60 text-foreground placeholder:text-muted-foreground" />
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setArchiving(null)} className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs">Batal</Button>
+              <Button disabled={loading} className="w-full sm:w-auto min-h-11 sm:min-h-10 text-xs font-medium">{loading ? 'Memproses...' : 'Konfirmasi'}</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
